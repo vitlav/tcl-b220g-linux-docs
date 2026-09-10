@@ -1,0 +1,387 @@
+[
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=4320,variant=GO_POMPOM"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "7728613607992f5b7b0073008c2859db95e0e3c5f7f2ded1853f467ff2d0b35d"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=320,variant=GO_POMPOM"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "7728613607992f5b7b0073008c2859db95e0e3c5f7f2ded1853f467ff2d0b35d"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=4320,variant=GO_LAZOR"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "d6ae1a43687261c0614ea4d76228a46d39b5769a0e81e6d0120255f2f505ab0d"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=320,variant=GO_LAZOR"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "d6ae1a43687261c0614ea4d76228a46d39b5769a0e81e6d0120255f2f505ab0d"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=320,variant=GO_QUACKINGSTICK"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "cf424469da92f4717db4aafa459f0eea810bf980f55a8bc9b7c8d5f7ba390c93"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=4320,variant=GO_QUACKINGSTICK"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "cf424469da92f4717db4aafa459f0eea810bf980f55a8bc9b7c8d5f7ba390c93"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=320,variant=GO_QUACKINGSTICK_LTE"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "cf424469da92f4717db4aafa459f0eea810bf980f55a8bc9b7c8d5f7ba390c93"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=4320,variant=GO_QUACKINGSTICK_LTE"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "cf424469da92f4717db4aafa459f0eea810bf980f55a8bc9b7c8d5f7ba390c93"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=4320,variant=GO_HOMESTAR"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "d937329f48a312ac385b4baffc538a10e2a6a3ea77221953cb45f78645aa85ee"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=320,variant=GO_HOMESTAR"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "d937329f48a312ac385b4baffc538a10e2a6a3ea77221953cb45f78645aa85ee"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=4320,variant=GO_WORMDINGLER"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "5fa279e723cc82b3a0677567defc91495a395aebbebd8fea76e6a3701d1a4ccc"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=320,variant=GO_WORMDINGLER"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "5fa279e723cc82b3a0677567defc91495a395aebbebd8fea76e6a3701d1a4ccc"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=4320,variant=GO_MRBLAND"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "acf955618613490b56a6b17dcc97725e800ff4ef0249cfd488bf6a7a0a0cb93a"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=320,variant=GO_MRBLAND"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "acf955618613490b56a6b17dcc97725e800ff4ef0249cfd488bf6a7a0a0cb93a"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214,variant=Thundercomm_DB845C"
+    ],
+    "data": [
+      {
+        "bytes": 19152,
+        "sha256": "9bdf7859d8d6a6f41f6b55338b51723335bc9cc24a4d2e20ebaef234859d6fb3"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214"
+    ],
+    "data": [
+      {
+        "bytes": 19152,
+        "sha256": "9bdf7859d8d6a6f41f6b55338b51723335bc9cc24a4d2e20ebaef234859d6fb3"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=4320,variant=GO_PAZQUEL360"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "e65eab56fa87cc48d83fe231622ebea28be60a7ce50b2b5c6185c67fc00e6757"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=320,variant=GO_PAZQUEL360"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "e65eab56fa87cc48d83fe231622ebea28be60a7ce50b2b5c6185c67fc00e6757"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214,variant=Lenovo_C630"
+    ],
+    "data": [
+      {
+        "bytes": 19152,
+        "sha256": "ff96e5295cc3e3fd86f04049058396cd69cd7f1bc44ef4784f13ffe48ef42a8d"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=120,variant=Thundercomm_RB1"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "0eeffb43040b216b0f3210b8db69e4558844dd9df52caf9c25f56a79401f442c"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=150,variant=Thundercomm_RB2"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "0eeffb43040b216b0f3210b8db69e4558844dd9df52caf9c25f56a79401f442c"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214,variant=oneplus_sdm845"
+    ],
+    "data": [
+      {
+        "bytes": 19152,
+        "sha256": "a46790bc201026e8f38a19f3acd749640b54b73d14e09287659a647b9cc3ee8e"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214,variant=shift_axolotl"
+    ],
+    "data": [
+      {
+        "bytes": 19152,
+        "sha256": "082f65dad7b2ee938911d60a0f4f9ef8df18417ce69e9f42c9e947e961d18f30"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214,variant=xiaomi_beryllium"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "470a670fa15fd1f5625246556c83cb3aa811b0e954813da518e241e3a48bf4a2"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=3f,qmi-chip-id=30214,variant=Qualcomm_sdm845mtp"
+    ],
+    "data": [
+      {
+        "bytes": 19152,
+        "sha256": "8b250ac1bea81825cc6f4a70105dea89b0952340a9c77a8ab37e99cbfa63e53d"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=140,variant=ArduinoImola"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "5075231e7a73c3fbdfe320ed10e66a9c43ca34ce6883aeb3332dc95a97137a2b"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30224,variant=Xiaomi_raphael"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "88b7167f123d869d9985c1162acf5d60e61926d19dd7b5a87e2d5773db295367"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214,variant=Huawei_Planck"
+    ],
+    "data": [
+      {
+        "bytes": 19152,
+        "sha256": "b141678d6e964c8c6baad005418ade1a9f3dc348dda9fce6d958dc0b63df1b6b"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214,variant=Google_blueline"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "c21a1fe73e687d3972aca468e7e0037e84369ae1b42522cc96c46d8135aab126"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=ff,qmi-chip-id=30214,variant=Google_crosshatch"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "75b996c08c99f5487f3153668f0b3a19d8fac41727fe93f1dbd900bc80d2a686"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=67,qmi-chip-id=320,variant=ECS_QC710"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "da2e615dea087b66889d09ab627e091710a35ce05167b0bd95cf4926196a62e1"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=41,qmi-chip-id=30214,variant=Qualcomm_sdm845hdk"
+    ],
+    "data": [
+      {
+        "bytes": 19152,
+        "sha256": "67e9fad4c9959a7d5562b04c9f9f450de93ae22b835e14f697353507fdd1bbf7"
+      }
+    ]
+  },
+  {
+    "names": [
+      "bus=snoc,qmi-board-id=55,qmi-chip-id=30224,variant=Qualcomm_sm8150hdk"
+    ],
+    "data": [
+      {
+        "bytes": 26328,
+        "sha256": "f040cecefd723a4bd28015bb74e85723c971fdff36a773e9e83936dbab2ec61a"
+      }
+    ]
+  }
+]

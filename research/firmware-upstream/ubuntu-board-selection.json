@@ -1,0 +1,16 @@
+{
+  "qmi_board_id": "0xff",
+  "qmi_chip_id": "0x320",
+  "dt_variant": null,
+  "keys_in_driver_order": [
+    "bus=snoc,qmi-board-id=ff,qmi-chip-id=320",
+    "bus=snoc,qmi-board-id=ff,qmi-chip-id=320",
+    "bus=snoc,qmi-board-id=ff"
+  ],
+  "selected_key": "bus=snoc,qmi-board-id=ff",
+  "payload": {
+    "bytes": 26328,
+    "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c"
+  },
+  "method": "Selection inferred from Linux 6.18.34 ath10k source and parsed Ubuntu board-2; no runtime reload"
+}

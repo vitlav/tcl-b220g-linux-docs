@@ -71,7 +71,7 @@ Board data передаёт ядро через QMI BDF download. tqftpserv об
 | `ath10k/WCN3990/hw1.0/firmware-5.bin` | API-файл; контрольная сумма `fef6539e0127579536bc977be57a90d018b83f2931fedc3a8870fbe38d6c4127` |
 | regulatory.db / подпись | Регуляторная база; допустимые частоты определяются её применением и режимом устройства |
 
-[Контрольные суммы 16 OEM-файлов](../../research/peripherals/wifi-services/firmware-sha256.txt) идентифицируют сохранённый набор, а не список обязательной загрузки каждого варианта. Точное сопоставление runtime board ID с выбранным файлом ещё требуется оформить; ID и variant другой платы нельзя считать идентификаторами TCL.
+[Контрольные суммы 16 OEM-файлов](../../research/peripherals/wifi-services/firmware-sha256.txt) идентифицируют сохранённый набор, а не список обязательной загрузки каждого варианта. На работающем TCL прочитаны QMI board_id=0xff и chip_id=0x320, оба DT calibration variant отсутствуют. [Сопоставление Ubuntu board-2 с алгоритмом ath10k](../../research/firmware-upstream/ubuntu-board-selection.md) выбирает generic запись board-id=ff с payload, совпадающим с текущим board.bin. Это проверка по коду и файлу; фактическая загрузка нового API2-контейнера не испытана. ID и variant другой платы нельзя считать идентификаторами TCL.
 
 ## Пользовательское окружение
 
