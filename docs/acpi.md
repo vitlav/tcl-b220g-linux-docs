@@ -37,7 +37,7 @@ SCM текущего рабочего DT: `coherent=0`, обе DMA-маски `0
 
 ## Полная сборка и новые препятствия USB
 
-[ACPI2: сборка и манифест](../research/acpi-boot/acpi2/README.md): `6.18.34-tcl-acpi2`, Image и 948 согласованных модулей. Бинарники и логи сохранены в `/var/ftp/tmp/lav/tcl/acpi2-build/`. Объединённый initramfs ещё не подготовлен.
+[ACPI2: сборка и манифест](../research/acpi-boot/acpi2/README.md): `6.18.34-tcl-acpi2`, Image и 948 согласованных модулей. Объединённый initramfs ещё не подготовлен.
 
 [Проверка IORT mappings](../research/acpi-audit/iort-mappings/README.md): все 16 NamedComponent имеют flags=0, поэтому обычный Linux-путь без input ID не выбирает SID. На настоящих функциях ядра проверены первые отображения всех 16 узлов: с явным ID перевод успешен. Это не аппаратный DMA-тест. Задача [19529](https://bugs.etersoft.ru/19529).
 

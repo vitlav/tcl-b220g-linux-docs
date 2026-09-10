@@ -2,9 +2,9 @@
 
 ## Рабочий путь
 
-UEFI → GRUB ARM64 → Image + DTB + initramfs → Ubuntu на USB. Windows находится на внутреннем UFS. Для диагностики менялись отдельные пункты GRUB; наличие одного успешного пункта не подтверждает соседние.
+UEFI → GRUB ARM64 → Image + DTB + initramfs → Ubuntu на USB. Windows находится на внутреннем UFS.
 
-В рабочем комплекте конфигурация GRUB **встроена в EFI**, отдельный `/EFI/BOOT/grub.cfg` не является источником меню. Нельзя смешивать установленный grub-mkstandalone 2.14 с модулями Debian 2.12: это уже ломало все пункты.
+В рабочем комплекте конфигурация GRUB **встроена в EFI**, отдельный `/EFI/BOOT/grub.cfg` не является источником меню. Версия grub-mkstandalone должна совпадать с версией модулей GRUB.
 
 Проверенный инструмент сборки — Debian GRUB 2.12 с соответствующим каталогом `arm64-efi`. Перед установкой проверяются синтаксис меню, наличие файлов каждого пункта, SHA256, резервная копия EFI и совместимость ядра/модулей/DTB/initramfs. Старый рабочий пункт сохраняется. One-shot next_entry очищается до перехода к эксперименту.
 
@@ -24,6 +24,6 @@ MEMDIAG сохраняет DT и отключает STRICT_DEVMEM для огр�
 
 Проверять запись на физическую USB заранее, а не только наличие кода logger. Текущий MEMDIAG пишет STARTED, исходные сведения, результат reader, RESULT и COMPLETE в `/tcl-memdiag/logs/<boot-id>/` на USB. Успех подтверждается фактическими файлами и sync. Wi-Fi/SSH должны быть подготовлены именно в запускаемом образе.
 
-Неудачный ACPI RAM-тест терял экран и не находил USB; в нём не было сетевого доступа. Такой тест нельзя повторять, объявляя его диагностируемым только по наличию shell или меню GRUB.
+ACPI USB и сеть пока не подтверждены. Наличие shell или меню GRUB не обеспечивает сохранение логов после передачи управления ядру.
 
-Подробности: [MEMDIAG](../research/acpi-audit/memdiag/README.md), [история ACPI1](../research/acpi-boot/acpi1/README.md), [Wi-Fi и SSH](../research/peripherals/wifi-ssh/README.md), [архив Windows](../research/peripherals/windows-backup/README.md).
+Подробности: [MEMDIAG](../research/acpi-audit/memdiag/README.md), [конфигурация ACPI1](../research/acpi-boot/acpi1/README.md), [Wi-Fi и SSH](../research/peripherals/wifi-ssh/README.md), [архив Windows](../research/peripherals/windows-backup/README.md).

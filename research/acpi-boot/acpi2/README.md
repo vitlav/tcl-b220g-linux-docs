@@ -1,30 +1,27 @@
-# ACPI2: полная сборка SCM + SMMU — не загружалась
+# Конфигурация Linux ACPI2 для TCL B220G
 
-2026-09-10. Сборка `make -j8 Image modules` завершилась успешно. Ядро и все модули с новым release **6.18.34-tcl-acpi2**. Это результат компиляции и линковки, не аппаратный результат ACPI-загрузки.
+**Степень подтверждения: полная сборка Image и модулей; на оборудовании не проверено.**
 
-## Состав
+## Требуемые изменения
 
-База — отдельная копия текущего дерева `/tmp/tcl-acpi1-linux` в `/tmp/tcl-acpi2-linux`. Исходная ACPI1 уже содержит исправление default address spaces при PCI=n и SCM v2. Для проверки SCM v2 был снят и повторно применён только в копии; затем применён SMMU selection draft.
+База: Linux 6.18.34 с локальными изменениями поддержки TCL. Полная последовательная серия для чистой upstream-базы пока не сформирована.
 
-Изменение .config относительно ACPI1 — только LOCALVERSION `-tcl-acpi1` → `-tcl-acpi2`. Сохранены CONFIG_ACPI=y, ACPI_TABLE_UPGRADE=y, ACPI_CCA_REQUIRED=y, QCOM_SCM=y, QCOM_TZMEM_MODE_GENERIC=y, ARM_SMMU_QCOM=y. UFS host отключён, как в ACPI1.
+| Изменение | Назначение |
+|---|---|
+| [ACPICA при PCI=n](../../../patches/kernel/acpi/acpica-default-spaces-without-pci.patch) | Условная регистрация обработчика PCI_CONFIG |
+| [SCM ACPI v2](../../../patches/kernel/acpi/scm-acpi-draft-v2.patch) | QCOM080B, проверка DMA и ACPI-зависимости |
+| [SC7180 SMMU](../../../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) | Раздельный выбор Apps и Adreno implementation |
 
-Это сборка поверх локальной исследовательской базы, а не воспроизведённая чистая upstream-серия. Рабочие деревья исходников не имеют `.git`; конкретные файлы патчей и их статус находятся в каталоге патчей репозитория. Старые ACPI1/MEMDIAG исходники и загрузочный носитель не менялись.
+Конфигурация: [kernel.config](kernel.config). Включены ACPI, ACPI_TABLE_UPGRADE, ACPI_CCA_REQUIRED, QCOM_SCM, QCOM_TZMEM_MODE_GENERIC и ARM_SMMU_QCOM. UFS host отключён в этой диагностической конфигурации. Release: `6.18.34-tcl-acpi2`.
 
-## Проверки
+## Проверка сборки
 
-- Полная сборка Image и modules: exit 0; строк `warning:`/`error:` в build.log нет.
-- Image: 32811520 байт, SHA256 `b482eda71cbe4a7949d5cf220f3e4a0c1305efa2a79f47ebd6606d453b1845e1`.
-- Все **948 модулей из modules.order** имеют vermagic `6.18.34-tcl-acpi2`.
-- modules_install выполнен в отдельный staging, depmod завершён.
-- В архив включён только установленный комплект. Унаследованный `kernel/configs.ko` не входит в modules.order (CONFIG_IKCONFIG=y, встроено в ядро) и исключён. Проверять все случайные *.ko в копии дерева вместо modules.order неправильно.
-- Архив modules.tar.gz содержит ровно 948 модулей новой версии; ссылка build на временное дерево не упакована.
+Кросс-сборка ARM64: `ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-`, цели `Image modules`. Полная сборка и установка модулей в staging успешны. Все 948 устанавливаемых модулей имеют соответствующий release. [Манифест и SHA256](manifest.json).
 
-Первичная проверка modinfo потребовала абсолютного `/sbin/modinfo`, поскольку каталог sbin не входил в PATH. Проверка modules.order учитывает, что в этой версии ядра он перечисляет `.o`, соответствующие модули имеют суффикс `.ko`.
+Image: 32811520 байт, SHA256 `b482eda71cbe4a7949d5cf220f3e4a0c1305efa2a79f47ebd6606d453b1845e1`.
 
-## Что ещё нужно для загрузки
+## Условия применимости
 
-Ранняя SCM SSDT подготовлена отдельно, но готового объединённого initramfs для этой версии ещё нет. Нельзя использовать модули ACPI1/audio2 с новым release или объявлять Image+modules полноценным установочным образом.
+SCM требует [ранней SSDT с _CCA=0](../../acpi-audit/scm/early-ssdt/README.md). Совместный initramfs ещё не подготовлен. Модули с другим kernel release несовместимы с этой сборкой.
 
-Проблемы USB и IORT NamedComponent mappings остаются нерешёнными. Новый GRUB-пункт не создавался, EFI/DTB/initramfs на флешке не менялись, перезагрузка не выполнялась. Следующая загрузка требует сначала обеспечить наблюдение результата и фактическую запись логов.
-
-Бинарные материалы: `/var/ftp/tmp/lav/tcl/acpi2-build/`. В Git сохраняются kernel.config, config.diff, манифест и логи, без Image/модулей.
+Не решены [IORT input IDs и ACPI USB](../../acpi-audit/iort-mappings/README.md). Успешная компиляция не подтверждает работу DMA, USB, дисплея или сети при ACPI-загрузке.
