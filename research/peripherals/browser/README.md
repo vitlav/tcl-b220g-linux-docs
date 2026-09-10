@@ -1,27 +1,35 @@
-# GNOME Web на TCL B220G
+# Браузер: Firefox, Wayland и звук
 
-2026-09-09: для проверки браузера в текущем Weston выбрана установка Ubuntu arm64 epiphany-browser 49.2-3ubuntu1 через epm. Firefox в этом репозитории — пакет установки snap. Расчёт apt без Recommends: 59 новых пакетов (включая acl), 50.9 MB загрузки, 213 MB на диске.
+**Проверено на оборудовании:** Firefox ARM64 запускается в Weston; воспроизведение звука через PulseAudio подтверждено пользователем. Это проверка приложения на подготовленном аудиотракте, а не завершённая интеграция рабочего стола и звука после загрузки.
 
-Установка: `APT_CONFIG=/var/tmp/tcl-browser-apt.conf epm -y install epiphany-browser acl`, временный конфиг содержит `APT::Install-Recommends "false";`. Лог: `/var/tmp/tcl-browser-install.log`.
+## Состав проверенной конфигурации
 
-Создан пользователь tcl-browser (группы video,render); runtime /run/tcl-browser, mode 0700. ACL: только проход в /run/tcl-weston и rw к wayland-tcl для этого пользователя. Weston остаётся в существующем диагностическом root-сеансе. ACL и runtime относятся к текущей загрузке; автозапуск браузера не настроен.
+| Компонент | Версия / назначение | Граница подтверждения |
+|---|---|---|
+| ОС | Ubuntu 26.04.1 LTS ARM64, Ubuntu Base | [Состав системы](../../../docs/ubuntu.md) |
+| Firefox | 155.0.1~build1, ARM64; firefox-l10n-ru | Установленные DEB-пакеты из официального Mozilla APT |
+| Wayland | Weston; `MOZ_ENABLE_WAYLAND=1` | Запуск Firefox в существующем сеансе |
+| D-Bus | `dbus-run-session` для сеанса приложения | Не заменяет полную desktop session |
+| PulseAudio | 17; отдельный сервер пользовательского сеанса | Подтверждён звук Firefox |
+| ALSA | Диагностическая ASoC-карта, PCM 48 kHz / S16_LE / stereo | [Тракт, питание и ограничения](../../../docs/hardware/audio.md) |
 
-2026-09-09: GNOME Web 49.2 / WebKitGTK 2.52.6 установлен через epm, свободно552MiB. Первый запуск tcl-browser.service (непривилегированный пользователь, Wayland, Wikipedia) показал окно, но пользователь развернул его и приложение завершилось: Error71 Protocol error dispatching to Wayland display в18:26:54. Weston осталсяactive, новых сообщенийядра нет. По просьбе пользователя повторно запущен tcl-browser-debug.service с WAYLAND_DEBUG=client; лог /var/tmp/tcl-browser-wayland.log. Точная причина ошибки пока не установлена. В журнале также отсутствует Secret Service (сохранение паролей не настроено).
+Это версии проверенной установки, а не утверждение о последних доступных выпусках. Mozilla APT использовался для установки обычного DEB Firefox; пакет Ubuntu, предлагавшийся при подготовке системы, устанавливал snap. Приоритет Mozilla был ограничен пакетами `firefox` и `firefox-l10n-*`. Обслуживание пакетов выполняется через epm.
 
-### Firefox установка (2026-09-09, в работе)
+## Доступ к графике и звуку
 
-По запросу пользователя подключён официальный Mozilla APT arm64: /etc/apt/sources.list.d/mozilla.sources, ключ /etc/apt/keyrings/packages.mozilla.org.asc. Fingerprint35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3 проверен локально по https://support.mozilla.org/en-US/kb/install-firefox-linux . Pin1000 ограничен firefox и firefox-l10n-*. epm update выполнен. Кандидат155.0.1~build1, firefox + firefox-l10n-ru:78MBdownload/297MBinstalled. ВНИМАНИЕ: `apt-get --assume-no --no-install-recommends install ...`, предназначенный для оценки размера, фактически начал установку; --assume-no не является dry-run. Для последующих расчётов использовать только `apt-get -s`. Задача установки авторизована пользователем, но этот этап фактически прошёл напрямую apt, а не через epm.
+Firefox запускался от отдельного непривилегированного пользователя с доступом к render/video. Его runtime-каталог имеет права `0700`. Доступ к сокету Weston предоставляется этому пользователю через ACL; для подключения нужны право прохода по родительским каталогам и доступ к самому сокету.
 
-GNSS: пока QMI LOC/PDS в qrtr-lookup отсутствуют; загружена qcmpss7180_nm.mbn, MPSSrunning. Возможна имитация NMEA через gpsd для проверки приложений; она не проверяет физический приёмник/антенну и не заменяет диагностику QMI LOC. Симуляция не запускалась.
+`XDG_RUNTIME_DIR`, `WAYLAND_DISPLAY` и `PULSE_SERVER` должны указывать на согласованные ресурсы сеанса. Имена пользователя и сокетов конкретной установки не являются требованием оборудования. Проверенная конфигурация использует уже работающий диагностический Weston; перенос её в обычный пользовательский сеанс требует отдельной настройки.
 
-Firefox155.0.1~build1 arm64 и firefox-l10n-ru установлены. tcl-firefox.service запущен от tcl-browser через dbus-run-session, MOZ_ENABLE_WAYLAND=1, WAYLAND_DISPLAY=/run/tcl-weston/wayland-tcl, URLhttps://www.wikipedia.org. Проверка: unitactive, firefox-binPID10729, ошибок в начальном журнале нет; визуальная проверка разворачивания ещё не выполнена. `epm clean` удалил240MiBкэша пакетов, свободно492MiB. GNOME Web сохранён; автозапуск Firefox не настроен.
+Во время успешной проверки PulseAudio показывал поток `application.name=Firefox`, `Corked: no`, `Mute: no` и sink `tcl_speakers` в состоянии RUNNING. Пользователь подтвердил слышимый звук. Firefox подключился к появившемуся аудиосерверу без перезапуска. Эти признаки проверяют передачу звука приложением; питание кодека и усилителя обеспечивается отдельно.
 
-### Firefox: звук подтверждён (2026-09-09)
+## Ограничения и незавершённая интеграция
 
-Пользователь: «так уже работает». PulseAudio17 запущен как tcl-browser из /run/tcl-pulse-stage (распаковка уже скачанных подписанных пакетов; обычная установка через epm продолжается медленно на USB). tcl-browser-audio.service active, RuntimeMaxSec850, KillMode=mixed; источник enable-browser-audio-ram.sh, конфигурация browser-pulse.pa. ALSA hw:Test,0: S16LE stereo48kHz, PA GPIO46/47 включён послеRUNNING, sinkvolume50%, HPH/RX0dB. pactl показывает application.name=Firefox, Corked:no, Mute:no, tcl_speakers RUNNING. Firefox подхватил появившийся аудиосервер без перезапуска. Старые OpenCubeb failures относятся к времени до запускаPulse. Taint4096 не изменился.
+- Автозапуск Firefox не настроен. Создание runtime-каталога и ACL должно повторяться для нового сеанса; настройки текущей загрузки не гарантируют доступ после перезагрузки.
+- Первый подтверждённый звук использовал временный сценарий с ограничением времени. Последующее успешное воспроизведение фильма через PulseAudio не доказывает исправность автоматической подготовки аудиотракта при загрузке.
+- Работа WebGL, WebGPU, аппаратного видеодекодирования и захвата камеры/микрофона именно в Firefox не подтверждена. Поддержка GPU, Venus и UVC другими приложениями не переносится на браузер автоматически.
+- Сохранение паролей через Secret Service и полноценная интеграция desktop session не проверены.
 
-При управляемом cleanup PA выключается раньше Pulse/PCM; отсутствие щелчка при остановке ещё не подтверждено. Предел PA900сек/codecwatchdog1000сек, общий850сек; это временный тест, не постоянный автозапуск звука. После таймера аудиотракт будет восстановлен в исходное состояние. Сценарий запуска из установленных пакетов тоже подготовлен enable-browser-audio.sh, но ещё не проверен. Не выдавать RAMвариант за завершённую постоянную интеграцию.
+## Альтернативный браузер
 
-QMI1.38.0 установленчерезepm; read-only `qmicli -d qrtr://0 --loc-get-operation-mode` завершился `couldn't create client for the loc service: QMI protocol error (3): Internal`. Это не ответ LOCобошибкеGNSSдвижка — клиент службы не создан.
-
-2026-09-09: epm -y remove epiphany-browser epiphany-browser-data завершился с кодом0, включая триггеры GLib/hicolor. Оба пакета not-installed. Общие зависимости и профиль пользователя не удалялись; Firefox сохранён.
+GNOME Web 49.2 / WebKitGTK 2.52.6 показывал окно, но завершился при разворачивании с `Error 71: Protocol error dispatching to Wayland display`. Weston продолжил работу; точная причина ошибки не установлена. Пакеты `epiphany-browser` и `epiphany-browser-data` удалены по запросу пользователя; Firefox сохранён. Эта проверка не подтверждает устойчивую работу GNOME Web.
