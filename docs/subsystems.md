@@ -2,7 +2,7 @@
 
 | Подсистема | Что искать | Первичные материалы |
 |---|---|---|
-| CPU / частота / криптография | cpufreq, аппаратные crypto-инструкции, измерения | [CPU freq](../research/peripherals/cpufreq-probe/README.md), [CPU crypto](../research/peripherals/cpu-crypto/README.md) |
+| CPU / частота / криптография | cpufreq, аппаратные crypto-инструкции, измерения | [Спецификация CPU](hardware/cpu.md) |
 | Wi-Fi | ath10k, OEM firmware, RMTFS, DHCP, постоянный доступ | [Спецификация Wi-Fi](hardware/wifi.md), [службы Ubuntu](ubuntu.md#firmware-и-запуск-wi-fi) |
 | UFS / ICE | PHY, LUN, inline encryption, проверка чтения | [Спецификация UFS / ICE](hardware/storage.md), [охват резервной копии](../research/peripherals/windows-backup/README.md) |
 | Экран / GPU | DPU, DSI, LT8911EXB handoff, Mesa/Weston, тесты | [Спецификация дисплея / GPU](hardware/display.md) |
