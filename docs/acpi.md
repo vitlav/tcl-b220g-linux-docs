@@ -76,6 +76,8 @@ URS0 (QCOM0897 / PNP0CA1) содержит память 0x0a600000 длиной 
 
 Нужен glue, объединяющий ресурсы, сохраняющий правильный firmware parent для DMA и управляющий PHY/clocks/power/role. Одного добавления HID в match недостаточно. _DEP UCS0 сам по себе не доказывает блокировку enumeration Linux. [Сверка ACPI/DT](../research/acpi-audit/iort-mappings/usb-resources.md), задача [19530](https://bugs.etersoft.ru/19530).
 
+[Основа USB-адаптации](../research/acpi-audit/usb-glue/README.md): исторический upstream ACPI URS glue проверен сборкой на ACPI2 после изменения platform remove API. HID/DMA/IORT и аппаратная работа ещё требуют адаптации; это не готовый USB-драйвер TCL.
+
 ## Другие пробелы
 
 | Проблема | Факт / ограничение |
