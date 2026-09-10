@@ -4,7 +4,7 @@
     "source": "research/acpi-audit/scm/scm-acpi-draft-v2.patch",
     "sha256": "a90118e0bb4b39b0fe2eabe8ff87a54be8a1b68c1d01064de20a91ae76f8b6ab",
     "purpose": "SCM ACPI v2: match, DMA guard, начальный TZMEM pool, зависимости",
-    "status": "Черновик; object-build; требует ранней _CCA и аппаратной проверки",
+    "status": "Собран в полном ACPI2 Image; требует ранней _CCA; аппаратно не проверен",
     "report": "research/acpi-audit/scm/README.md"
   },
   {
@@ -20,7 +20,7 @@
     "source": "research/acpi-audit/smmu/selection-draft/sc7180-acpi-smmu-selection.patch",
     "sha256": "c9b95ea7526c9677b723ecb45051b7fd44157e0ce3057490c4e394dc800d539d",
     "purpose": "Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам",
-    "status": "Черновик; object-build ACPI=y/n и host-матрица; не установлен",
+    "status": "Полный ACPI2 Image; object-build ACPI=y/n и host-матрица; аппаратно не проверен",
     "report": "research/acpi-audit/smmu/selection-draft/README.md"
   },
   {
@@ -92,7 +92,7 @@
     "source": "research/peripherals/camera-audio/audio2/irq-lifetime-fix/generic/wcd938x-irq-lifetime.patch",
     "sha256": "8d9a27cccff085f15df89ba5b631ac5f38e488dae2faa4a91ac7afae2d91d029",
     "purpose": "WCD938x: cleanup IRQ domain/mapping и защита SoundWire callback",
-    "status": "Локальное исправление; два файла применяются совместно; см. историю аппаратных проверок",
+    "status": "Локальное исправление; два файла применяются совместно; полное покрытие гонок не выполнено",
     "report": "research/peripherals/camera-audio/audio2/irq-lifetime-fix/README.md"
   },
   {
@@ -108,7 +108,7 @@
     "source": "research/peripherals/camera-audio/audio2/q6asm-reprepare/q6asm-prepare-stopped.patch",
     "sha256": "1024b641fa4ad978ef0f3896133d37177ff1c0b49f8f0863426b3b00f76dee8e",
     "purpose": "Q6ASM DAI: повторный prepare после STOPPED",
-    "status": "Локальный патч; тесты повторного воспроизведения в отчёте",
+    "status": "Три write/drop/prepare цикла на одном PCM handle проверены; остальные пути требуют проверки",
     "report": "research/peripherals/camera-audio/audio2/q6asm-reprepare/README.md"
   },
   {
