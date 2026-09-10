@@ -1,0 +1,40 @@
+{
+  "revision": "eeccccbe83daf22e1931e3557ba05b2c02427e4e",
+  "files": [
+    {
+      "path": "WHENCE",
+      "bytes": 473165,
+      "sha256": "8bc466434be59e1c044cb3821b30b7328859ca250a451bb6c799ffb21ae47f2e"
+    },
+    {
+      "path": "qcom/a630_sqe.fw",
+      "bytes": 34188,
+      "sha256": "1c21b527d9183487cc550dabbb3f43e555df5a977a461934fc61f0635a9aa90c"
+    },
+    {
+      "path": "qcom/a630_gmu.bin",
+      "bytes": 32768,
+      "sha256": "da8d9b1b1f5c1a0b311f32567093b4828f3c80031dd8435f91ac13c664e173a6"
+    },
+    {
+      "path": "ath10k/WCN3990/hw1.0/firmware-5.bin",
+      "bytes": 60,
+      "sha256": "fef6539e0127579536bc977be57a90d018b83f2931fedc3a8870fbe38d6c4127"
+    },
+    {
+      "path": "ath10k/WCN3990/hw1.0/board-2.bin",
+      "bytes": 893528,
+      "sha256": "c49d2f1894de6edc0ab0c8c9a17ca0328703747c49b6e9428f1de501c2c02c1d"
+    },
+    {
+      "path": "qcom/venus-5.4/venus.mbn",
+      "bytes": 922376,
+      "sha256": "db2a2efefa7149519b36f01be8a7c37bdf21efd2f06eff5028f80d4295aef7d9"
+    },
+    {
+      "path": "ath10k/WCN3990/hw1.0/wlanmdsp.mbn",
+      "bytes": 3725044,
+      "sha256": "92e1501254e6de78c0f2e2cf091507d488b608d07e53acd14813a82744823ec2"
+    }
+  ]
+}

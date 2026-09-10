@@ -1,0 +1,122 @@
+{
+  "packages": [
+    {
+      "package": "linux-firmware-amd-graphics",
+      "version": "20260319.git217ca6e4-0ubuntu3.1",
+      "installed_KiB": 28802,
+      "download_bytes": 29634752
+    },
+    {
+      "package": "linux-firmware-amd-misc",
+      "version": "20260319.git217ca6e4-0ubuntu1.1",
+      "installed_KiB": 560,
+      "download_bytes": 583872
+    },
+    {
+      "package": "linux-firmware-broadcom-wireless",
+      "version": "20260319.git217ca6e4-0ubuntu1.1",
+      "installed_KiB": 10926,
+      "download_bytes": 11202752
+    },
+    {
+      "package": "linux-firmware-intel-graphics",
+      "version": "20260319.git217ca6e4-0ubuntu2.1",
+      "installed_KiB": 21430,
+      "download_bytes": 21995712
+    },
+    {
+      "package": "linux-firmware-intel-misc",
+      "version": "20260319.git217ca6e4-0ubuntu1.2",
+      "installed_KiB": 9895,
+      "download_bytes": 10148032
+    },
+    {
+      "package": "linux-firmware-intel-wireless",
+      "version": "20260319.git217ca6e4-0ubuntu2.1",
+      "installed_KiB": 99632,
+      "download_bytes": 101980352
+    },
+    {
+      "package": "linux-firmware-marvell-prestera",
+      "version": "20260319.git217ca6e4-0ubuntu1.2",
+      "installed_KiB": 32121,
+      "download_bytes": 32901312
+    },
+    {
+      "package": "linux-firmware-marvell-wireless",
+      "version": "20260319.git217ca6e4-0ubuntu1.1",
+      "installed_KiB": 7238,
+      "download_bytes": 7434432
+    },
+    {
+      "package": "linux-firmware-mediatek",
+      "version": "20260319.git217ca6e4-0ubuntu1.2",
+      "installed_KiB": 27185,
+      "download_bytes": 27883712
+    },
+    {
+      "package": "linux-firmware-mellanox-spectrum",
+      "version": "20260319.git217ca6e4-0ubuntu1.1",
+      "installed_KiB": 60414,
+      "download_bytes": 61880512
+    },
+    {
+      "package": "linux-firmware-misc",
+      "version": "20260319.git217ca6e4-0ubuntu2.2",
+      "installed_KiB": 31597,
+      "download_bytes": 31938752
+    },
+    {
+      "package": "linux-firmware-netronome",
+      "version": "20260319.git217ca6e4-0ubuntu1.1",
+      "installed_KiB": 5626,
+      "download_bytes": 5765312
+    },
+    {
+      "package": "linux-firmware-nvidia-graphics",
+      "version": "20260319.git217ca6e4-0ubuntu1.1",
+      "installed_KiB": 106204,
+      "download_bytes": 108677312
+    },
+    {
+      "package": "linux-firmware-qlogic",
+      "version": "20260319.git217ca6e4-0ubuntu1.1",
+      "installed_KiB": 6996,
+      "download_bytes": 7178432
+    },
+    {
+      "package": "linux-firmware-qualcomm-graphics",
+      "version": "20260319.git217ca6e4-0ubuntu1.1",
+      "installed_KiB": 10757,
+      "download_bytes": 11028672
+    },
+    {
+      "package": "linux-firmware-qualcomm-misc",
+      "version": "20260319.git217ca6e4-0ubuntu2.1",
+      "installed_KiB": 163392,
+      "download_bytes": 167301312
+    },
+    {
+      "package": "linux-firmware-qualcomm-wireless",
+      "version": "20260319.git217ca6e4-0ubuntu1.2",
+      "installed_KiB": 47757,
+      "download_bytes": 48926912
+    },
+    {
+      "package": "linux-firmware-realtek",
+      "version": "20260319.git217ca6e4-0ubuntu1.2",
+      "installed_KiB": 7081,
+      "download_bytes": 7301312
+    },
+    {
+      "package": "linux-firmware",
+      "version": "20260319.git217ca6e4.1ubuntu",
+      "installed_KiB": 8,
+      "download_bytes": 2216
+    }
+  ],
+  "total_installed_MiB": 661.7392578125,
+  "total_download_MiB": 661.6265029907227,
+  "qualcomm_installed_MiB": 216.705078125,
+  "qualcomm_download_MiB": 216.72906494140625
+}
