@@ -13,6 +13,7 @@
 | [Перечень устройств](docs/hardware/device-summary.md) | Назначение блоков, MMIO, IRQ, GPIO, питание, драйверы |
 | [Полный DT](docs/hardware/full-inventory.md) | 738 узлов, включая pinctrl, OPP и регуляторы |
 | [Загрузка и восстановление доступа](docs/boot.md) | GRUB, рабочая база, логи, уроки неудачных загрузок |
+| [Патчи ядра](patches/kernel/README.md) | Отдельный каталог исправлений и экспериментов, статус и история |
 | [Ядро и изменения Ubuntu](docs/kernel-and-ubuntu.md) | Исходники, кросс-сборка, отличия образа |
 | [Подсистемы](docs/subsystems.md) | Wi-Fi, UFS/ICE, графика, видео, звук, EC, датчики, GNSS |
 | [ACPI](docs/acpi.md) | Проверка OEM-таблиц, SCM, DMA, SMMU и открытые вопросы |

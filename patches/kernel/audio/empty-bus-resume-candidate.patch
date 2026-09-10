@@ -1,0 +1,18 @@
+--- a/drivers/soundwire/qcom.c
++++ b/drivers/soundwire/qcom.c
+@@ -1741,6 +1741,15 @@
+ 		}
+ 
+ 		ret = sdw_bus_clk_stop(&ctrl->bus);
++		/*
++		 * An empty bus may not acknowledge ClockStopNow.  On TCL SC7180
++		 * v1.5.1, mode-0 resume then fails to keep the frame generator
++		 * running.  Use the existing reset/re-enumeration path on the
++		 * next resume, until a slave establishes its clock-stop support.
++		 * Experimental: hardware validation still required.
++		 */
++		if (ret == -ENODATA && list_empty(&ctrl->bus.slaves))
++			ctrl->clock_stop_not_supported = true;
+ 		if (ret < 0 && ret != -ENODATA) {
+ 			dev_err(dev, "bus clock stop failed %d", ret);
+ 			return ret;

@@ -1,0 +1,26 @@
+--- a/sound/soc/codecs/wcd938x.c
++++ b/sound/soc/codecs/wcd938x.c
+@@ -3506,6 +3506,11 @@
+ 	np = dev->of_node;
+ 
+ 	wcd938x->rxnode = of_parse_phandle(np, "qcom,rx-device", 0);
++ if (!wcd938x->rxnode && of_machine_is_compatible("tcl,book14") &&
++     of_node_name_eq(np, "tcl-wcd9385")) {
++  wcd938x->rxnode = of_find_node_by_path("/soc@0/soundwire@62610000/codec@0,4");
++  dev_info(dev,"TCL diagnostic RX node by path (runtime phandle limitation)\n");
++ }
+ 	if (!wcd938x->rxnode) {
+ 		dev_err(dev, "%s: Rx-device node not defined\n", __func__);
+ 		return -ENODEV;
+@@ -3516,6 +3521,11 @@
+ 				    component_compare_of, wcd938x->rxnode);
+ 
+ 	wcd938x->txnode = of_parse_phandle(np, "qcom,tx-device", 0);
++ if (!wcd938x->txnode && of_machine_is_compatible("tcl,book14") &&
++     of_node_name_eq(np, "tcl-wcd9385")) {
++  wcd938x->txnode = of_find_node_by_path("/soc@0/soundwire@62630000/codec@0,3");
++  dev_info(dev,"TCL diagnostic TX node by path (runtime phandle limitation)\n");
++ }
+ 	if (!wcd938x->txnode) {
+ 		dev_err(dev, "%s: Tx-device node not defined\n", __func__);
+ 		return -ENODEV;

@@ -1,0 +1,138 @@
+[
+  {
+    "file": "acpi/scm-acpi-draft-v2.patch",
+    "source": "research/acpi-audit/scm/scm-acpi-draft-v2.patch",
+    "sha256": "a90118e0bb4b39b0fe2eabe8ff87a54be8a1b68c1d01064de20a91ae76f8b6ab",
+    "purpose": "SCM ACPI v2: match, DMA guard, начальный TZMEM pool, зависимости",
+    "status": "Черновик; object-build; требует ранней _CCA и аппаратной проверки",
+    "report": "research/acpi-audit/scm/README.md"
+  },
+  {
+    "file": "acpi/scm-acpi-draft.patch",
+    "source": "research/acpi-audit/scm/scm-acpi-draft.patch",
+    "sha256": "9d740b68e75038defe2aad0dca94066f94c482c188a03ad75900873570f8609c",
+    "purpose": "SCM ACPI v1: match QCOM080B, условный OF ICC",
+    "status": "Предыдущий вариант, заменён v2; не применять вместе",
+    "report": "research/acpi-audit/scm/README.md"
+  },
+  {
+    "file": "acpi/sc7180-acpi-smmu-selection.patch",
+    "source": "research/acpi-audit/smmu/selection-draft/sc7180-acpi-smmu-selection.patch",
+    "sha256": "c9b95ea7526c9677b723ecb45051b7fd44157e0ce3057490c4e394dc800d539d",
+    "purpose": "Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам",
+    "status": "Черновик; object-build ACPI=y/n и host-матрица; не установлен",
+    "report": "research/acpi-audit/smmu/selection-draft/README.md"
+  },
+  {
+    "file": "acpi/acpica-default-spaces-without-pci.patch",
+    "source": "research/acpi-boot/pci-disabled/acpica-default-spaces-without-pci.patch",
+    "sha256": "5f4263ba78684f5e8cb3fd6d977e7ed391e04b2995aed6e21578471cf02f883b",
+    "purpose": "Исключить PCI_CONFIG из default address spaces при PCI=n",
+    "status": "Собран в ACPI1; вся ACPI-загрузка ещё не работает",
+    "report": "research/acpi-boot/pci-disabled/README.md"
+  },
+  {
+    "file": "audio/adsp1-pcm-trace.patch",
+    "source": "research/peripherals/camera-audio/adsp1/pcm-trace/trace.patch",
+    "sha256": "35f448207d69c3c0d26b993447bf4aef0606cc6e3dc6a1c5676b0fa441fd0fc8",
+    "purpose": "Q6ASM: ранняя трассировка PCM",
+    "status": "Историческая диагностика ADSP1",
+    "report": "research/peripherals/camera-audio/adsp1/README.md"
+  },
+  {
+    "file": "audio/adsp1-q6afe-active-mask.patch",
+    "source": "research/peripherals/camera-audio/adsp1/q6afe-active-mask.patch",
+    "sha256": "9855c05808623ab1bdabba0dfd00b7e48e9b306512d089fcb06a4b5b1508ff78",
+    "purpose": "Ранняя версия передачи явной маски каналов Q6AFE",
+    "status": "Исторический вариант; сравнить с AUDIO2 0002, не применять оба",
+    "report": "research/peripherals/camera-audio/adsp1/README.md"
+  },
+  {
+    "file": "audio/0001-glink-destroy-backport.patch",
+    "source": "research/peripherals/camera-audio/audio2/0001-glink-destroy-backport.patch",
+    "sha256": "1b1ca2a10965f22c05ad888edd4f5d9c181b6f9fb8e1d7f007b437ec66f8d448",
+    "purpose": "GLINK: backport upstream 5a5a48e788e02",
+    "status": "В составе AUDIO2; отдельный upstream commit существует",
+    "report": "research/peripherals/camera-audio/audio2/README.md"
+  },
+  {
+    "file": "audio/0002-q6afe-active-mask.patch",
+    "source": "research/peripherals/camera-audio/audio2/0002-q6afe-active-mask.patch",
+    "sha256": "9855c05808623ab1bdabba0dfd00b7e48e9b306512d089fcb06a4b5b1508ff78",
+    "purpose": "Q6AFE: передача active_channels_mask",
+    "status": "В AUDIO2; hw_params с маской 3 прошёл аппаратно",
+    "report": "research/peripherals/camera-audio/audio2/README.md"
+  },
+  {
+    "file": "audio/0003-apr-reprobe-candidate.patch",
+    "source": "research/peripherals/camera-audio/audio2/0003-apr-reprobe-candidate.patch",
+    "sha256": "1e0235e1ec3f9cafb8e92a13a110195741e02f2c14b281b92952185eb2bb4edb",
+    "purpose": "APR: восстановление IDR для повторного probe",
+    "status": "Локальный кандидат AUDIO2; reprobe проверялся, не upstream",
+    "report": "research/peripherals/camera-audio/audio2/README.md"
+  },
+  {
+    "file": "audio/0004-q6asm-debug-messages.patch",
+    "source": "research/peripherals/camera-audio/audio2/0004-q6asm-debug-messages.patch",
+    "sha256": "4df04a5a80828b68c0b2326d404950a32c9162fa905bea68cfa1b4bdfcf13cbf",
+    "purpose": "Q6ASM: диагностические dev_dbg",
+    "status": "Диагностика AUDIO2, не самостоятельное исправление",
+    "report": "research/peripherals/camera-audio/audio2/README.md"
+  },
+  {
+    "file": "audio/0005-q6asm-write-done-debug.patch",
+    "source": "research/peripherals/camera-audio/audio2/0005-q6asm-write-done-debug.patch",
+    "sha256": "3da70658cf4bedac96253f40529f4959d302c66c266a187caa05e6c6fea7d2c4",
+    "purpose": "Q6ASM: подробности WRITE_DONE",
+    "status": "Дополнительная диагностика; учитывать исходную версию q6asm.c",
+    "report": "research/peripherals/camera-audio/audio2/README.md"
+  },
+  {
+    "file": "audio/wcd938x-irq-lifetime.patch",
+    "source": "research/peripherals/camera-audio/audio2/irq-lifetime-fix/generic/wcd938x-irq-lifetime.patch",
+    "sha256": "8d9a27cccff085f15df89ba5b631ac5f38e488dae2faa4a91ac7afae2d91d029",
+    "purpose": "WCD938x: cleanup IRQ domain/mapping и защита SoundWire callback",
+    "status": "Локальное исправление; два файла применяются совместно; см. историю аппаратных проверок",
+    "report": "research/peripherals/camera-audio/audio2/irq-lifetime-fix/README.md"
+  },
+  {
+    "file": "audio/runtime-path-fallback.patch",
+    "source": "research/peripherals/camera-audio/audio2/irq-lifetime-fix/runtime-path/runtime-path-fallback.patch",
+    "sha256": "e85d572b5c6e927989910720c634ba9bb038bf399bee9848856738dd46972093",
+    "purpose": "WCD938x: экспериментальный runtime path fallback",
+    "status": "Вспомогательный эксперимент, не часть общего IRQ lifetime fix",
+    "report": "research/peripherals/camera-audio/audio2/irq-lifetime-fix/README.md"
+  },
+  {
+    "file": "audio/q6asm-prepare-stopped.patch",
+    "source": "research/peripherals/camera-audio/audio2/q6asm-reprepare/q6asm-prepare-stopped.patch",
+    "sha256": "1024b641fa4ad978ef0f3896133d37177ff1c0b49f8f0863426b3b00f76dee8e",
+    "purpose": "Q6ASM DAI: повторный prepare после STOPPED",
+    "status": "Локальный патч; тесты повторного воспроизведения в отчёте",
+    "report": "research/peripherals/camera-audio/audio2/q6asm-reprepare/README.md"
+  },
+  {
+    "file": "audio/empty-bus-resume-candidate.patch",
+    "source": "research/peripherals/camera-audio/audio2/swr-resume-trace/empty-bus-resume-candidate.patch",
+    "sha256": "dc4e9bd20a6fe955ef2f4c6a7d7431dca3d1deebe8418687c3ab1ceabcf225d8",
+    "purpose": "SoundWire: reset/re-enumeration для пустой шины после ENODATA",
+    "status": "Гипотеза; не считать доказанным исправлением причины",
+    "report": "research/peripherals/camera-audio/audio2/swr-resume-trace/README.md"
+  },
+  {
+    "file": "audio/experimental-resume-and-pm.patch",
+    "source": "research/peripherals/camera-audio/audio2/swr-resume-trace/validated-runtime-test/experimental-resume-and-pm.patch",
+    "sha256": "a7495845eb0c127700c0fffd9750c2f7e3dc9115f91586cf8660ad24cae12a6a",
+    "purpose": "SoundWire: эксперимент с resume и PM",
+    "status": "Альтернативный runtime-эксперимент; не складывать с empty-bus вариантом",
+    "report": "research/peripherals/camera-audio/audio2/swr-resume-trace/README.md"
+  },
+  {
+    "file": "graphics/dpu-assignment-diagnostic.patch",
+    "source": "research/peripherals/wayland-probe/native-display/dpu-encoder-investigation/fix/dpu-assignment-diagnostic.patch",
+    "sha256": "5039c3298390356b7110bfc0955f1be8150bb026ebfcff2b7f34742041f21dce",
+    "purpose": "DPU: fallback на назначенный CRTC при потере legacy lookup",
+    "status": "Аппаратно сработал fallback; 33 сцены glmark2 завершились; локальная диагностика, не upstream",
+    "report": "research/peripherals/wayland-probe/native-display/dpu-encoder-investigation/fix/README.md"
+  }
+]

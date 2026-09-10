@@ -1,0 +1,137 @@
+Subject: [PATCH] ASoC: wcd938x: release the codec IRQ domain on unbind
+
+The codec creates an IRQ domain whose ops reside in the codec module but
+never removes that domain. After module unload, a later IRQ domain lookup
+can dereference the freed ops. This was observed during SoundWire reprobe
+on TCL B220G with Linux 6.18.34.
+
+Drain and clear SoundWire callback references under sdw_dev_lock, release
+the managed regmap IRQ chip, then dispose the parent mapping and domain.
+Also unwind partial initialization and component registration failure.
+Ignore codec callbacks while no aggregate IRQ domain is published.
+
+This patch has been cross-built; hardware lifecycle validation is pending.
+
+---
+
+--- a/sound/soc/codecs/wcd938x.c
++++ b/sound/soc/codecs/wcd938x.c
+@@ -2999,19 +2999,62 @@
+ 	.map = wcd_irq_chip_map,
+ };
+ 
++/* SoundWire invokes interrupt_callback with sdw_dev_lock held. */
++static void wcd938x_set_slave_irq(struct device *dev, struct irq_domain *domain)
++{
++	struct sdw_slave *slave = dev_to_sdw_dev(dev);
++	struct wcd938x_sdw_priv *priv = dev_get_drvdata(dev);
++
++	mutex_lock(&slave->sdw_dev_lock);
++	priv->slave_irq = domain;
++	if (!domain)
++		priv->wcd938x = NULL;
++	mutex_unlock(&slave->sdw_dev_lock);
++}
++
++static void wcd938x_irq_exit(struct wcd938x_priv *wcd, struct device *dev)
++{
++	unsigned int irq;
++
++	if (!wcd->virq)
++		return;
++
++	/* Drain callbacks and prevent new ones from using the domain. */
++	wcd938x_set_slave_irq(wcd->rxdev, NULL);
++	wcd938x_set_slave_irq(wcd->txdev, NULL);
++	irq = irq_find_mapping(wcd->virq, 0);
++	devm_regmap_del_irq_chip(dev, irq, wcd->irq_chip);
++	wcd->irq_chip = NULL;
++	irq_dispose_mapping(irq);
++	irq_domain_remove(wcd->virq);
++	wcd->virq = NULL;
++}
++
+ static int wcd938x_irq_init(struct wcd938x_priv *wcd, struct device *dev)
+ {
++	unsigned int irq;
++	int ret;
+ 
+ 	wcd->virq = irq_domain_create_linear(NULL, 1, &wcd_domain_ops, NULL);
+-	if (!(wcd->virq)) {
+-		dev_err(dev, "%s: Failed to add IRQ domain\n", __func__);
+-		return -EINVAL;
+-	}
+-
+-	return devm_regmap_add_irq_chip(dev, wcd->regmap,
+-					irq_create_mapping(wcd->virq, 0),
+-					IRQF_ONESHOT, 0, &wcd938x_regmap_irq_chip,
+-					&wcd->irq_chip);
++	if (!wcd->virq)
++		return -ENOMEM;
++
++	irq = irq_create_mapping(wcd->virq, 0);
++	if (!irq) {
++		ret = -ENOMEM;
++		goto err_domain;
++	}
++
++	ret = devm_regmap_add_irq_chip(dev, wcd->regmap, irq, IRQF_ONESHOT,
++				      0, &wcd938x_regmap_irq_chip, &wcd->irq_chip);
++	if (!ret)
++		return 0;
++
++	irq_dispose_mapping(irq);
++err_domain:
++	irq_domain_remove(wcd->virq);
++	wcd->virq = NULL;
++	return ret;
+ }
+ 
+ static int wcd938x_soc_codec_probe(struct snd_soc_component *component)
+@@ -3402,8 +3445,8 @@
+ 		goto err_remove_rx_link;
+ 	}
+ 
+-	wcd938x->sdw_priv[AIF1_PB]->slave_irq = wcd938x->virq;
+-	wcd938x->sdw_priv[AIF1_CAP]->slave_irq = wcd938x->virq;
++	wcd938x_set_slave_irq(wcd938x->rxdev, wcd938x->virq);
++	wcd938x_set_slave_irq(wcd938x->txdev, wcd938x->virq);
+ 
+ 	wcd938x_set_micbias_data(dev, wcd938x);
+ 
+@@ -3412,11 +3455,13 @@
+ 	if (ret) {
+ 		dev_err(dev, "%s: Codec registration failed\n",
+ 				__func__);
+-		goto err_remove_rx_link;
++		goto err_irq;
+ 	}
+ 
+ 	return 0;
+ 
++err_irq:
++	wcd938x_irq_exit(wcd938x, dev);
+ err_remove_rx_link:
+ 	device_link_remove(dev, wcd938x->rxdev);
+ err_remove_tx_link:
+@@ -3438,6 +3483,7 @@
+ 	struct wcd938x_priv *wcd938x = dev_get_drvdata(dev);
+ 
+ 	snd_soc_unregister_component(dev);
++	wcd938x_irq_exit(wcd938x, dev);
+ 	device_link_remove(dev, wcd938x->txdev);
+ 	device_link_remove(dev, wcd938x->rxdev);
+ 	device_link_remove(wcd938x->rxdev, wcd938x->txdev);
+--- a/sound/soc/codecs/wcd938x-sdw.c
++++ b/sound/soc/codecs/wcd938x-sdw.c
+@@ -144,6 +144,10 @@
+ 				      struct sdw_slave_intr_status *status)
+ {
+ 	struct wcd938x_sdw_priv *wcd = dev_get_drvdata(&slave->dev);
++
++	/* The aggregate codec may not be bound, or may be tearing down. */
++	if (!wcd->slave_irq)
++		return 0;
+ 
+ 	return wcd_interrupt_callback(slave, wcd->slave_irq, WCD938X_DIGITAL_INTR_STATUS_0,
+ 				WCD938X_DIGITAL_INTR_STATUS_1, WCD938X_DIGITAL_INTR_STATUS_2);

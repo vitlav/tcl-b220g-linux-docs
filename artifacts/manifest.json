@@ -1014,7 +1014,7 @@
     "bytes": 676,
     "sha256": "5f4263ba78684f5e8cb3fd6d977e7ed391e04b2995aed6e21578471cf02f883b",
     "git": "research/acpi-boot/pci-disabled/acpica-default-spaces-without-pci.patch",
-    "git_sha256": "8154f01fb9838c9f46198bfcc67ed55ced9496ad46a4531e358acfe4105a4e8f"
+    "git_sha256": "5f4263ba78684f5e8cb3fd6d977e7ed391e04b2995aed6e21578471cf02f883b"
   },
   {
     "path": "acpi-boot/pci-disabled/entry-trace-candidate.cfg",
@@ -1766,7 +1766,7 @@
     "bytes": 874,
     "sha256": "35f448207d69c3c0d26b993447bf4aef0606cc6e3dc6a1c5676b0fa441fd0fc8",
     "git": "research/peripherals/camera-audio/adsp1/pcm-trace/trace.patch",
-    "git_sha256": "08d5c32916c7b66818baa062cd35dba7f65367f72aba28080ed6f35e0a3f8377"
+    "git_sha256": "35f448207d69c3c0d26b993447bf4aef0606cc6e3dc6a1c5676b0fa441fd0fc8"
   },
   {
     "path": "peripherals/camera-audio/adsp1/q6afe-active-mask.patch",
@@ -1842,7 +1842,7 @@
     "bytes": 847,
     "sha256": "4df04a5a80828b68c0b2326d404950a32c9162fa905bea68cfa1b4bdfcf13cbf",
     "git": "research/peripherals/camera-audio/audio2/0004-q6asm-debug-messages.patch",
-    "git_sha256": "89928044ecbcf807cdf2876c9ace8e92110d87229812869ee6624c3ea1443d22"
+    "git_sha256": "4df04a5a80828b68c0b2326d404950a32c9162fa905bea68cfa1b4bdfcf13cbf"
   },
   {
     "path": "peripherals/camera-audio/audio2/0005-q6asm-write-done-debug.patch",

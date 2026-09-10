@@ -1,0 +1,53 @@
+--- a/drivers/soundwire/qcom.c
++++ b/drivers/soundwire/qcom.c
+@@ -1492,6 +1492,15 @@
+ 	int ret;
+ 	u32 val;
+ 
++	/* Test-only replacement of an old driver lacking PM disable in remove.
++	 * The test script holds this device active throughout replacement.
++	 */
++	if (pm_runtime_enabled(dev)) {
++		dev_info(dev, "TCL test: disable inherited runtime PM before probe\n");
++		pm_runtime_disable(dev);
++		pm_runtime_set_suspended(dev);
++	}
++
+ 	ctrl = devm_kzalloc(dev, sizeof(*ctrl), GFP_KERNEL);
+ 	if (!ctrl)
+ 		return -ENOMEM;
+@@ -1649,6 +1658,8 @@
+ {
+ 	struct qcom_swrm_ctrl *ctrl = dev_get_drvdata(&pdev->dev);
+ 
++	/* Test script requires power/control=on before normal removal. */
++	pm_runtime_disable(&pdev->dev);
+ 	sdw_bus_master_delete(&ctrl->bus);
+ 	clk_disable_unprepare(ctrl->hclk);
+ }
+@@ -1666,6 +1677,7 @@
+ 	clk_prepare_enable(ctrl->hclk);
+ 
+ 	if (ctrl->clock_stop_not_supported) {
++		dev_info(dev, "TCL test: reset resume path\n");
+ 		reinit_completion(&ctrl->enumeration);
+ 		ctrl->reg_write(ctrl, SWRM_COMP_SW_RESET, 0x01);
+ 		usleep_range(100, 105);
+@@ -1741,6 +1753,17 @@
+ 		}
+ 
+ 		ret = sdw_bus_clk_stop(&ctrl->bus);
++		/*
++		 * An empty bus may not acknowledge ClockStopNow.  On TCL SC7180
++		 * v1.5.1, unstable frame generation was observed after mode-0
++		 * resume; causality has not yet been established.  Use the existing reset/re-enumeration path on the
++		 * next resume, until a slave establishes its clock-stop support.
++		 * Experimental: hardware validation still required.
++		 */
++		if (ret == -ENODATA && list_empty(&ctrl->bus.slaves)) {
++			dev_info(dev, "TCL test: empty bus, reset on next resume\n");
++			ctrl->clock_stop_not_supported = true;
++		}
+ 		if (ret < 0 && ret != -ENODATA) {
+ 			dev_err(dev, "bus clock stop failed %d", ret);
+ 			return ret;

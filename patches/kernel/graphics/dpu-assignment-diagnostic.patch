@@ -1,0 +1,65 @@
+--- a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c
++++ b/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c
+@@ -56,9 +56,23 @@
+ 	struct drm_device *dev = crtc->dev;
+ 	struct drm_encoder *encoder;
+ 
++	/*
++	 * Legacy encoder->crtc is temporarily cleared by atomic commits.
++	 * Keep the normal lookup for this diagnostic, but recover through
++	 * DPU's vblank-lifetime assignment when that lookup misses.
++	 */
+ 	drm_for_each_encoder(encoder, dev)
+-		if (encoder->crtc == crtc)
++		if (READ_ONCE(encoder->crtc) == crtc)
+ 			return encoder;
++
++	drm_for_each_encoder(encoder, dev) {
++		if (dpu_encoder_get_assigned_crtc(encoder) == crtc) {
++			drm_info_once(dev,
++				"TCL DPU: legacy CRTC lookup missed; using vblank assignment for crtc %d\n",
++				crtc->index);
++			return encoder;
++		}
++	}
+ 
+ 	return NULL;
+ }
+--- a/drivers/gpu/drm/msm/disp/dpu1/dpu_encoder.c
++++ b/drivers/gpu/drm/msm/disp/dpu1/dpu_encoder.c
+@@ -1513,8 +1513,23 @@
+ 	spin_lock_irqsave(&dpu_enc->enc_spinlock, lock_flags);
+ 	/* crtc should always be cleared before re-assigning */
+ 	WARN_ON(crtc && dpu_enc->crtc);
+-	dpu_enc->crtc = crtc;
++	WRITE_ONCE(dpu_enc->crtc, crtc);
+ 	spin_unlock_irqrestore(&dpu_enc->enc_spinlock, lock_flags);
++}
++
++/**
++ * dpu_encoder_get_assigned_crtc - Get the assignment kept for vblank handling
++ * @drm_enc: encoder pointer
++ *
++ * The assignment is established before drm_crtc_vblank_on() and cleared
++ * after drm_crtc_vblank_off(). Do not acquire enc_spinlock here: the vblank
++ * IRQ path may already hold it when invoking the CRTC callbacks.
++ */
++struct drm_crtc *dpu_encoder_get_assigned_crtc(struct drm_encoder *drm_enc)
++{
++	struct dpu_encoder_virt *dpu_enc = to_dpu_encoder_virt(drm_enc);
++
++	return READ_ONCE(dpu_enc->crtc);
+ }
+ 
+ /**
+--- a/drivers/gpu/drm/msm/disp/dpu1/dpu_encoder.h
++++ b/drivers/gpu/drm/msm/disp/dpu1/dpu_encoder.h
+@@ -40,6 +40,8 @@
+ 
+ void dpu_encoder_assign_crtc(struct drm_encoder *encoder,
+ 			     struct drm_crtc *crtc);
++
++struct drm_crtc *dpu_encoder_get_assigned_crtc(struct drm_encoder *encoder);
+ 
+ void dpu_encoder_toggle_vblank_for_crtc(struct drm_encoder *encoder,
+ 					struct drm_crtc *crtc, bool enable);
