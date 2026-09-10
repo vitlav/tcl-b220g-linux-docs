@@ -1,0 +1,46 @@
+--- a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
++++ b/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
+@@ -729,6 +729,33 @@
+ };
+ 
+ #ifdef CONFIG_ACPI
++/* ACPI has no OF adreno-smmu compatible: select the GPU implementation directly. */
++static const struct qcom_smmu_match_data sc7180_acpi_adreno_data = {
++	.impl = &qcom_adreno_smmu_v2_impl,
++};
++
++static struct acpi_platform_list sc7180_acpi_platlist[] = {
++	{ "QCOM  ", "QCOMEDK2", 0x7180, ACPI_SIG_IORT, equal, "SC7180 SMMU" },
++	{ }
++};
++
++static struct arm_smmu_device *sc7180_acpi_smmu_create(struct arm_smmu_device *smmu)
++{
++	/* numpage still holds the MMIO resource size at implementation selection. */
++	if (smmu->version == ARM_SMMU_V2 &&
++	    smmu->model == ARM_MMU500 && smmu->ioaddr == 0x15000000 &&
++	    smmu->numpage == 0x100000)
++		return qcom_smmu_create(smmu, &qcom_smmu_500_impl0_data);
++
++	if (smmu->version == ARM_SMMU_V2 &&
++	    smmu->model == GENERIC_SMMU && smmu->ioaddr == 0x05040000 &&
++	    smmu->numpage == 0x10000)
++		return qcom_smmu_create(smmu, &sc7180_acpi_adreno_data);
++
++	return ERR_PTR(dev_err_probe(smmu->dev, -ENODEV,
++				     "Unsupported SC7180 ACPI SMMU resource/model\n"));
++}
++
+ static struct acpi_platform_list qcom_acpi_platlist[] = {
+ 	{ "LENOVO", "CB-01   ", 0x8180, ACPI_SIG_IORT, equal, "QCOM SMMU" },
+ 	{ "QCOM  ", "QCOMEDK2", 0x8180, ACPI_SIG_IORT, equal, "QCOM SMMU" },
+@@ -776,6 +803,9 @@
+ 
+ #ifdef CONFIG_ACPI
+ 	if (np == NULL) {
++		if (acpi_match_platform_list(sc7180_acpi_platlist) >= 0)
++			return sc7180_acpi_smmu_create(smmu);
++
+ 		/* Match platform for ACPI boot */
+ 		if (acpi_match_platform_list(qcom_acpi_platlist) >= 0)
+ 			return qcom_smmu_create(smmu, &qcom_smmu_500_impl0_data);

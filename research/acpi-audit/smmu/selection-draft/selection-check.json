@@ -1,0 +1,46 @@
+{
+  "iort_sha256": "aec7a46d8518744956d3776fee085de8ac3f23e6ab44e1ae04611c76261637b9",
+  "candidate_sha256": "922875dffdb4714eab1a6acce4e71416effd34d336189b08ad2127431ee21e87",
+  "tests": [
+    {
+      "name": "live-apps",
+      "result": "selection=1",
+      "expected": 1
+    },
+    {
+      "name": "live-adreno",
+      "result": "selection=2",
+      "expected": 2
+    },
+    {
+      "name": "apps-with-v2-model",
+      "result": "selection=-19",
+      "expected": -19
+    },
+    {
+      "name": "adreno-with-500-model",
+      "result": "selection=-19",
+      "expected": -19
+    },
+    {
+      "name": "apps-wrong-span",
+      "result": "selection=-19",
+      "expected": -19
+    },
+    {
+      "name": "adreno-wrong-span",
+      "result": "selection=-19",
+      "expected": -19
+    },
+    {
+      "name": "unknown-address",
+      "result": "selection=-19",
+      "expected": -19
+    },
+    {
+      "name": "wrong-version",
+      "result": "selection=-19",
+      "expected": -19
+    }
+  ]
+}

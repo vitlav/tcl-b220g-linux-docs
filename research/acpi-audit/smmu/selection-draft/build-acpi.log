@@ -1,0 +1,5 @@
+make: Entering directory '/tmp/tcl-acpi1-linux'
+make[1]: вход в каталог «/tmp/tcl-smmu-selection/acpi»
+  CC [M]  arm-smmu-qcom.o
+make[1]: выход из каталога «/tmp/tcl-smmu-selection/acpi»
+make: Leaving directory '/tmp/tcl-acpi1-linux'

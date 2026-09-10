@@ -1,0 +1,42 @@
+{
+  "README.md": {
+    "bytes": 6440,
+    "sha256": "8e536becd2441b438d6d4400d7673bd6ef95de2c0f4dbf9463da094fccb6970c"
+  },
+  "sc7180-acpi-smmu-selection.patch": {
+    "bytes": 1699,
+    "sha256": "c9b95ea7526c9677b723ecb45051b7fd44157e0ce3057490c4e394dc800d539d"
+  },
+  "check-selection.py": {
+    "bytes": 4072,
+    "sha256": "bcb1b07fc39829a2486594e8fefd68d96019112790f228fb5937e6d6607ecc72"
+  },
+  "selection-check.json": {
+    "bytes": 994,
+    "sha256": "a8f91fbcbcce083a40862541ea5cfd549be4ae8c14c852e31fdbb36d8a102aca"
+  },
+  "build-acpi.log": {
+    "bytes": 265,
+    "sha256": "46d5145fd439b7b0738fead107fed25b28e0c82012ec10d54822c1fde71a45f8"
+  },
+  "build-dt.log": {
+    "bytes": 265,
+    "sha256": "0c7a4e5e72252bbc9c6550b78521e6127a18e4797f32126736ec9c7187aa2242"
+  },
+  "arm-smmu-qcom.c": {
+    "bytes": 26452,
+    "sha256": "922875dffdb4714eab1a6acce4e71416effd34d336189b08ad2127431ee21e87"
+  },
+  "arm-smmu-qcom.c.before": {
+    "bytes": 25349,
+    "sha256": "4ea6fd76bcc1c30dae42ca4a9bfa887cb18337133a328a542174cae05796226e"
+  },
+  "acpi/arm-smmu-qcom.o": {
+    "bytes": 35640,
+    "sha256": "9e5552436116e0958319b1ce2127ffd162a4202e53475bf18c2bd293ef1d86c3"
+  },
+  "dt/arm-smmu-qcom.o": {
+    "bytes": 34000,
+    "sha256": "ddbc27e8b42ecbdd62244b148bd388c9c8df7b1068b569b59288b30403ebb24f"
+  }
+}

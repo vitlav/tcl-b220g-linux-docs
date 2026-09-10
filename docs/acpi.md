@@ -24,3 +24,5 @@ SCM текущего рабочего DT: `coherent=0`, обе DMA-маски `0
 [Общий аудит](../research/acpi-audit/README.md) · [AML](../research/acpi-audit/aml-static/README.md) · [SCM](../research/acpi-audit/scm/README.md) · [SMMU](../research/acpi-audit/smmu/README.md) · [PCI=n](../research/acpi-boot/pci-disabled/README.md).
 
 Дополнительно проверены OF-зависимости выбора Adreno impl и политики клиентских доменов: [отчёт по SMMU](../research/acpi-audit/smmu/client-policy.md). Это отдельные части ACPI-порта; глобальный identity domain не используется.
+
+[Черновик выбора Apps/Adreno SMMU](../research/acpi-audit/smmu/selection-draft/README.md): изолированная сборка объекта ACPI=y/n, два случая из живой IORT и шесть отрицательных проверок. Не установлен, полный Image не собран.

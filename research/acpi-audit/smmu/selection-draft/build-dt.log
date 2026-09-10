@@ -1,0 +1,5 @@
+make: Entering directory '/tmp/tcl-memdiag-linux'
+make[1]: вход в каталог «/tmp/tcl-smmu-selection/dt»
+  CC [M]  arm-smmu-qcom.o
+make[1]: выход из каталога «/tmp/tcl-smmu-selection/dt»
+make: Leaving directory '/tmp/tcl-memdiag-linux'
