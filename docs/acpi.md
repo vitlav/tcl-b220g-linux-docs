@@ -76,7 +76,7 @@ URS0 (QCOM0897 / PNP0CA1) содержит память 0x0a600000 длиной 
 
 Нужен glue, объединяющий ресурсы, сохраняющий правильный firmware parent для DMA и управляющий PHY/clocks/power/role. Одного добавления HID в match недостаточно. _DEP UCS0 сам по себе не доказывает блокировку enumeration Linux. [Сверка ACPI/DT](../research/acpi-audit/iort-mappings/usb-resources.md), задача [19530](https://bugs.etersoft.ru/19530).
 
-USB-адаптация уже проверена на оборудовании: glue для QCOM0897 объединяет память URS0 и IRQ USB0, назначает IORT input ID `0x80030000`, проверяет SID `0x540` и DMA domain перед запуском DWC3. Сравнение ACPI-узлов использует идентичность handles. DWC3/xHCI и накопитель работают; два снимка логов сохранены с SHA256 readback. [Результаты](../research/acpi-boot/acpi6-usb/README.md), [ресурсы и ограничения USB](hardware/usb-input.md). Самостоятельное управление PHY/clocks/power и suspend/resume ещё не подтверждено. [Материалы реализации](../research/acpi-audit/usb-glue/README.md).
+USB-адаптация уже проверена на оборудовании: glue для QCOM0897 объединяет память URS0 и IRQ USB0, назначает IORT input ID `0x80030000`, проверяет SID `0x540` и DMA domain перед запуском DWC3. Сравнение ACPI-узлов использует идентичность handles. DWC3/xHCI и накопитель работают; два снимка логов сохранены с SHA256 readback. [Результаты](../research/acpi-audit/usb-glue/validation.md), [ресурсы и ограничения USB](hardware/usb-input.md). Самостоятельное управление PHY/clocks/power и suspend/resume ещё не подтверждено. [Материалы реализации](../research/acpi-audit/usb-glue/README.md).
 
 ## Другие пробелы
 

@@ -18,6 +18,6 @@
 | [GNSS/LTE](hardware/modem.md) | Windows-устройства и OEM firmware найдены | Linux LOC/GPS fix, правильная прошивка/резерв памяти |
 | ACPI | Диагностический initramfs; SCM, оба SMMU и USB host; два снимка логов с проверкой SHA256 | Встроенные Wi-Fi/ввод, нативный дисплей, полноценная Ubuntu и управление питанием |
 
-[USB через ACPI](hardware/usb-input.md) проверен на ядре `6.18.34-tcl-acpi6`. Журналы подтверждают запуск модема и появление QRTR службы WLAN firmware, но Wi-Fi-интерфейс не создан: назначение прав MSA завершается ошибкой -22. Автоматический Wi-Fi/SSH из DT не считается перенесённым в ACPI. [Проверка USB](../research/acpi-boot/acpi6-usb/README.md).
+[USB через ACPI](hardware/usb-input.md) проверен на ядре `6.18.34-tcl-acpi6`. Журналы подтверждают запуск модема и появление QRTR службы WLAN firmware, но Wi-Fi-интерфейс не создан: назначение прав MSA завершается ошибкой -22. Автоматический Wi-Fi/SSH из DT не считается перенесённым в ACPI. [Проверка USB](../research/acpi-audit/usb-glue/validation.md).
 
 [Подробные критерии завершения поддержки](validation-gaps.md) отделяют текущие неисправности от ещё не проверенных возможностей.
