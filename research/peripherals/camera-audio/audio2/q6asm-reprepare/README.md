@@ -195,3 +195,7 @@ RAM-сценарий остаётся отдельным. Это изменен�
 
 Артефакты: movie-usb-cache60-{monitor,cold-monitor}.jsonl,
 movie-usb-cache60-pagecache.txt, scripts в том же каталоге.
+
+## Файлы патчей
+
+- [q6asm-prepare-stopped.patch](../../../../../patches/kernel/audio/q6asm-prepare-stopped.patch) — Q6ASM DAI: повторный prepare после STOPPED. Локальный патч; тесты повторного воспроизведения в отчёте.

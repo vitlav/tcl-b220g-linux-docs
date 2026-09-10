@@ -53,3 +53,8 @@ git apply --check genericpatch противисходногодерева:усп
 6. Затем вернуться кALSAcard/маршрутам и тихомуPCM. Не заявлятьзвукготовым.
 
 Bugzilla не обновлялась до проверкизвука поуказаниюпользователя.
+
+## Файлы патчей
+
+- [wcd938x-irq-lifetime.patch](../../../../../patches/kernel/audio/wcd938x-irq-lifetime.patch) — WCD938x: cleanup IRQ domain/mapping и защита SoundWire callback. Локальное исправление; два файла применяются совместно; см. историю аппаратных проверок.
+- [runtime-path-fallback.patch](../../../../../patches/kernel/audio/runtime-path-fallback.patch) — WCD938x: экспериментальный runtime path fallback. Вспомогательный эксперимент, не часть общего IRQ lifetime fix.

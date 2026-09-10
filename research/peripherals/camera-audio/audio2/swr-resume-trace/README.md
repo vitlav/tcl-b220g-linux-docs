@@ -50,3 +50,8 @@ Our preceding statement about generic cleanup was incomplete. drivers/base/power
 Sources and final v2 module/script/patch saved in validated-runtime-test/. Original initial candidate files in parent are historical compiled-only artifacts. resume-candidate-result.txt corresponds to v1 with diagnostic messages; resume-supplies-result.txt corresponds to v2. The exact v1 instrumented binary was overwritten in /tmp; historical parent binary predates those messages and must not be described as byte-identical to v1 tested. v2 archived module is the tested binary.
 
 Next investigate safe access to codec reset GPIO58 and remaining physical-link prerequisites. Existing OEM static evidence requests low5ms/high2ms; it does not prove Linux can access the pin. Reserved58..62 remain untouched because their reservation previously cured boot hang. No Bugzilla publication before sound validation.
+
+## Файлы патчей
+
+- [empty-bus-resume-candidate.patch](../../../../../patches/kernel/audio/empty-bus-resume-candidate.patch) — SoundWire: reset/re-enumeration для пустой шины после ENODATA. Гипотеза; не считать доказанным исправлением причины.
+- [experimental-resume-and-pm.patch](../../../../../patches/kernel/audio/experimental-resume-and-pm.patch) — SoundWire: эксперимент с resume и PM. Альтернативный runtime-эксперимент; не складывать с empty-bus вариантом.

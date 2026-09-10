@@ -26,3 +26,11 @@ SCM текущего рабочего DT: `coherent=0`, обе DMA-маски `0
 Дополнительно проверены OF-зависимости выбора Adreno impl и политики клиентских доменов: [отчёт по SMMU](../research/acpi-audit/smmu/client-policy.md). Это отдельные части ACPI-порта; глобальный identity domain не используется.
 
 [Черновик выбора Apps/Adreno SMMU](../research/acpi-audit/smmu/selection-draft/README.md): изолированная сборка объекта ACPI=y/n, два случая из живой IORT и шесть отрицательных проверок. Не установлен, полный Image не собран.
+
+## Прямые ссылки на изменения ядра
+
+- [ACPI default address spaces при PCI=n](../patches/kernel/acpi/acpica-default-spaces-without-pci.patch).
+- [SCM ACPI v2: match, DMA и зависимости](../patches/kernel/acpi/scm-acpi-draft-v2.patch); предыдущий v1 заменён этим вариантом.
+- [SC7180: раздельный выбор Apps и Adreno SMMU](../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch).
+
+Последние два патча остаются черновиками с проверкой сборки; совместный загрузочный комплект ещё не проверен аппаратно.

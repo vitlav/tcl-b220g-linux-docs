@@ -24,3 +24,12 @@ MEMDIAG отличается отключением CONFIG_STRICT_DEVMEM и пр
 ## Каталог патчей и история
 
 [Патчи ядра](../patches/kernel/README.md) собраны отдельно с назначением, статусом и SHA256. В исходных рабочих деревьях Linux `.git` не было: отдельных локальных kernel-коммитов нет. Есть файлы патчей и коммиты их сохранения в этом репозитории. Полная последовательная серия для чистой базы ещё не сформирована.
+
+Основные точки входа:
+
+- [GLINK backport](../patches/kernel/audio/0001-glink-destroy-backport.patch) и [Q6AFE channel mask](../patches/kernel/audio/0002-q6afe-active-mask.patch).
+- [WCD938x IRQ lifetime](../patches/kernel/audio/wcd938x-irq-lifetime.patch) и [Q6ASM повторный prepare](../patches/kernel/audio/q6asm-prepare-stopped.patch).
+- [DPU encoder assignment diagnostic](../patches/kernel/graphics/dpu-assignment-diagnostic.patch).
+- [ACPI-патчи и ограничения](acpi.md#прямые-ссылки-на-изменения-ядра).
+
+Для применимости и порядка проверять статус в каталоге и первичный отчёт; эти ссылки не обозначают единую последовательную серию.

@@ -56,3 +56,8 @@ OEM ACDB: Speaker_cal device 0x45 = SPEAKER_OUT (совпадает с CLS INF),
 Attempted parent APR audio rpmsg unbind (not PAS/modem). It blocked in kernel: bash PID3248 Ds, device_del → device_unregister → rpmsg_unregister_device → qcom_glink_destroy_ept → rpmsg_dev_remove → unbind_store. APR devices and ALSA card already removed; ADSP remains running, Wi-Fi/SSH works. Do not claim audio service restored. Remote exec session55338 still pending; script cannot advance to bind while unbind blocked. Avoid another unbind, force unloading PAS or kill -9. Need recovery/reboot planning after preserving logs; no reboot performed this turn.
 
 Prepared q6afe-active-mask.patch for19478, not yet installed/tested. Next kernel checklist: ../../../../kernel-next-TODO.md (actual repository path .claude/docs/tcl-b220g-data/kernel-next-TODO.md).
+
+## Файлы патчей
+
+- [adsp1-pcm-trace.patch](../../../../patches/kernel/audio/adsp1-pcm-trace.patch) — Q6ASM: ранняя трассировка PCM. Историческая диагностика ADSP1.
+- [adsp1-q6afe-active-mask.patch](../../../../patches/kernel/audio/adsp1-q6afe-active-mask.patch) — Ранняя версия передачи явной маски каналов Q6AFE. Исторический вариант; сравнить с AUDIO2 0002, не применять оба.

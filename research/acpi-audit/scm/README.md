@@ -37,3 +37,8 @@ _CCAдолженприсутствоватьдоACPIсозданияplatformdevi
 ## Ранняя загрузка таблицы проверена локально
 
 2026-09-10: [early-ssdt/README.md](early-ssdt/README.md) — воспроизводимая сборка несжатого CPIO, проверка настоящим earlycpio.c, положительные и отрицательные сценарии размещения, повторная AML evaluation. На ноутбук комплект не установлен.
+
+## Файлы патчей
+
+- [scm-acpi-draft-v2.patch](../../../patches/kernel/acpi/scm-acpi-draft-v2.patch) — SCM ACPI v2: match, DMA guard, начальный TZMEM pool, зависимости. Черновик; object-build; требует ранней _CCA и аппаратной проверки.
+- [scm-acpi-draft.patch](../../../patches/kernel/acpi/scm-acpi-draft.patch) — SCM ACPI v1: match QCOM080B, условный OF ICC. Предыдущий вариант, заменён v2; не применять вместе.

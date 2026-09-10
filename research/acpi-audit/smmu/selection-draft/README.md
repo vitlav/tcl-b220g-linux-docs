@@ -62,3 +62,7 @@ python3 check-selection.py --kernel /path/to/configured-kernel \
 - До следующего аппаратного теста требуется диагностируемый загрузочный комплект и отдельное согласование перезагрузки.
 
 Архив кандидата, объектов и логов: `/var/ftp/tmp/lav/tcl/acpi-smmu/selection-draft/`. Исторические рабочие Image/DTB/EFI не менялись.
+
+## Файлы патчей
+
+- [sc7180-acpi-smmu-selection.patch](../../../../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) — Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам. Черновик; object-build ACPI=y/n и host-матрица; не установлен.

@@ -19,3 +19,7 @@ Sampled GPU max60.0°C. Score lower than prior381; runs were not frequency-contr
 Refresh verified during600-frame Vulkan animation: encoder vsync delta250 over4.16s after initial startup sample, ~60.1Hz with SSH/sysfs sample timing uncertainty. Mode calculation142520000/(2080*1142)=59.9993Hz. Underrun counter0. Panel refresh is60Hz even when glmark2 renders hundreds of FPS.
 
 Saved results/ includes CSV, telemetry, before/after dmesg, DRM state, desktop log and refresh samples. comparison.json contains measured frequencies/temperature and refresh calculation. Old thermal boot with original initramfs remains; root-original MSM backup /var/tmp/msm-before-dpu.ko.
+
+## Файлы патчей
+
+- [dpu-assignment-diagnostic.patch](../../../../../../patches/kernel/graphics/dpu-assignment-diagnostic.patch) — DPU: fallback на назначенный CRTC при потере legacy lookup. Аппаратно сработал fallback; 33 сцены glmark2 завершились; локальная диагностика, не upstream.

@@ -27,3 +27,7 @@ https://marc.info/?l=linux-acpi&m=161481714525432&w=2
 Запрос создания отдельной баги: confirmation23ab1e63-db56-4e4b-a0ec-70ddf64281e3 pending. После создания поставитьblocks19492/19084 и учётвремени. Отчёт19492 confirmation01c84004-df11-4082-842e-53e71accfae7 pending; не дублировать.
 
 ПолнаясборкаImageзавершиласьуспешно, SHA256f889a28591a98583f58a8637593d2f065074ef74fe67e0d3de18aa5c1b3a2e1c. Предупреждениятолькопрежниеunusedvariablesвacer-aspire1-ec.c. Исправленноеполноеядроподготовлено,нонаTCLещёнеустановлено/непроверено. Отдельнаябага создана:19506.
+
+## Файлы патчей
+
+- [acpica-default-spaces-without-pci.patch](../../../patches/kernel/acpi/acpica-default-spaces-without-pci.patch) — Исключить PCI_CONFIG из default address spaces при PCI=n. Собран в ACPI1; вся ACPI-загрузка ещё не работает.

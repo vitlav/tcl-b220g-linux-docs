@@ -258,3 +258,11 @@ Our preceding statement about generic cleanup was incomplete. drivers/base/power
 Sources and final v2 module/script/patch saved in validated-runtime-test/. Original initial candidate files in parent are historical compiled-only artifacts. resume-candidate-result.txt corresponds to v1 with diagnostic messages; resume-supplies-result.txt corresponds to v2. The exact v1 instrumented binary was overwritten in /tmp; historical parent binary predates those messages and must not be described as byte-identical to v1 tested. v2 archived module is the tested binary.
 
 Next investigate safe access to codec reset GPIO58 and remaining physical-link prerequisites. Existing OEM static evidence requests low5ms/high2ms; it does not prove Linux can access the pin. Reserved58..62 remain untouched because their reservation previously cured boot hang. No Bugzilla publication before sound validation.
+
+## Файлы патчей
+
+- [0001-glink-destroy-backport.patch](../../../../patches/kernel/audio/0001-glink-destroy-backport.patch) — GLINK: backport upstream 5a5a48e788e02. В составе AUDIO2; отдельный upstream commit существует.
+- [0002-q6afe-active-mask.patch](../../../../patches/kernel/audio/0002-q6afe-active-mask.patch) — Q6AFE: передача active_channels_mask. В AUDIO2; hw_params с маской 3 прошёл аппаратно.
+- [0003-apr-reprobe-candidate.patch](../../../../patches/kernel/audio/0003-apr-reprobe-candidate.patch) — APR: восстановление IDR для повторного probe. Локальный кандидат AUDIO2; reprobe проверялся, не upstream.
+- [0004-q6asm-debug-messages.patch](../../../../patches/kernel/audio/0004-q6asm-debug-messages.patch) — Q6ASM: диагностические dev_dbg. Диагностика AUDIO2, не самостоятельное исправление.
+- [0005-q6asm-write-done-debug.patch](../../../../patches/kernel/audio/0005-q6asm-write-done-debug.patch) — Q6ASM: подробности WRITE_DONE. Дополнительная диагностика; учитывать исходную версию q6asm.c.
