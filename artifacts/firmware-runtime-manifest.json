@@ -1,0 +1,49 @@
+{
+  "scope": "Selected files read from the running system; presence does not prove driver consumption",
+  "observed_on": "2026-09-10",
+  "kernel_release": "6.18.34-tcl-audio2",
+  "configuration": "MEMDIAG, Device Tree",
+  "canonical_firmware_directory": "/usr/lib/firmware",
+  "package_database": {
+    "linux-firmware": "not found",
+    "wireless-regdb": "not installed"
+  },
+  "files": [
+    {
+      "firmware_relative_path": "qcom/a630_sqe.fw",
+      "bytes": 34188,
+      "sha256": "1c21b527d9183487cc550dabbb3f43e555df5a977a461934fc61f0635a9aa90c",
+      "dpkg_owner": null
+    },
+    {
+      "firmware_relative_path": "qcom/a630_gmu.bin",
+      "bytes": 32768,
+      "sha256": "da8d9b1b1f5c1a0b311f32567093b4828f3c80031dd8435f91ac13c664e173a6",
+      "dpkg_owner": null
+    },
+    {
+      "firmware_relative_path": "ath10k/WCN3990/hw1.0/board.bin",
+      "bytes": 26328,
+      "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c",
+      "dpkg_owner": null
+    },
+    {
+      "firmware_relative_path": "ath10k/WCN3990/hw1.0/firmware-5.bin",
+      "bytes": 60,
+      "sha256": "fef6539e0127579536bc977be57a90d018b83f2931fedc3a8870fbe38d6c4127",
+      "dpkg_owner": null
+    },
+    {
+      "firmware_relative_path": "regulatory.db",
+      "bytes": 6380,
+      "sha256": "2fb33ca0074db573e05ef7dd50bb45b63c0ff98b7e852e1105ebad536fae8e6b",
+      "dpkg_owner": null
+    },
+    {
+      "firmware_relative_path": "regulatory.db.p7s",
+      "bytes": 1085,
+      "sha256": "c941c08f51c93e46722293b85631604c3740d86c3de0c75f79aef50d2e919179",
+      "dpkg_owner": null
+    }
+  ]
+}
