@@ -1,6 +1,6 @@
 # ACPI: firmware-интерфейсы и требования Linux
 
-Рабочая система использует Device Tree. **Полноценная загрузка через OEM ACPI не подтверждена.** Таблицы прочитаны на оборудовании и сопоставлены с Windows; подготовленные SCM/SMMU изменения проверены полной сборкой, но не аппаратным запуском.
+Рабочая Ubuntu использует Device Tree. Через ACPI подтверждены диагностический initramfs, SCM, оба SMMU и USB host с проверенной записью логов на ядре `6.18.34-tcl-acpi6`. Полноценная Ubuntu, встроенные Wi-Fi/ввод и нативная графика через ACPI ещё не подтверждены.
 
 ## Идентичность таблиц
 
@@ -41,7 +41,7 @@ OEM `SCM0` имеет HID QCOM080B, но не содержит _CRS/_CCA; _CCA �
 
 [SCM v2](../patches/kernel/acpi/scm-acpi-draft-v2.patch) добавляет ACPI match, условный OF interconnect, проверку _CCA, начальную ACPI TZMEM allocation PAGE_SIZE и снятие ACPI dependencies после успешного probe. Используется GENERIC TZMEM. [Детали SCM](../research/acpi-audit/scm/README.md).
 
-_CCA должна присутствовать до создания устройства. [Ранняя SSDT](../research/acpi-audit/scm/early-ssdt/README.md) добавляет только SCM0._CCA=0, не заменяя DSDT. AML и размещение в несжатом CPIO перед основным initramfs проверены ACPICA и настоящим kernel earlycpio parser. На оборудовании таблица пока не испытана.
+_CCA должна присутствовать до создания устройства. [Ранняя SSDT](../research/acpi-audit/scm/early-ssdt/README.md) добавляет только SCM0._CCA=0, не заменяя DSDT. AML и размещение в несжатом CPIO перед основным initramfs проверены ACPICA и настоящим kernel earlycpio parser. На оборудовании SCM probe с ранней `_CCA=0` завершён успешно. Дополнительно требуется выполнять `of_reserved_mem_device_init()` только при наличии OF-node: с NULL эта функция возвращает -EINVAL.
 
 SCM probe может выполнять secure-world вызовы, включая выбор convention, download mode/SDI и QTEE-инициализацию. Успешная DMA allocation не подтверждает корректность всех этих действий. Задача [19517](https://bugs.etersoft.ru/19517).
 
@@ -52,7 +52,7 @@ SCM probe может выполнять secure-world вызовы, включа�
 | SMMUv2, ARM_MMU500, 0x15000000/0x100000 | qcom_smmu_500_impl0_data |
 | SMMUv2, GENERIC_SMMU, 0x5040000/0x10000 | qcom_adreno_smmu_v2_impl |
 
-[Патч выбора SMMU](../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) ограничен OEM revision 0x7180 и проверкой модели/размеров. Проверены object-build ACPI=y/n, host-матрица из двух положительных и шести отрицательных случаев и полная сборка ACPI2. Аппаратный reset/DMA с патчем не проверен.
+[Патч выбора SMMU](../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) ограничен OEM revision 0x7180 и проверкой модели/размеров. Проверены object-build ACPI=y/n, host-матрица из двух положительных и шести отрицательных случаев и полная сборка ACPI2. В ACPI6 оба SMMU завершили probe, а USB-контроллер выполнил передачу данных через свой DMA domain. Это не проверка всех SMMU-клиентов и режимов.
 
 Политика доменов клиентов и ACTLR содержит отдельные OF-зависимости. Выбор правильной реализации SMMU не решает их автоматически. Потеря изображения из-за generic reset остаётся гипотезой, не установленной причиной. [Анализ клиентов](../research/acpi-audit/smmu/client-policy.md), задача [19515](https://bugs.etersoft.ru/19515).
 
@@ -76,7 +76,7 @@ URS0 (QCOM0897 / PNP0CA1) содержит память 0x0a600000 длиной 
 
 Нужен glue, объединяющий ресурсы, сохраняющий правильный firmware parent для DMA и управляющий PHY/clocks/power/role. Одного добавления HID в match недостаточно. _DEP UCS0 сам по себе не доказывает блокировку enumeration Linux. [Сверка ACPI/DT](../research/acpi-audit/iort-mappings/usb-resources.md), задача [19530](https://bugs.etersoft.ru/19530).
 
-[Основа USB-адаптации](../research/acpi-audit/usb-glue/README.md): исторический upstream ACPI URS glue проверен сборкой на ACPI2 после изменения platform remove API. ACPI-only прототип уже ограничен HID QCOM0897, проверяет ресурсы и SID/domain, использует отдельное имя и DMA-родителя URS0. Передача IORT input ID до probe и аппаратная работа ещё не реализованы/не проверены; это не готовый USB-драйвер TCL.
+USB-адаптация уже проверена на оборудовании: glue для QCOM0897 объединяет память URS0 и IRQ USB0, назначает IORT input ID `0x80030000`, проверяет SID `0x540` и DMA domain перед запуском DWC3. Сравнение ACPI-узлов использует идентичность handles. DWC3/xHCI и накопитель работают; два снимка логов сохранены с SHA256 readback. [Результаты](../research/acpi-boot/acpi6-usb/README.md), [ресурсы и ограничения USB](hardware/usb-input.md). Самостоятельное управление PHY/clocks/power и suspend/resume ещё не подтверждено. [Материалы реализации](../research/acpi-audit/usb-glue/README.md).
 
 ## Другие пробелы
 
@@ -89,6 +89,6 @@ URS0 (QCOM0897 / PNP0CA1) содержит память 0x0a600000 длиной 
 
 ## Прямые ссылки на изменения ядра
 
-[Каталог ACPI-патчей](../patches/kernel/README.md) и [конфигурация ACPI2](../research/acpi-boot/acpi2/README.md): release 6.18.34-tcl-acpi2, полный Image и 948 согласованных модулей собраны. Объединённый initramfs ещё не подготовлен, аппаратная загрузка этого комплекта не выполнена.
+[Каталог ACPI-патчей](../patches/kernel/README.md) и [конфигурация ACPI2](../research/acpi-boot/acpi2/README.md): release 6.18.34-tcl-acpi2, полный Image и 948 согласованных модулей собраны. Для аппаратного результата USB используется более поздний диагностический комплект ACPI6; его результаты не распространяются на раннюю конфигурацию ACPI2.
 
 Условие следующего аппаратного теста — работающий канал диагностики, согласованные модули/firmware и ранняя таблица. Наличие Image или shell само по себе не обеспечивает наблюдение результата. Общая задача [19492](https://bugs.etersoft.ru/19492).
