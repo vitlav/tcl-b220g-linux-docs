@@ -3,7 +3,7 @@
 | Подсистема | Что искать | Первичные материалы |
 |---|---|---|
 | CPU / частота / криптография | cpufreq, аппаратные crypto-инструкции, измерения | [CPU freq](../research/peripherals/cpufreq-probe/README.md), [CPU crypto](../research/peripherals/cpu-crypto/README.md) |
-| Wi-Fi | ath10k, OEM firmware, RMTFS, DHCP, постоянный доступ | [Исследование](../research/peripherals/wifi-research/README.md), [Службы](../research/peripherals/wifi-services/README.md), [Постоянная настройка](../research/peripherals/wifi-persistent/README.md) |
+| Wi-Fi | ath10k, OEM firmware, RMTFS, DHCP, постоянный доступ | [Спецификация Wi-Fi](hardware/wifi.md), [службы Ubuntu](ubuntu.md#firmware-и-запуск-wi-fi) |
 | UFS / ICE | PHY, LUN, inline encryption, проверка чтения | [UFS](../research/peripherals/ufs-probe/README.md), [ICE](../research/peripherals/ice-research/README.md), [Windows backup](../research/peripherals/windows-backup/README.md) |
 | Экран / GPU | DPU, DSI, LT8911EXB handoff, Mesa/Weston, тесты | [Handoff](../research/peripherals/wayland-probe/native-display/handoff/README.md), [GPU](../research/peripherals/wayland-probe/native-display/kms1-gpu/README.md), [Benchmark](../research/peripherals/wayland-probe/native-display/kms1-gpu/full-benchmark/README.md) |
 | Видео | Venus отдельно от GPU-вывода; CPU сравнения | [Decode](../research/peripherals/video-decode/README.md), [mpv CPU](../research/peripherals/video-decode/venus1/mpv-cpu/README.md), [A/B playback](../research/peripherals/video-decode/venus1/playback-cpu/README.md) |
