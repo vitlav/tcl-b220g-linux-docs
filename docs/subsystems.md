@@ -10,7 +10,7 @@
 | Звук / камера | WCD9385, ADSP, SoundWire, питание, повторный запуск | [Спецификация звука](hardware/audio.md), [камера UVC](hardware/camera.md) |
 | EC / батарея | ACPI I²C-протокол, проверенные поля, зарядка | [Спецификация EC](hardware/ec.md) |
 | SAR / крышка | AW96105, IIO, EC lid | [Спецификация датчиков](hardware/sensors.md) |
-| GNSS / LTE | NM и полный MPSS, резерв RAM, LOC/PDS | [GNSS](../research/peripherals/gnss/README.md) |
+| GNSS / LTE | NM и полный MPSS, резерв RAM, LOC/PDS | [Спецификация MPSS / GNSS](hardware/modem.md) |
 | Браузер / звук | Firefox, Wayland, PulseAudio | [Браузеры](../research/peripherals/browser/README.md) |
 
 Материалы Windows используются для сопоставления адресов, схем питания и firmware. Драйверы Windows и прошивки не включены в Git; они перечислены в архивном манифесте. Отсутствие устройства в текущем DT не отменяет данные Windows: в частности, сохранены сведения Snapdragon X15 LTE и Qualcomm Location, но Linux GNSS fix и LTE-сеанс не подтверждены.
