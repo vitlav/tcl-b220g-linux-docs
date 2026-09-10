@@ -8,8 +8,8 @@
 | Экран / GPU | DPU, DSI, LT8911EXB handoff, Mesa/Weston, тесты | [Спецификация дисплея / GPU](hardware/display.md) |
 | Видео | Venus отдельно от GPU-вывода; CPU сравнения | [Decode](../research/peripherals/video-decode/README.md), [mpv CPU](../research/peripherals/video-decode/venus1/mpv-cpu/README.md), [A/B playback](../research/peripherals/video-decode/venus1/playback-cpu/README.md) |
 | Звук / камера | WCD9385, ADSP, SoundWire, питание, повторный запуск | [Спецификация звука](hardware/audio.md), [материалы камеры](../research/peripherals/camera-audio/README.md) |
-| EC / батарея | ACPI I²C-протокол, проверенные поля, зарядка | [Power/EC](../research/peripherals/power-storage-video/README.md) |
-| SAR / крышка | AW96105, IIO, EC lid | [Датчики](../research/peripherals/sensors/README.md) |
+| EC / батарея | ACPI I²C-протокол, проверенные поля, зарядка | [Спецификация EC](hardware/ec.md) |
+| SAR / крышка | AW96105, IIO, EC lid | [Спецификация датчиков](hardware/sensors.md) |
 | GNSS / LTE | NM и полный MPSS, резерв RAM, LOC/PDS | [GNSS](../research/peripherals/gnss/README.md) |
 | Браузер / звук | Firefox, Wayland, PulseAudio | [Браузеры](../research/peripherals/browser/README.md) |
 
