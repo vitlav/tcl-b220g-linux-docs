@@ -19,6 +19,8 @@ MEMDIAG прочитал XSDT `0xffffc000` (13 указателей) и DSDT ч�
 
 SCM текущего рабочего DT: `coherent=0`, обе DMA-маски `0xffffffff`; одноразовая проба успешно выделила и освободила 4096 байт. SMC не вызывался. Это доказательство Linux DMA-конфигурации, не проверка ACPI/TrustZone передачи.
 
-Подготовлена SSDT с `_SB.SCM0._CCA = 0`; компиляция и acpiexec успешны. Она **не установлена**. Черновик SCM v2 с проверкой DMA скомпилирован лишь как объект. Ранний CPIO с таблицей и аппаратный тест ещё предстоят.
+Подготовлена SSDT с `_SB.SCM0._CCA = 0`; компиляция и acpiexec успешны. Она **не установлена**. Черновик SCM v2 с проверкой DMA скомпилирован лишь как объект. Ранний несжатый CPIO подготовлен и проверен ядровым earlycpio-парсером; объединённый загрузочный образ и аппаратный тест ещё предстоят. [Сборка, проверки и SHA256](../research/acpi-audit/scm/early-ssdt/README.md).
 
 [Общий аудит](../research/acpi-audit/README.md) · [AML](../research/acpi-audit/aml-static/README.md) · [SCM](../research/acpi-audit/scm/README.md) · [SMMU](../research/acpi-audit/smmu/README.md) · [PCI=n](../research/acpi-boot/pci-disabled/README.md).
+
+Дополнительно проверены OF-зависимости выбора Adreno impl и политики клиентских доменов: [отчёт по SMMU](../research/acpi-audit/smmu/client-policy.md). Это отдельные части ACPI-порта; глобальный identity domain не используется.

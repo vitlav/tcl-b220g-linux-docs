@@ -1,0 +1,33 @@
+
+Intel ACPI Component Architecture
+AML Execution/Debug Utility version 20260408
+Copyright (c) 2000 - 2026 Intel Corporation
+
+Using ACPI 5.0 Hardware Reduced Mode via version 5 FADT
+Automatic loop timeout after 2 seconds
+
+
+ACPI: RSDP 0x000055E193AB81A0 000024 (v02 Intel )
+ACPI: XSDT 0x000055E193AC6200 00003C (v00 Intel  AcpiExec 00001001 INTL 20260408)
+ACPI: FACP 0x000055E193AB7FC0 000114 (v05 Intel  AcpiExec 00001001 INTL 20260408)
+ACPI: DSDT 0x00007F6F99512010 02E2C5 (v02 QCOMM  SDM7180  00000003 MSFT 05000000)
+ACPI: SSDT 0x000055E193AC6190 000046 (v02 TCLLAB SCMCCA0  00000001 INTL 20250807)
+
+ACPI table initialization:
+Table [DSDT: SDM7180 ] (id 01) - 1084 Objects with 115 Devices,  11 Regions,  324 Methods (106/218/100 Serial/Non/Cvt)
+Table [SSDT: SCMCCA0 ] (id 02) -    1 Objects with   0 Devices,   0 Regions,    0 Methods (0/0/0 Serial/Non/Cvt)
+ACPI: 2 ACPI AML tables successfully acquired and loaded
+
+Final data object initialization: ACPI Error: AE_NOT_FOUND, While resolving a named reference package element - \_SB_.GPU0.AVS0 (20260408/dspkginit-467)
+Namespace contains 1094 (0x446) objects
+Evaluating \_SB.SCM0._CCA
+Evaluation of \_SB.SCM0._CCA returned object 0x55e193abfe00, external buffer length 18
+  [Integer] = 0000000000000000
+
+0x55e193c2bcf0 Length 0x0048   utcache-0315 [Operand Object]       Method  RefCount 0x0001
+0x55e193ac6da0 Length 0x0023  nsxfname-0591 [Not a Descriptor] 
+0x55e193ac6c60 Length 0x0023  nsxfname-0591 [Not a Descriptor] 
+0x55e193ac6ab0 Length 0x0048   utcache-0315 [Operand Object]       Method  RefCount 0x0001
+ACPI Error: 4 (0x4) Outstanding cache allocations (20260408/uttrack-764)
+Input file .claude/docs/tcl-b220g-data/DSDT.dat, Length 0x2E2C5 (189125) bytes
+Input file /tmp/tcl-scm-early/out/scm-cca0.aml, Length 0x46 (70) bytes

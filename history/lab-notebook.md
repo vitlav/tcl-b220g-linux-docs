@@ -2636,3 +2636,6 @@ _CCAдолженприсутствоватьдоACPIсозданияplatformdevi
 DMA-проба рабочего SCM завершилась: coherent=0, mask/coherent_mask=0xffffffff, выделено 4096 байт DMA 0x998ae000, CPU pattern OK, память освобождена. Модуль выгружен, SSH/Weston active. SMC не выполнялся; это не проверка ACPI SCM.
 
 2026-09-10: основная таблица устройств опубликована в #19084, comment181422; полная таблица 738 узлов — attachment7799, оба подтверждены.
+
+
+2026-09-10: ранняя SCM SSDT упакована в CPIO 1024 байта (e56100971e1114dab15a308c8f6063a23d32433916105a48fa2cf16c9b649e3c), проверена исходным earlycpio.c: early и early+gzip PASS, gzip-only и gzip+early ожидаемо не находят таблицу. ACPICA вернул SCM0._CCA=0. SMMU-аудит выявил дополнительные OF-зависимости выбора Adreno impl и default domain; GPU SID0 helper не зависит от OF. Код SMMU, EFI, DTB и активная система не изменялись, перезагрузок не было.

@@ -1,0 +1,18 @@
+{
+  "format": "uncompressed newc",
+  "member": "kernel/firmware/acpi/scm-cca0.aml",
+  "files": {
+    "scm-cca0.asl": {
+      "bytes": 156,
+      "sha256": "f8a982c9b6c06e2bd6340c8f6f6046512e275cd1b0a833d3e42396668ba1f003"
+    },
+    "scm-cca0.aml": {
+      "bytes": 70,
+      "sha256": "d63bfb4959a75431c1416a34a99aa702888a436fed435304e4eafbdb5d044b25"
+    },
+    "scm-cca0-early.cpio": {
+      "bytes": 1024,
+      "sha256": "e56100971e1114dab15a308c8f6063a23d32433916105a48fa2cf16c9b649e3c"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "earlycpio_sha256": "298fe9db8e041f80b2cf59b8ee86dc6ec850b133c1c573c60900727aab126200",
+  "tests": [
+    {
+      "case": "early",
+      "expected_found": 1,
+      "result": "found=1 bytes=70 name=scm-cca0.aml next_offset=596"
+    },
+    {
+      "case": "early-before-gzip",
+      "expected_found": 1,
+      "result": "found=1 bytes=70 name=scm-cca0.aml next_offset=596"
+    },
+    {
+      "case": "gzip-only",
+      "expected_found": 0,
+      "result": "found=0 bytes=0 name= next_offset=0"
+    },
+    {
+      "case": "gzip-before-early",
+      "expected_found": 0,
+      "result": "found=0 bytes=0 name= next_offset=0"
+    }
+  ]
+}
