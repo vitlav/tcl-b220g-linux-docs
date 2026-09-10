@@ -1,0 +1,14 @@
+{
+  "upstream_base": "12fc84e8c4288cc8ed5f14a35e077130c2cfece2",
+  "upstream_path": "drivers/usb/dwc3/dwc3-qcom.c",
+  "kernel_release": "6.18.34-tcl-acpi2",
+  "validation": "W=1 external module compile, modpost, link; no hardware load",
+  "source_sha256": "ffc95c5911d6e5595126d3b9a5f1ec5faf7f6127c441f5bb9f48920875dd8a43",
+  "module_sha256": "08e22eada01ba7aeac0b66c6ac4029658cf0ed72ee4e12702b5f69101219ea4a",
+  "acpi_aliases": [
+    "QCOM0897"
+  ],
+  "of_aliases": [],
+  "driver_name": "tcl-dwc3-acpi",
+  "requires_iort_before_probe": true
+}
