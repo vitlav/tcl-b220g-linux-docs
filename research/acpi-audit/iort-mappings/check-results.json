@@ -1,0 +1,86 @@
+{
+  "iort_sha256": "aec7a46d8518744956d3776fee085de8ac3f23e6ab44e1ae04611c76261637b9",
+  "helpers_sha256": "452014b2eb3f35d48b1410f884e200ca40da96e1a086954790fc3b2d8cdb068c",
+  "nodes": [
+    {
+      "name": "\\_SB.GPU0",
+      "mapping_count": 27,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=2"
+    },
+    {
+      "name": "\\_SB.JPGE",
+      "mapping_count": 2,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=3456"
+    },
+    {
+      "name": "\\_SB.ARPC",
+      "mapping_count": 19,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=4099"
+    },
+    {
+      "name": "\\_SB.IPA",
+      "mapping_count": 1,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=1088"
+    },
+    {
+      "name": "\\_SB.USBA",
+      "mapping_count": 1,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=4111"
+    },
+    {
+      "name": "\\_SB.NPU0",
+      "mapping_count": 6,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=5185"
+    },
+    {
+      "name": "\\_SB.QDSS",
+      "mapping_count": 2,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=1184"
+    },
+    {
+      "name": "\\_SB.ADSP.ADCM",
+      "mapping_count": 4,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=4097"
+    },
+    {
+      "name": "\\_SB.QSPI0",
+      "mapping_count": 1,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=32"
+    },
+    {
+      "name": "\\_SB.QUP",
+      "mapping_count": 4,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=86"
+    },
+    {
+      "name": "\\_SB.SDC2",
+      "mapping_count": 2,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=128"
+    },
+    {
+      "name": "\\_SB.URS0",
+      "mapping_count": 1,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=1344"
+    },
+    {
+      "name": "\\_SB.UFS0",
+      "mapping_count": 1,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=160"
+    },
+    {
+      "name": "\\_SB.USB0",
+      "mapping_count": 1,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=1344"
+    },
+    {
+      "name": "\\_SB.GPU0.AVS0",
+      "mapping_count": 11,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=3232"
+    },
+    {
+      "name": "\\_SB.AMSS.QWLN",
+      "mapping_count": 1,
+      "result_first_mapping": "no_input_parent=0 explicit_ret=0 explicit_sid=192"
+    }
+  ]
+}

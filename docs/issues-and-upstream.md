@@ -13,6 +13,8 @@
 | [19512](https://bugs.etersoft.ru/19512) | Отсутствующее определение GPU0.AVS0 |
 | [19515](https://bugs.etersoft.ru/19515) | Qualcomm ACPI SMMU handover |
 | [19517](https://bugs.etersoft.ru/19517) | SCM QCOM080B / ACPI DMA |
+| [19529](https://bugs.etersoft.ru/19529) | IORT NamedComponent: явные DMA input IDs |
+| [19530](https://bugs.etersoft.ru/19530) | USB ACPI QCOM0897 и сохранение логов |
 
 Ссылки фиксируют темы задач; текущий статус Bugzilla может изменяться. Pending-запросы в историческом журнале не означают опубликованный результат.
 

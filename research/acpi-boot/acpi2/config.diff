@@ -1,0 +1,11 @@
+--- acpi1.config
++++ acpi2.config
+@@ -39,7 +39,7 @@
+ CONFIG_INIT_ENV_ARG_LIMIT=32
+ # CONFIG_COMPILE_TEST is not set
+ # CONFIG_WERROR is not set
+-CONFIG_LOCALVERSION="-tcl-acpi1"
++CONFIG_LOCALVERSION="-tcl-acpi2"
+ # CONFIG_LOCALVERSION_AUTO is not set
+ CONFIG_BUILD_SALT=""
+ CONFIG_HAVE_KERNEL_GZIP=y

@@ -6,7 +6,7 @@
 
 MEMDIAG отличается отключением CONFIG_STRICT_DEVMEM и производного CONFIG_EXCLUSIVE_SYSTEM_RAM; Module.symvers совпадает с базой. Release намеренно оставлен прежним для совместимости существующих модулей и сценариев. Поэтому `uname -r` недостаточно: нужны SHA256 Image и kernel.config.
 
-В отдельном `/tmp/tcl-acpi1-linux` применяется черновик SCM ACPI v2. Собран лишь объект qcom_scm.o с W=1; **полный Image с этим черновиком не строился и не установлен**. Не путать исходники с последней ACPI1 Image на USB.
+В отдельной копии `/tmp/tcl-acpi2-linux` полностью собраны Image и 948 модулей `6.18.34-tcl-acpi2` с SCM ACPI v2 и раздельным выбором Apps/Adreno SMMU. [Состав, конфигурация и проверки](../research/acpi-boot/acpi2/README.md). Комплект не установлен и не проверен аппаратно. Не путать его с последней ACPI1 Image на USB.
 
 ## Изменения образа Ubuntu
 

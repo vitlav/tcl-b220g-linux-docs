@@ -19,13 +19,13 @@ MEMDIAG прочитал XSDT `0xffffc000` (13 указателей) и DSDT ч�
 
 SCM текущего рабочего DT: `coherent=0`, обе DMA-маски `0xffffffff`; одноразовая проба успешно выделила и освободила 4096 байт. SMC не вызывался. Это доказательство Linux DMA-конфигурации, не проверка ACPI/TrustZone передачи.
 
-Подготовлена SSDT с `_SB.SCM0._CCA = 0`; компиляция и acpiexec успешны. Она **не установлена**. Черновик SCM v2 с проверкой DMA скомпилирован лишь как объект. Ранний несжатый CPIO подготовлен и проверен ядровым earlycpio-парсером; объединённый загрузочный образ и аппаратный тест ещё предстоят. [Сборка, проверки и SHA256](../research/acpi-audit/scm/early-ssdt/README.md).
+Подготовлена SSDT с `_SB.SCM0._CCA = 0`; компиляция и acpiexec успешны. Она **не установлена**. SCM v2 с проверкой DMA включён в полностью собранное ядро ACPI2 вместе с SMMU selection draft; аппаратного теста ещё не было. Ранний несжатый CPIO подготовлен и проверен ядровым earlycpio-парсером; объединённый загрузочный образ и аппаратный тест ещё предстоят. [Сборка, проверки и SHA256](../research/acpi-audit/scm/early-ssdt/README.md).
 
 [Общий аудит](../research/acpi-audit/README.md) · [AML](../research/acpi-audit/aml-static/README.md) · [SCM](../research/acpi-audit/scm/README.md) · [SMMU](../research/acpi-audit/smmu/README.md) · [PCI=n](../research/acpi-boot/pci-disabled/README.md).
 
 Дополнительно проверены OF-зависимости выбора Adreno impl и политики клиентских доменов: [отчёт по SMMU](../research/acpi-audit/smmu/client-policy.md). Это отдельные части ACPI-порта; глобальный identity domain не используется.
 
-[Черновик выбора Apps/Adreno SMMU](../research/acpi-audit/smmu/selection-draft/README.md): изолированная сборка объекта ACPI=y/n, два случая из живой IORT и шесть отрицательных проверок. Не установлен, полный Image не собран.
+[Черновик выбора Apps/Adreno SMMU](../research/acpi-audit/smmu/selection-draft/README.md): изолированная сборка объекта ACPI=y/n, два случая из живой IORT и шесть отрицательных проверок. Включён в полный Image ACPI2; не установлен и не проверен на оборудовании.
 
 ## Прямые ссылки на изменения ядра
 
@@ -34,3 +34,11 @@ SCM текущего рабочего DT: `coherent=0`, обе DMA-маски `0
 - [SC7180: раздельный выбор Apps и Adreno SMMU](../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch).
 
 Последние два патча остаются черновиками с проверкой сборки; совместный загрузочный комплект ещё не проверен аппаратно.
+
+## Полная сборка и новые препятствия USB
+
+[ACPI2: сборка и манифест](../research/acpi-boot/acpi2/README.md): `6.18.34-tcl-acpi2`, Image и 948 согласованных модулей. Бинарники и логи сохранены в `/var/ftp/tmp/lav/tcl/acpi2-build/`. Объединённый initramfs ещё не подготовлен.
+
+[Проверка IORT mappings](../research/acpi-audit/iort-mappings/README.md): все 16 NamedComponent имеют flags=0, поэтому обычный Linux-путь без input ID не выбирает SID. На настоящих функциях ядра проверены первые отображения всех 16 узлов: с явным ID перевод успешен. Это не аппаратный DMA-тест. Задача [19529](https://bugs.etersoft.ru/19529).
+
+[Ресурсы USB в ACPI и DT](../research/acpi-audit/iort-mappings/usb-resources.md): память у URS0, IRQ у дочернего USB0; требуется корректный firmware parent, явный DMA input ID и управление PHY/питанием. Задача [19530](https://bugs.etersoft.ru/19530). До решения доступа к диагностике следующая ACPI-загрузка не подготовлена.

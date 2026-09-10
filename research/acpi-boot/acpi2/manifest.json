@@ -1,0 +1,37 @@
+{
+  "release": "6.18.34-tcl-acpi2",
+  "modules_checked": 948,
+  "orphan_objects_not_packaged": [
+    "kernel/configs.ko"
+  ],
+  "files": {
+    "arch/arm64/boot/Image": {
+      "bytes": 32811520,
+      "sha256": "b482eda71cbe4a7949d5cf220f3e4a0c1305efa2a79f47ebd6606d453b1845e1"
+    },
+    "vmlinux": {
+      "bytes": 42455520,
+      "sha256": "48a5e6467d3ed7aee813f8531f9d3f566b42a8ab514b75a4b0b7edc659104536"
+    },
+    ".config": {
+      "bytes": 240566,
+      "sha256": "55540cb5eabc19bbf387c51c9a484d19f6095c1fc4efabf462feca2daddc89a3"
+    },
+    "Module.symvers": {
+      "bytes": 1211335,
+      "sha256": "eb853893a40581e0998cda94cdb99c69987b2b66217dbf6fda49e6d9fb409841"
+    },
+    "modules.order": {
+      "bytes": 32260,
+      "sha256": "fdbf0fc86896ee855a3b10846a2a74252e28bce14060f8e5590de850706288d6"
+    },
+    "include/config/kernel.release": {
+      "bytes": 18,
+      "sha256": "db820fdf75338f12065ad92ffcf82e2d4ae335080e1af284b6d31b3b5481e6f9"
+    }
+  },
+  "modules_archive": {
+    "bytes": 14163124,
+    "sha256": "f4686c600b90702e299df344159d1addfac180a5c2db6f5440b5a84fcba21df7"
+  }
+}

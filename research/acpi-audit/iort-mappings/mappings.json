@@ -1,0 +1,686 @@
+[
+  {
+    "name": "\\_SB.GPU0",
+    "offset": 960,
+    "mappings": [
+      {
+        "input_base": 50987008,
+        "id_count": 0,
+        "output_base": 2,
+        "output_reference": 812,
+        "flags": 0
+      },
+      {
+        "input_base": 50528256,
+        "id_count": 1,
+        "output_base": 0,
+        "output_reference": 812,
+        "flags": 0
+      },
+      {
+        "input_base": 50528258,
+        "id_count": 0,
+        "output_base": 4,
+        "output_reference": 812,
+        "flags": 0
+      },
+      {
+        "input_base": 50528259,
+        "id_count": 0,
+        "output_base": 5,
+        "output_reference": 812,
+        "flags": 0
+      },
+      {
+        "input_base": 196608,
+        "id_count": 0,
+        "output_base": 2048,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 196609,
+        "id_count": 0,
+        "output_base": 2050,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 655360,
+        "id_count": 0,
+        "output_base": 2049,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 100859904,
+        "id_count": 0,
+        "output_base": 3100,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 101318656,
+        "id_count": 0,
+        "output_base": 3101,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201523200,
+        "id_count": 1,
+        "output_base": 1076,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201523202,
+        "id_count": 1,
+        "output_base": 1060,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201523204,
+        "id_count": 0,
+        "output_base": 1087,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201523205,
+        "id_count": 0,
+        "output_base": 1074,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201523206,
+        "id_count": 1,
+        "output_base": 1078,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201523208,
+        "id_count": 1,
+        "output_base": 1080,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201523210,
+        "id_count": 1,
+        "output_base": 1062,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201916416,
+        "id_count": 0,
+        "output_base": 1084,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201916417,
+        "id_count": 0,
+        "output_base": 1085,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201916418,
+        "id_count": 0,
+        "output_base": 1086,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 201916419,
+        "id_count": 0,
+        "output_base": 1075,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 67305472,
+        "id_count": 0,
+        "output_base": 3104,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 67305473,
+        "id_count": 0,
+        "output_base": 3136,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 67698688,
+        "id_count": 0,
+        "output_base": 3105,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 67698689,
+        "id_count": 0,
+        "output_base": 3109,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 67764224,
+        "id_count": 0,
+        "output_base": 3107,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 67829760,
+        "id_count": 0,
+        "output_base": 3108,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 67829761,
+        "id_count": 0,
+        "output_base": 3140,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.JPGE",
+    "offset": 1561,
+    "mappings": [
+      {
+        "input_base": 33751040,
+        "id_count": 0,
+        "output_base": 3456,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 33751041,
+        "id_count": 0,
+        "output_base": 3488,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.ARPC",
+    "offset": 1662,
+    "mappings": [
+      {
+        "input_base": 386072592,
+        "id_count": 2,
+        "output_base": 4099,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072576,
+        "id_count": 0,
+        "output_base": 5153,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072578,
+        "id_count": 0,
+        "output_base": 5154,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072580,
+        "id_count": 0,
+        "output_base": 5155,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072582,
+        "id_count": 0,
+        "output_base": 5156,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072584,
+        "id_count": 0,
+        "output_base": 5157,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072586,
+        "id_count": 0,
+        "output_base": 5158,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072588,
+        "id_count": 0,
+        "output_base": 5159,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072590,
+        "id_count": 0,
+        "output_base": 5160,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072577,
+        "id_count": 0,
+        "output_base": 5121,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072579,
+        "id_count": 0,
+        "output_base": 5122,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072581,
+        "id_count": 0,
+        "output_base": 5123,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072583,
+        "id_count": 0,
+        "output_base": 5124,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072585,
+        "id_count": 0,
+        "output_base": 5125,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072587,
+        "id_count": 0,
+        "output_base": 5126,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072589,
+        "id_count": 0,
+        "output_base": 5127,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386072591,
+        "id_count": 0,
+        "output_base": 5128,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386531328,
+        "id_count": 0,
+        "output_base": 5161,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 386531329,
+        "id_count": 0,
+        "output_base": 5129,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.IPA",
+    "offset": 2103,
+    "mappings": [
+      {
+        "input_base": 184745984,
+        "id_count": 3,
+        "output_base": 1088,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.USBA",
+    "offset": 2184,
+    "mappings": [
+      {
+        "input_base": 117637125,
+        "id_count": 0,
+        "output_base": 4111,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.NPU0",
+    "offset": 2265,
+    "mappings": [
+      {
+        "input_base": 402849792,
+        "id_count": 1,
+        "output_base": 5185,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 402849794,
+        "id_count": 1,
+        "output_base": 5217,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 402849796,
+        "id_count": 1,
+        "output_base": 5249,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 403308544,
+        "id_count": 0,
+        "output_base": 5189,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 403308545,
+        "id_count": 0,
+        "output_base": 5221,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 403308546,
+        "id_count": 0,
+        "output_base": 5253,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.QDSS",
+    "offset": 2446,
+    "mappings": [
+      {
+        "input_base": 2298675200,
+        "id_count": 0,
+        "output_base": 1184,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 2298675201,
+        "id_count": 0,
+        "output_base": 1152,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.ADSP.ADCM",
+    "offset": 2547,
+    "mappings": [
+      {
+        "input_base": 117637120,
+        "id_count": 0,
+        "output_base": 4097,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 117637121,
+        "id_count": 0,
+        "output_base": 4143,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 117637122,
+        "id_count": 1,
+        "output_base": 4144,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 117637124,
+        "id_count": 0,
+        "output_base": 4134,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.QSPI0",
+    "offset": 2688,
+    "mappings": [
+      {
+        "input_base": 335740928,
+        "id_count": 0,
+        "output_base": 32,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.QUP",
+    "offset": 2769,
+    "mappings": [
+      {
+        "input_base": 318963712,
+        "id_count": 0,
+        "output_base": 86,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 318963713,
+        "id_count": 0,
+        "output_base": 67,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 268632064,
+        "id_count": 0,
+        "output_base": 1238,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 268632065,
+        "id_count": 0,
+        "output_base": 1219,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.SDC2",
+    "offset": 2910,
+    "mappings": [
+      {
+        "input_base": 2248343552,
+        "id_count": 0,
+        "output_base": 128,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 2248343553,
+        "id_count": 0,
+        "output_base": 96,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.URS0",
+    "offset": 3011,
+    "mappings": [
+      {
+        "input_base": 2147680256,
+        "id_count": 0,
+        "output_base": 1344,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.UFS0",
+    "offset": 3092,
+    "mappings": [
+      {
+        "input_base": 2164457472,
+        "id_count": 0,
+        "output_base": 160,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.USB0",
+    "offset": 3173,
+    "mappings": [
+      {
+        "input_base": 2147680256,
+        "id_count": 0,
+        "output_base": 1344,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.GPU0.AVS0",
+    "offset": 3254,
+    "mappings": [
+      {
+        "input_base": 16973824,
+        "id_count": 0,
+        "output_base": 3232,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973825,
+        "id_count": 0,
+        "output_base": 3360,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973826,
+        "id_count": 0,
+        "output_base": 3424,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973827,
+        "id_count": 0,
+        "output_base": 3298,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973828,
+        "id_count": 0,
+        "output_base": 2080,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973829,
+        "id_count": 0,
+        "output_base": 2144,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973830,
+        "id_count": 0,
+        "output_base": 2112,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973831,
+        "id_count": 0,
+        "output_base": 3200,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973832,
+        "id_count": 0,
+        "output_base": 3328,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973833,
+        "id_count": 0,
+        "output_base": 3264,
+        "output_reference": 48,
+        "flags": 0
+      },
+      {
+        "input_base": 16973834,
+        "id_count": 0,
+        "output_base": 3392,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  },
+  {
+    "name": "\\_SB.AMSS.QWLN",
+    "offset": 3535,
+    "mappings": [
+      {
+        "input_base": 285409280,
+        "id_count": 1,
+        "output_base": 192,
+        "output_reference": 48,
+        "flags": 0
+      }
+    ]
+  }
+]
