@@ -1,0 +1,16 @@
+{
+  "tag": "master-2026-05-30",
+  "revision": "b488e68eb1ca0a0dcdf742c7f4195c7678eafdc5",
+  "files": [
+    {
+      "path": "regulatory.db",
+      "bytes": 6380,
+      "sha256": "2fb33ca0074db573e05ef7dd50bb45b63c0ff98b7e852e1105ebad536fae8e6b"
+    },
+    {
+      "path": "regulatory.db.p7s",
+      "bytes": 1085,
+      "sha256": "c941c08f51c93e46722293b85631604c3740d86c3de0c75f79aef50d2e919179"
+    }
+  ]
+}

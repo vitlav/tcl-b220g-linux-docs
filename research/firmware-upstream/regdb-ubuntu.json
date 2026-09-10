@@ -1,0 +1,17 @@
+{
+  "package": "wireless-regdb",
+  "version": "2026.02.04-0ubuntu1",
+  "deb_sha256": "8780f362b68fc12adef7461763ea3d947a53056d6195b38a1d5a1c9c6397db1f",
+  "files": [
+    {
+      "path": "./lib/firmware/regulatory.db",
+      "bytes": 6308,
+      "sha256": "9d171281bfe7acc5d203007427f6075b704b7a48ff42ae25b9f490a0118fe7d2"
+    },
+    {
+      "path": "./lib/firmware/regulatory.db.p7s",
+      "bytes": 1085,
+      "sha256": "d1170298577027c2da346242627ff6cad09fbebaa96a6b2de07ada7c873dd337"
+    }
+  ]
+}
