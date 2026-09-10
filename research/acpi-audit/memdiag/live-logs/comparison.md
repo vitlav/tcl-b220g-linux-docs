@@ -7,7 +7,7 @@ Boot 4e6555b5-375b-4855-8672-59a720177a4c; все прочитанные checksu
 | XSDT | 0xffffc000 | 140 | нет сохранённого .dat для сравнения |
 | FACP | 0xfffc2000 | 276 | совпадает: FACP-1.dat |
 | DSDT | 0xfffc3000 | 189125 | совпадает: DSDT.dat |
-| BGRT | 0xffffb000 | 56 | отличается — требуется разбор полей |
+| BGRT | 0xffffb000 | 56 | отличаются только status и checksum; разбор ниже |
 | CSRT | 0xffff3000 | 29717 | совпадает: CSRT-3.dat |
 | DBG2 | 0xffff2000 | 348 | совпадает: DBG2-8.dat |
 | GTDT | 0xfffc1000 | 156 | совпадает: GTDT-5.dat |

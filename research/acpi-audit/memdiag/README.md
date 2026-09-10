@@ -1,30 +1,51 @@
-# TCL MEMDIAG — рабочая DT Ubuntu с чтением ACPI-памяти
+# MEMDIAG: чтение OEM ACPI из работающей DT-системы
 
-2026-09-10. Установлено, ещё не загружалось.
+**Проверено на оборудовании:** система загрузилась с DT, сохранила доступ Wi-Fi/SSH и Weston; сборщик успешно прочитал OEM ACPI из зарезервированной памяти и сохранил результат на USB. ACPI-инициализация устройств в этой конфигурации выключена. Чтение таблиц не исполняет AML и не проверяет поддержку оборудования через ACPI.
 
-Основа — точная копия рабочего /tmp/tcl-audio2-linux, исходный Image3cfc0fcb6d48d4816423ad794a045bf783f049bc12311f5c66df213f179aa71e. Отдельное дерево /tmp/tcl-memdiag-linux. Изменено CONFIG_STRICT_DEVMEM=n; автоматически исчез CONFIG_EXCLUSIVE_SYSTEM_RAM=y. Остальные различия config.diff — недоступные выключенные опции. Сгенерированный autoconf.h отличается только этими двумя define.
+## Ядро и идентификация
 
-Сборка `make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j16 Image` успешна. Kernel release остался6.18.34-tcl-audio2: установленным модулям и скриптам не нужен новый суффикс. Utsrelease.h и Module.symvers совпадают с рабочим деревом (SHA256symvers6b8a49b0453fc8b07ecfdf7644bc662f6536abc593554fcb65f02aadbaa7d448). Это статические проверки совместимости, не аппаратная проверка нового ядра.
+Основа — AUDIO2, release `6.18.34-tcl-audio2`. В [конфигурации](kernel.config) отключён CONFIG_STRICT_DEVMEM, вследствие чего отсутствует CONFIG_EXCLUSIVE_SYSTEM_RAM. Сравнение generated autoconf.h показало изменение только этих двух define; [config.diff](config.diff) также содержит исчезнувшие строки недоступных выключенных опций.
 
-Image SHA256:78c251e585d082d221b17429769b4ad861e9aeb23ef64e5249029610ca059ef5.
-EFI SHA256:51200ae5f014a18b2e8ac1cb5ba9b6d559f3d936090ff1850b931c17874eb7f8.
+| Объект | SHA256 / результат |
+|---|---|
+| Исходный AUDIO2 Image | `3cfc0fcb6d48d4816423ad794a045bf783f049bc12311f5c66df213f179aa71e` |
+| MEMDIAG Image | `78c251e585d082d221b17429769b4ad861e9aeb23ef64e5249029610ca059ef5` |
+| Module.symvers | `6b8a49b0453fc8b07ecfdf7644bc662f6536abc593554fcb65f02aadbaa7d448`; совпадает с AUDIO2 |
+| Kernel release | Сохранён для совместимости установленных модулей и сценариев |
 
-Новый пункт `TCL MEMDIAG: working Ubuntu + Wi-Fi SSH + ACPI memory dump`, idtcl-memdiag. Ядро/tcl-memdiag/Image, DT/tcl-audio2/va-probe.dtb, initramfs/tcl-audio2/initramfs.cpio.gz; добавлен только tcl.memdiag=1. Само ACPI в этом ядре по-прежнему выключено: цель прочитать таблицы из RAM, а не менять способ инициализации оборудования. Ожидается прежняя рабочая сеть, потому что используются прежние DT/rootfs/initramfs.
+`uname -r` не различает эти Image. Совпадение Module.symvers — проверка экспортируемых символов, а не доказательство идентичности всех реализаций ядра. Полная кросс-сборка Image выполнена с `ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-`.
 
-EFI собран согласованными GRUB2.12 tool/modules. grub-script-check пройден, вхождение полного config вEFI проверено. Все прежние menuentry сохранены побайтно. Defaulttcl-audio2-va; одноразовый next_entry теперь допускаетtcl-acpi1 илиtcl-memdiag, очищается до старта. Для нового теста next_entry пока не установлен. Резервная копия EFI/BOOT/BOOTAA64-before-memdiag.bak содержит предыдущий59491a71….
+## Метод чтения
 
-Установлен /usr/local/lib/tcl-memdiag/{collect.sh,read-live-acpi.py}, tcl-memdiag.service enabled с ConditionKernelCommandLine=tcl.memdiag=1 и проверкой mountpoint. В текущем ядре systemctl start пропускает службу, ConditionResult=no.
+[read-live-acpi.py](read-live-acpi.py) получает ACPI20 pointer из EFI systab и открывает `/dev/mem` с O_RDONLY. Допустимый физический диапазон фиксирован: `[0xfff22000, 0xffffe000)`. Перед чтением требуется, чтобы весь этот диапазон находился внутри записи `reserved` в текущем `/proc/iomem`.
 
-Прямой пробный запуск collect.sh на нынешнем ядре успешно сохранил STARTED, dmesg-before/after, cmdline, iomem, EFI pointers, reader-error, RESULTreader_failed=1 иCOMPLETE на USB UUID405E-8AB3. Причина отказа ожидаемая: STRICT_DEVMEM запрещает чтение RSDP. Логи в preflight-logs/. SSH после теста active.
+Проверяются границы и полнота каждого чтения, сигнатура/checksum RSDP, checksum таблиц, структура XSDT и число её указателей (не более 64). DSDT читается по X_DSDT из FADT, с fallback на 32-битный DSDT pointer. Для таблиц сохраняются адрес, длина, SHA256 и содержимое base64. У MSDM читается только заголовок для распознавания; payload не сохраняется.
 
-Результаты будущей загрузки: /run/initramfs/usb/tcl-memdiag/logs/<boot-id>/. При успехе tables.json, при отказе reader-error.txt иRESULT. Скрипт сначала сохраняет и sync журнала, затем пытается прочитать только подтверждённый зарезервированный диапазон0xfff22000..0xffffdfff через O_RDONLY. Проверяет сигнатуры/длины/checksum, читает XSDT иDSDTпоFADT. MSDMpayload исключён. При смещении таблиц/изменении карты останавливается, не читает произвольную память. Автоматической перезагрузки нет.
+Это специализированный читатель для проверенной карты памяти. Он не сканирует произвольные адреса и завершится ошибкой при выходе за заданный диапазон. Фиксированный диапазон не является обещанием неизменного размещения таблиц во всех версиях firmware.
 
-Все файлы на USB проверены SHA256послеsync. Текущийboot1589e0d5-7a52-4d0b-8405-d8b498bdbbc2,IP192.168.8.177. Перезагрузка не выполнялась; требуется согласие пользователя на испытание.
+## Сохранение диагностики
 
-## Успешная аппаратная проверка MEMDIAG
+[collect.sh](collect.sh) и [unit](tcl-memdiag.service) задают следующий контракт:
 
-2026-09-10: после разрешённой перезагрузки boot4e6555b5-375b-4855-8672-59a720177a4c. В cmdline /tcl-memdiag/Image иtcl.memdiag=1. Wi-Fi192.168.8.177,SSHactive,Westonactive. tcl-memdiag.service Resultsuccess; RESULTsuccess/COMPLETEнаUSB, reader-errorпустой. Логи полностью скопированы вlive-logs/. Одноразовыйnext_entryпустой.
+| Этап | Сохраняемые данные / условие |
+|---|---|
+| Запуск unit | Параметр ядра `tcl.memdiag=1`; USB mountpoint существует |
+| Проверка назначения | Совпадают UUID filesystem и файл-маркер конкретного комплекта |
+| Перед чтением | STARTED, uname, cmdline, iomem, EFI systab, dmesg; затем sync |
+| Чтение | Не более 30 секунд; сначала временный JSON-файл |
+| Успех | `tables.json`, `RESULT` со значением `success` |
+| Отказ | `reader-error.txt`, `RESULT` со значением `reader_failed=<код>` |
+| Завершение | dmesg после чтения, COMPLETE, sync |
 
-Прочитана XSDT0xffffc000 (140байт,13указателей), черезFADTDSDT. Все прочитанные checksum0, MSDMpayloadнечитался. SSDTвживойXSDTнет. DSDTпобайтноравнаWindows78b42f6e…; FACP/CSRT/DBG2/GTDT/IORT/APIC/MCFG/PPTT/SPCR/TPM2/FPDTтакжепобайтносовпадают. BGRTотличаетсятолькостатусом(offset38:0→1)исвязаннойchecksum(offset9:91→90); адрес/размерструктуры/координатыизображениянеизменны. См.live-logs/comparison.md.
+Каталог результатов разделяется по boot ID. COMPLETE означает завершение сборщика, а не обязательно успешное чтение: нужно проверить RESULT. Сохранённый сценарий привязан к одному USB UUID/маркеру и установленному пути читателя; для другого носителя требуется адаптация. Отказ до создания каталога, например несовпадение UUID, не создаёт RESULT. Автоматической перезагрузки нет.
 
-ОтсутствиеGPU0.AVS0подтвержденодляживогонаборатаблицтекущейзагрузки,нодинамическиедобавлениявиныхрежимахнеисключены. Отдельнаязадачаотправленанасоздание:confirmation1fa40b13-dbdf-400b-8423-ffa3a3fc5d1c pending,послесозданиясвязать19492/19084изаписатьвремя. ПричиначёрногоэкранаACPIвсёещёнеустановлена.
+## Сопоставление с Windows
+
+XSDT находится по адресу 0xffffc000, имеет длину 140 байт и 13 указателей. DSDT получена отдельно через FADT. У всех полностью прочитанных таблиц checksum равна нулю.
+
+- DSDT, FACP, CSRT, DBG2, GTDT, IORT, APIC, MCFG, PPTT, SPCR, TPM2 и FPDT побайтно совпадают с сохранённым дампом Windows.
+- В BGRT отличаются только status по offset 38 (`0 → 1`) и checksum по offset 9 (`91 → 90`); адрес изображения и координаты совпадают.
+- Для XSDT нет сохранённого Windows `.dat` для побайтного сравнения.
+- SSDT в прочитанной XSDT отсутствуют. Это не исключает динамическую установку таблиц в иных режимах.
+
+[Полная таблица адресов, размеров и результатов](live-logs/comparison.md). Отсутствие определения GPU0.AVS0 подтверждено для исследованного набора; оно само по себе не устанавливает причину чёрного экрана при ACPI-загрузке. Требования к драйверам и отдельные задачи изложены в [спецификации ACPI](../../../docs/acpi.md).
