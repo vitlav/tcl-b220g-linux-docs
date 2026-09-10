@@ -1,0 +1,166 @@
+{
+  "scope": "Verified archived firmware subset, not a complete installed firmware manifest",
+  "verification": "Archive bytes and SHA256 checked; no new runtime load test",
+  "files": [
+    {
+      "name": "venus.mbn",
+      "archive_path": "peripherals/video-decode/venus1/firmware/qcom/venus-5.4/venus.mbn",
+      "firmware_relative_path": "qcom/venus-5.4/venus.mbn",
+      "bytes": 922376,
+      "sha256": "db2a2efefa7149519b36f01be8a7c37bdf21efd2f06eff5028f80d4295aef7d9",
+      "scope": "Tested Venus firmware; decoding limitations remain"
+    },
+    {
+      "name": "bdwlan.b36",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b36",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b36",
+      "bytes": 26328,
+      "sha256": "12c738f0393672ccfa2acf0d5ee5d80f4d7e868cb1238f003fd563362e009e6e",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.b37",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b37",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b37",
+      "bytes": 26328,
+      "sha256": "93c6e9f50ec6d3dd3acc88921911dbc68a80aa7a581df28062cba59ca3afb6a2",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.b46",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b46",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b46",
+      "bytes": 26328,
+      "sha256": "e10ef5e66070bd21f005d309a81afe5aee2a6affd11b33c97ab264c02d7119f2",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.b47",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b47",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b47",
+      "bytes": 26328,
+      "sha256": "58725816a65596dbdf20d1fecdf5b62cfc7ab51c35999daa337c62afa72dfbc3",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.b48",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b48",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b48",
+      "bytes": 26328,
+      "sha256": "cef488c8ecf2da501299ef150128aa4d8d208e5faa76bea2c7f82e14c251c128",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.b59",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b59",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b59",
+      "bytes": 26328,
+      "sha256": "8da568415c32b4946f123a2dc2cda75dc077218516353ca452cd109bca3fd586",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.b5b",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b5b",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b5b",
+      "bytes": 26328,
+      "sha256": "c3f0406864e479752072253c9562c88d780eaebcb61573c110d7c9c44acac1ed",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.b67",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b67",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b67",
+      "bytes": 26328,
+      "sha256": "da2e615dea087b66889d09ab627e091710a35ce05167b0bd95cf4926196a62e1",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.b71",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.b71",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.b71",
+      "bytes": 26328,
+      "sha256": "cd3ffca25b10d79c154830b2037e5b144da73472d42b0375ef8ff1e4e598e1df",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlan.bin",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlan.bin",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlan.bin",
+      "bytes": 26328,
+      "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlanu.b59",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlanu.b59",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlanu.b59",
+      "bytes": 26328,
+      "sha256": "c7ceb9dbf330587755aeb3116d3757399b2d75aadf1ed6d38d00c85c7b6f505a",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlanu.b5b",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlanu.b5b",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlanu.b5b",
+      "bytes": 26328,
+      "sha256": "7c54c92b39d34c26d53c783d79ab0d81dedbf785e08ed600adae610d8e3814e9",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlanu.b67",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlanu.b67",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlanu.b67",
+      "bytes": 26328,
+      "sha256": "da2e615dea087b66889d09ab627e091710a35ce05167b0bd95cf4926196a62e1",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "bdwlanu.bin",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/bdwlanu.bin",
+      "firmware_relative_path": "qcom/sc7180/tcl/bdwlanu.bin",
+      "bytes": 26328,
+      "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "qcmpss7180_nm.mbn",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/qcmpss7180_nm.mbn",
+      "firmware_relative_path": "qcom/sc7180/tcl/qcmpss7180_nm.mbn",
+      "bytes": 5057288,
+      "sha256": "9ea0c34b4bcd380aec638135ba0751067a46ae988d207e959d33883430c36ab3",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "wlanmdsp.mbn",
+      "archive_path": "peripherals/wifi-services/firmware/qcom/sc7180/tcl/wlanmdsp.mbn",
+      "firmware_relative_path": "qcom/sc7180/tcl/wlanmdsp.mbn",
+      "bytes": 3832108,
+      "sha256": "b3213d834d11e602c2422690edf316f8fa786ab2d1a34df60b9f4bf83801fa82",
+      "scope": "OEM WLAN collection; individual board selection not established"
+    },
+    {
+      "name": "qcdxkmsuc7180.mbn",
+      "archive_path": "windows-drivers/OEM/qcdx7180.inf_arm64_8bf1f859236667d0/qcdxkmsuc7180.mbn",
+      "firmware_relative_path": "qcom/sc7180/tcl/qcdxkmsuc7180.mbn",
+      "bytes": 14256,
+      "sha256": "34b3a965a2cfd98495f1b2f3f06ff0254032a293a321fd32b21518525a6ac618",
+      "scope": "OEM GPU firmware in tested display configuration"
+    },
+    {
+      "name": "qcadsp7180.mbn",
+      "archive_path": "windows-drivers/OEM/qcsubsys_ext_adsp7180.inf_arm64_491ac1156469bb91/qcadsp7180.mbn",
+      "firmware_relative_path": "qcom/sc7180/tcl/b220g/qcadsp7180.mbn",
+      "bytes": 13463676,
+      "sha256": "24d665684966cab76eb0ca58536cd96f9e978267f52ffef1dd300d8e3dfe2860",
+      "scope": "ADSP firmware used by tested audio configuration"
+    },
+    {
+      "name": "qcmpss7180.mbn",
+      "archive_path": "windows-drivers/OEM/qcsubsys_ext_mpss7180.inf_arm64_1f7bb7fdb50d934a/qcmpss7180.mbn",
+      "firmware_relative_path": null,
+      "bytes": 61815992,
+      "sha256": "fdad8d193bc1310bd9ee70f7b2d6dcf350bbb28f633d6a27e3eff00ddbef09b8",
+      "scope": "Full MPSS candidate; not validated; requires different memory reservation"
+    }
+  ]
+}
