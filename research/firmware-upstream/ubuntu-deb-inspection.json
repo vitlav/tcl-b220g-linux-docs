@@ -1,0 +1,70 @@
+{
+  "graphics": {
+    "deb_sha256": "0ea17b60ecf68f08baf75783548cac64c1cb67dd08a6b095b953c8834993beee",
+    "selected": [
+      {
+        "path": "./usr/lib/firmware/qcom/a630_gmu.bin.zst",
+        "uncompressed_bytes": 32768,
+        "sha256": "da8d9b1b1f5c1a0b311f32567093b4828f3c80031dd8435f91ac13c664e173a6"
+      },
+      {
+        "path": "./usr/lib/firmware/qcom/a630_sqe.fw.zst",
+        "uncompressed_bytes": 34188,
+        "sha256": "1c21b527d9183487cc550dabbb3f43e555df5a977a461934fc61f0635a9aa90c"
+      },
+      {
+        "path": "./usr/lib/firmware/qcom/venus-5.4/venus.mbn.zst",
+        "uncompressed_bytes": 922312,
+        "sha256": "3148b6a909ac854fba785148b684b38fc9c268a82aaf9c905f310fc700c8ad88"
+      }
+    ],
+    "control": "Package: linux-firmware-qualcomm-graphics\nVersion: 20260319.git217ca6e4-0ubuntu1.1\nArchitecture: all\nMaintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>\nInstalled-Size: 10757\nBreaks: initramfs-tools (<< 0.142ubuntu8~), linux-firmware (<< 20260113), linux-firmware-snapdragon (<= 1.2-0ubuntu1)\nReplaces: linux-firmware (<< 20260113), linux-firmware-snapdragon (<= 1.2-0ubuntu1)\nSection: misc\nPriority: optional\nDescription: Firmware for Qualcomm graphics and video processors\n This package provides firmware used by Linux kernel drivers\n adreno, iris, and venus.\nOriginal-Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>\n",
+    "postinst": "#!/bin/sh\n\nset -e\n\ncase \"$1\" in\n\tconfigure)\n\t\tdpkg-trigger --no-await update-initramfs\n\t\t;;\n\n\tabort-upgrade|abort-remove|abort-deconfigure)\n\t\t;;\n\n\t*)\n\t\techo \"postinst called with unknown argument: $1\" >&2\n\t\texit 1\n\t\t;;\nesac\n\n\n",
+    "sc7180_or_tcl_paths": []
+  },
+  "wireless": {
+    "deb_sha256": "502af7beee9fe8e80afcd71e55ddb066e9e721d9847cb6eb8c913ed2d616fba3",
+    "selected": [
+      {
+        "path": "./usr/lib/firmware/ath10k/WCN3990/hw1.0/board-2.bin.zst",
+        "uncompressed_bytes": 867116,
+        "sha256": "867e1010787764020653812167d93f5952cbbea05f576209d953d8c9322f18aa"
+      },
+      {
+        "path": "./usr/lib/firmware/ath10k/WCN3990/hw1.0/firmware-5.bin.zst",
+        "uncompressed_bytes": 60,
+        "sha256": "fef6539e0127579536bc977be57a90d018b83f2931fedc3a8870fbe38d6c4127"
+      },
+      {
+        "path": "./usr/lib/firmware/ath10k/WCN3990/hw1.0/notice.txt_wlanmdsp.zst",
+        "uncompressed_bytes": 27005,
+        "sha256": "d7a42cb726d992c427fc130b60b076c5536297aafceecdb053b1b5de17f7d5fa"
+      },
+      {
+        "path": "./usr/lib/firmware/ath10k/WCN3990/hw1.0/qcm2290/firmware-5.bin.zst",
+        "uncompressed_bytes": 60,
+        "sha256": "80daf4f3a89e6ea8222e45387bb362c854fcd30c02e9da59ca723b39b269cdd2"
+      },
+      {
+        "path": "./usr/lib/firmware/ath10k/WCN3990/hw1.0/qcm2290/wlanmdsp.mbn.zst",
+        "uncompressed_bytes": 3828228,
+        "sha256": "4a0f4d8a5d7cdc094a5b0b907f4b9906657b76070993fed4d8cc4ccf5776b515"
+      },
+      {
+        "path": "./usr/lib/firmware/ath10k/WCN3990/hw1.0/wlanmdsp.mbn.zst",
+        "uncompressed_bytes": 3725044,
+        "sha256": "92e1501254e6de78c0f2e2cf091507d488b608d07e53acd14813a82744823ec2"
+      }
+    ],
+    "control": "Package: linux-firmware-qualcomm-wireless\nVersion: 20260319.git217ca6e4-0ubuntu1.2\nArchitecture: all\nMaintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>\nInstalled-Size: 47757\nBreaks: initramfs-tools (<< 0.142ubuntu8~), linux-firmware (<< 20260113)\nReplaces: linux-firmware (<< 20260113)\nSection: misc\nPriority: optional\nDescription: Firmware for Qualcomm and Atheros Wi-Fi and Bluetooth adapters\n This package provides firmware used by Linux kernel drivers\n ar5523, ar9170, ath3k, ath6kl, ath9k_htc, ath10k, ath11k,\n ath12k, btqca, and wil6210.\nOriginal-Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>\n",
+    "postinst": "#!/bin/sh\n\nset -e\n\ncase \"$1\" in\n\tconfigure)\n\t\tdpkg-trigger --no-await update-initramfs\n\t\t;;\n\n\tabort-upgrade|abort-remove|abort-deconfigure)\n\t\t;;\n\n\t*)\n\t\techo \"postinst called with unknown argument: $1\" >&2\n\t\texit 1\n\t\t;;\nesac\n\n\n",
+    "sc7180_or_tcl_paths": []
+  },
+  "misc": {
+    "deb_sha256": "2b760aa0bbadf8d2ce1b2136a297549833743bdc1d16f2e98dcb0887c1ece0a4",
+    "selected": [],
+    "control": "Package: linux-firmware-qualcomm-misc\nVersion: 20260319.git217ca6e4-0ubuntu2.1\nArchitecture: all\nMaintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>\nInstalled-Size: 163392\nBreaks: initramfs-tools (<< 0.142ubuntu8~), linux-firmware (<< 20260113), linux-firmware-snapdragon (<= 1.2-0ubuntu1)\nReplaces: linux-firmware (<< 20260113), linux-firmware-snapdragon (<= 1.2-0ubuntu1)\nSection: misc\nPriority: optional\nDescription: Firmware for miscellaneous Qualcomm devices\n This package provides firmware used by Linux kernel drivers\n qaic, qcom-geni-se, qcom-qcs6490, qcom-qcs8300, qcom-qcs9100,\n qcom-sc8280xp, qcom-sm8550, qcom-sm8650, qcom-x1e80100,\n qcom_q6v5_mss, qcom_q6v5_pas, qdu100, and sdx61.\nOriginal-Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>\n",
+    "postinst": "#!/bin/sh\n\nset -e\n\ncase \"$1\" in\n\tconfigure)\n\t\tdpkg-trigger --no-await update-initramfs\n\t\t;;\n\n\tabort-upgrade|abort-remove|abort-deconfigure)\n\t\t;;\n\n\t*)\n\t\techo \"postinst called with unknown argument: $1\" >&2\n\t\texit 1\n\t\t;;\nesac\n\n\n",
+    "sc7180_or_tcl_paths": []
+  }
+}
