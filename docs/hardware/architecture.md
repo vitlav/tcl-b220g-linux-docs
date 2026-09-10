@@ -16,6 +16,8 @@ flowchart TB
 
 ## Процессор, прерывания и питание
 
+[Ресурсы общей инфраструктуры](platform.md).
+
 ```mermaid
 flowchart TB
     CPU["SC7180 / Kryo 468<br/>8 CPU"] --> GIC["GICv3 + PDC<br/>IRQ / wakeup"]

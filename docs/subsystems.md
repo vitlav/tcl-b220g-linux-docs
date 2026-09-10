@@ -2,6 +2,7 @@
 
 | Подсистема | Содержание | Спецификация |
 |---|---|---|
+| Инфраструктура SoC | IRQ, GPIO, clocks, питание и DMA | [Спецификация платформы](hardware/platform.md) |
 | USB / ввод | DWC3, PHY, I²C HID, клавиатура и тачпад | [Спецификация USB и ввода](hardware/usb-input.md) |
 | CPU / частота / криптография | cpufreq, аппаратные crypto-инструкции, измерения | [Спецификация CPU](hardware/cpu.md) |
 | Wi-Fi | ath10k, OEM firmware, RMTFS, DHCP, постоянный доступ | [Спецификация Wi-Fi](hardware/wifi.md), [службы Ubuntu](ubuntu.md#firmware-и-запуск-wi-fi) |
