@@ -1,0 +1,134 @@
+[
+  {
+    "name": "upstream",
+    "sha256": "db2a2efefa7149519b36f01be8a7c37bdf21efd2f06eff5028f80d4295aef7d9",
+    "bytes": 922376,
+    "segments": [
+      {
+        "index": 0,
+        "type": 0,
+        "offset": 0,
+        "vaddr": "0x0",
+        "paddr": "0x0",
+        "filesz": 212,
+        "memsz": 0,
+        "flags": "0x7000000",
+        "sha256": "7e4c33765ef83bc9a2b1102337dcc254ee7fddceed3799d2e268d4a7174d0eea"
+      },
+      {
+        "index": 1,
+        "type": 0,
+        "offset": 4096,
+        "vaddr": "0xfa00000",
+        "paddr": "0xfa00000",
+        "filesz": 6808,
+        "memsz": 8192,
+        "flags": "0x2200000",
+        "sha256": "58f85e8064319f0bc23d66c0a58935218a6f46ab4819d5a1a6e1859fb22514a7"
+      },
+      {
+        "index": 2,
+        "type": 1,
+        "offset": 12288,
+        "vaddr": "0x0",
+        "paddr": "0xf500000",
+        "filesz": 876160,
+        "memsz": 876160,
+        "flags": "0x88000005",
+        "sha256": "d1b608c29099b015a4cc41761fc1e192a7b8a907db3ee616858df30816508770"
+      },
+      {
+        "index": 3,
+        "type": 1,
+        "offset": 888448,
+        "vaddr": "0x100000",
+        "paddr": "0xf600000",
+        "filesz": 33896,
+        "memsz": 4145152,
+        "flags": "0x8000006",
+        "sha256": "87c8a1282ee63aa66ac1c5da720b3d4f527f4064cdb207809e85f6fe2212eb14"
+      },
+      {
+        "index": 4,
+        "type": 1,
+        "offset": 922344,
+        "vaddr": "0x4ff000",
+        "paddr": "0xf9ff000",
+        "filesz": 32,
+        "memsz": 32,
+        "flags": "0x8000006",
+        "sha256": "43b09596e1496809aaa964b34c146580f0566c86bc9d7218a1288fd15fb93424"
+      }
+    ],
+    "version_strings": [
+      "QC_IMAGE_VERSION_STRING=VIDEO.VE.5.4-00064-PROD-1",
+      "Jul  1 2026"
+    ]
+  },
+  {
+    "name": "ubuntu",
+    "sha256": "3148b6a909ac854fba785148b684b38fc9c268a82aaf9c905f310fc700c8ad88",
+    "bytes": 922312,
+    "segments": [
+      {
+        "index": 0,
+        "type": 0,
+        "offset": 0,
+        "vaddr": "0x0",
+        "paddr": "0x0",
+        "filesz": 212,
+        "memsz": 0,
+        "flags": "0x7000000",
+        "sha256": "0db239b8bad49c5e3a90aee42355fbfc5cb1f2cb424a828d1f5d49bbfd0013bd"
+      },
+      {
+        "index": 1,
+        "type": 0,
+        "offset": 4096,
+        "vaddr": "0xfa00000",
+        "paddr": "0xfa00000",
+        "filesz": 6808,
+        "memsz": 8192,
+        "flags": "0x2200000",
+        "sha256": "d118b59d95a880ed4a1cdf607fa8c75da6bb6ea5b7cce534c72a9c05e39bc5f6"
+      },
+      {
+        "index": 2,
+        "type": 1,
+        "offset": 12288,
+        "vaddr": "0x0",
+        "paddr": "0xf500000",
+        "filesz": 876096,
+        "memsz": 876096,
+        "flags": "0x88000005",
+        "sha256": "97344eef498868e99b887df786a46032865d709c8dd1ef1c7b566da3d8545631"
+      },
+      {
+        "index": 3,
+        "type": 1,
+        "offset": 888384,
+        "vaddr": "0x100000",
+        "paddr": "0xf600000",
+        "filesz": 33896,
+        "memsz": 4145152,
+        "flags": "0x8000006",
+        "sha256": "66b2cc87e8d5d7ec24bb5c42c2f58ae0482d045636416cba24c99973155527b5"
+      },
+      {
+        "index": 4,
+        "type": 1,
+        "offset": 922280,
+        "vaddr": "0x4ff000",
+        "paddr": "0xf9ff000",
+        "filesz": 32,
+        "memsz": 32,
+        "flags": "0x8000006",
+        "sha256": "43b09596e1496809aaa964b34c146580f0566c86bc9d7218a1288fd15fb93424"
+      }
+    ],
+    "version_strings": [
+      "QC_IMAGE_VERSION_STRING=VIDEO.VE.5.4-00063-PROD-1",
+      "Dec 19 2025"
+    ]
+  }
+]
