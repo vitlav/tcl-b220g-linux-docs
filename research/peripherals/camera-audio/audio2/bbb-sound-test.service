@@ -1,0 +1,12 @@
+[Unit]
+Description=TCL Big Buck Bunny sound test at low initial volume
+After=tcl-weston.service
+Requires=tcl-weston.service
+
+[Service]
+Type=simple
+Environment=XDG_RUNTIME_DIR=/run/tcl-weston
+Environment=WAYLAND_DISPLAY=wayland-tcl
+ExecStart=/usr/bin/mpv --no-config --fullscreen --vo=gpu-next --gpu-api=opengl --gpu-context=wayland --hwdec=no --ao=alsa --audio-device=alsa/hw:TCLADSPDiagnost,0 --volume=5 --volume-max=100 --input-ipc-server=/run/tcl-weston/mpv-sound-test.sock /run/initramfs/usb/tcl-venus1/big_buck_bunny_1080p_h264.mov
+# Manual parallel movie test; initial software volume 5%, amplification above 100% disabled.
+TimeoutStopSec=15

@@ -1,0 +1,7 @@
+/include/ "../wayland-probe/native-display/kms1-thermal/thermal.dts"
+
+/* Probe-only candidate. Not installed. Keep internal UFS readonly. */
+&{/soc@0/crypto@1d90000} { status = "okay"; };
+&{/soc@0/ufshc@1d84000} {
+ qcom,ice = <&{/soc@0/crypto@1d90000}>;
+};

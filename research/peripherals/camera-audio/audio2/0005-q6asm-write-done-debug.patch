@@ -1,0 +1,13 @@
+--- a/sound/soc/qcom/qdsp6/q6asm.c
++++ b/sound/soc/qcom/qdsp6/q6asm.c
+@@ -673,6 +673,10 @@
+ 		goto done;
+ 
+ 	case ASM_DATA_EVENT_WRITE_DONE_V2:
++		if (data->payload_size >= 16) {
++			u32 *w = data->payload;
++			dev_dbg(ac->dev, "TCL_ASM_WRITE_DONE words=%#x,%#x,%#x,%#x\n", w[0], w[1], w[2], w[3]);
++		}
+ 		client_event = ASM_CLIENT_EVENT_DATA_WRITE_DONE;
+ 		if (ac->io_mode & ASM_SYNC_IO_MODE) {
+ 			phys_addr_t phys;

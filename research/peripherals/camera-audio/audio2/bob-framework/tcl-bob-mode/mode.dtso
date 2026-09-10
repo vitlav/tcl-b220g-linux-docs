@@ -1,0 +1,3 @@
+/dts-v1/;
+/plugin/;
+/ { fragment@0 { target-path="/soc@0/rsc@18200000/tcl-audio-bob-test/bob"; __overlay__ { regulator-allowed-modes=<2>; regulator-initial-mode=<2>; }; }; };

@@ -1,0 +1,19 @@
+[Unit]
+Description=TCL diagnostic Wayland desktop (Adreno 618)
+After=systemd-udev-trigger.service systemd-user-sessions.service tcl-weston-gl.service tcl-weston-pixman.service
+ConditionPathExists=/sys/class/devfreq/5000000.gpu
+ConditionPathExists=/dev/dri/card0
+Conflicts=tcl-weston-gl.service tcl-weston-pixman.service
+
+[Service]
+Type=simple
+RuntimeDirectory=tcl-weston
+RuntimeDirectoryMode=0700
+LogsDirectory=tcl-weston
+Environment=XDG_RUNTIME_DIR=/run/tcl-weston
+Environment=LIBSEAT_BACKEND=builtin
+ExecStart=/usr/bin/weston --backend=drm --renderer=gl --drm-device=card0 --current-mode --socket=wayland-tcl --idle-time=0 --config=/etc/xdg/weston/tcl-weston.ini --log=/var/log/tcl-weston/weston.log
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

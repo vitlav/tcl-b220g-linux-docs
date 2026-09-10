@@ -1,0 +1,34 @@
+--- a/drivers/soc/qcom/apr.c
++++ b/drivers/soc/qcom/apr.c
+@@ -365,11 +365,30 @@
+ {
+ 	struct apr_device *adev = to_apr_device(dev);
+ 	struct apr_driver *adrv = to_apr_driver(dev->driver);
+-	int ret;
++	struct packet_router *apr = dev_get_drvdata(adev->dev.parent);
++	bool restored = false;
++	unsigned long flags;
++	int ret = 0;
++
++	/* apr_add_device registers the first probe; restore after unbind. */
++	spin_lock_irqsave(&apr->svcs_lock, flags);
++	if (!idr_find(&apr->svcs_idr, adev->svc.id)) {
++		ret = idr_alloc(&apr->svcs_idr, &adev->svc, adev->svc.id,
++			       adev->svc.id + 1, GFP_ATOMIC);
++		restored = ret >= 0;
++	}
++	spin_unlock_irqrestore(&apr->svcs_lock, flags);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = adrv->probe(adev);
+ 	if (!ret)
+ 		adev->svc.callback = adrv->gpr_callback;
++	else if (restored) {
++		spin_lock_irqsave(&apr->svcs_lock, flags);
++		idr_remove(&apr->svcs_idr, adev->svc.id);
++		spin_unlock_irqrestore(&apr->svcs_lock, flags);
++	}
+ 
+ 	return ret;
+ }

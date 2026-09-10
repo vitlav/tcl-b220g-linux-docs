@@ -1,0 +1,19 @@
+/include/ "../kms1-dt/kms1.dts"
+
+/* GPU test: keep the proven display and peripheral configuration. */
+&{/reserved-memory} {
+ tcl_zap: zap-shader@80840000 {
+  reg = <0 0x80840000 0 0x2000>;
+  no-map;
+ };
+};
+&{/soc@0/gpu@5000000} {
+ status = "okay";
+ zap-shader {
+  memory-region = <&tcl_zap>;
+  firmware-name = "qcom/sc7180/tcl/qcdxkmsuc7180.mbn";
+ };
+};
+&{/soc@0/iommu@5040000} { status = "okay"; };
+&{/soc@0/gmu@506a000} { status = "okay"; };
+&{/soc@0/clock-controller@5090000} { status = "okay"; };

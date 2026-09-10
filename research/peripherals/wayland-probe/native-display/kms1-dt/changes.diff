@@ -1,0 +1,80 @@
+--- /tmp/tcl-kms1-dt/base.sorted.dts	2026-09-08 20:35:36.674437353 +0300
++++ /tmp/tcl-kms1-dt/kms1.sorted.dts	2026-09-08 20:35:36.678645510 +0300
+@@ -849,7 +849,7 @@
+ 			compatible = "qcom,sc7180-dispcc";
+ 			phandle = <0xa3>;
+ 			reg = <0x00 0xaf00000 0x00 0x200000>;
+-			status = "disabled";
++			status = "okay";
+ 		};
+ 
+ 		cpufreq@18323000 {
+@@ -889,7 +889,7 @@
+ 			ranges;
+ 			reg = <0x00 0xae00000 0x00 0x1000>;
+ 			reg-names = "mdss";
+-			status = "disabled";
++			status = "okay";
+ 
+ 			display-controller@ae01000 {
+ 				assigned-clock-rates = <0x124f800 0x124f800 0x124f800>;
+@@ -1031,7 +1031,8 @@
+ 				power-domains = <0x23 0x00>;
+ 				reg = <0x00 0xae94000 0x00 0x400>;
+ 				reg-names = "dsi_ctrl";
+-				status = "disabled";
++				status = "okay";
++				vdda-supply = <0x97>;
+ 
+ 				opp-table {
+ 					compatible = "operating-points-v2";
+@@ -1070,6 +1071,9 @@
+ 						reg = <0x01>;
+ 
+ 						endpoint {
++							data-lanes = <0x00 0x01 0x02 0x03>;
++							phandle = <0xbc>;
++							remote-endpoint = <0xbd>;
+ 						};
+ 					};
+ 				};
+@@ -1084,7 +1088,8 @@
+ 				phandle = <0xa8>;
+ 				reg = <0x00 0xae94400 0x00 0x200 0x00 0xae94600 0x00 0x280 0x00 0xae94a00 0x00 0x1e0>;
+ 				reg-names = "dsi_phy", "dsi_phy_lane", "dsi_pll";
+-				status = "disabled";
++				status = "okay";
++				vdds-supply = <0x94>;
+ 			};
+ 		};
+ 
+@@ -1996,6 +2001,20 @@
+ 				reg = <0x00 0xa90000 0x00 0x4000>;
+ 				required-opps = <0x13>;
+ 				status = "okay";
++
++				bridge@29 {
++					compatible = "tcl,b220g-lt8911exb-handoff-test";
++					reg = <0x29>;
++
++					port {
++
++						endpoint {
++							data-lanes = <0x00 0x01 0x02 0x03>;
++							phandle = <0xbd>;
++							remote-endpoint = <0xbc>;
++						};
++					};
++				};
+ 			};
+ 
+ 			i2c@a94000 {
+@@ -2346,7 +2365,7 @@
+ 			phandle = <0xa0>;
+ 			qcom,bcm-voters = <0x5b>;
+ 			reg = <0x00 0x1740000 0x00 0x1c100>;
+-			status = "disabled";
++			status = "okay";
+ 		};
+ 
+ 		interconnect@18321000 {

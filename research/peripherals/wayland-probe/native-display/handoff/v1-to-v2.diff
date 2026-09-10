@@ -1,0 +1,17 @@
+--- .claude/docs/tcl-b220g-data/peripherals/wayland-probe/native-display/handoff/first-test-v1.c	2026-09-08 21:15:26.957044715 +0300
++++ /tmp/tcl-kms1-handoff-v2/tcl_lt8911_handoff.c	2026-09-08 21:16:01.484533326 +0300
+@@ -134,10 +134,10 @@
+ 	ret = tcl_check_state(client);
+ 	if (ret)
+ 		return dev_err_probe(dev, ret, "firmware state gate failed\n");
+-	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
+-	if (!ctx)
+-		return -ENOMEM;
+-	ctx->bridge.funcs = &tcl_bridge_funcs;
++	ctx = devm_drm_bridge_alloc(dev, struct tcl_handoff, bridge,
++				    &tcl_bridge_funcs);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
+ 	ctx->bridge.of_node = dev->of_node;
+ 	ctx->bridge.type = DRM_MODE_CONNECTOR_eDP;
+ 	ctx->bridge.ops = DRM_BRIDGE_OP_MODES;

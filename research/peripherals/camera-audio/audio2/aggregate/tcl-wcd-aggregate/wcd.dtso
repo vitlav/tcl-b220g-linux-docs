@@ -1,0 +1,18 @@
+/dts-v1/;
+/plugin/;
+/ {
+ fragment@0 { target-path="/soc@0/soundwire@62610000/codec@0,4"; rx: __overlay__ {}; };
+ fragment@1 { target-path="/soc@0/soundwire@62630000/codec@0,3"; tx: __overlay__ {}; };
+ fragment@2 { target-path="/soc@0/rsc@18200000"; __overlay__ {
+ tcl-audio-ldo-test { compatible="tcl,book14-audio-ldo-test"; qcom,pmic-id="a";
+ buck: ldo15 { regulator-name="tcl-codec-buck"; regulator-min-microvolt=<1800000>; regulator-max-microvolt=<1800000>; regulator-initial-mode=<3>; qcom,always-wait-for-ack; };
+ }; }; };
+ fragment@3 { target-path="/soc@0"; __overlay__ {
+ io: tcl-codec-existing-io { compatible="regulator-fixed"; regulator-name="tcl-io-existing-test-only"; regulator-min-microvolt=<1800000>; regulator-max-microvolt=<1800000>; regulator-always-on; };
+ rst: tcl-codec-reset { compatible="tcl,book14-reset-test"; gpio-controller; #gpio-cells=<2>; };
+ tcl-wcd9385 { compatible="qcom,wcd9385-codec"; #sound-dai-cells=<1>;
+ reset-gpios=<&rst 0 1>; qcom,rx-device=<&rx>; qcom,tx-device=<&tx>;
+ vdd-rxtx-supply=<&io>; vdd-io-supply=<&io>; vdd-buck-supply=<&buck>; vdd-mic-bias-supply=<0xe8>;
+ qcom,micbias1-microvolt=<1800000>; qcom,micbias2-microvolt=<1800000>; qcom,micbias3-microvolt=<1800000>; qcom,micbias4-microvolt=<1800000>;
+ }; }; };
+};

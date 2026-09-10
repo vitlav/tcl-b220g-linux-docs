@@ -1,0 +1,204 @@
+// Experimental USB/HID bring-up; derived from Linux v6.18 SC7180.
+/dts-v1/;
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/regulator/qcom,rpmh-regulator.h>
+#include "sc7180.dtsi"
+/ {
+    model = "TCL B220G USB and HID diagnostic";
+    compatible = "tcl,book14", "qcom,sc7180";
+    /delete-node/ thermal-zones;
+    smp2p-lpass { status = "disabled"; };
+    smp2p-cdsp { status = "disabled"; };
+    smp2p-mpss { status = "disabled"; };
+};
+&{/soc@0/mmc@7c4000} { status = "disabled"; };
+&{/soc@0/geniqup@ac0000} { status = "disabled"; };
+&{/soc@0/interconnect@170e000} { status = "disabled"; };
+&{/soc@0/interconnect@1740000} { status = "disabled"; };
+&{/soc@0/ufshc@1d84000} { status = "disabled"; };
+&{/soc@0/phy@1d87000} { status = "disabled"; };
+&{/soc@0/crypto@1d90000} { status = "disabled"; };
+&{/soc@0/ipa@1e40000} { status = "disabled"; };
+&{/soc@0/remoteproc@4080000} { status = "disabled"; };
+&{/soc@0/gpu@5000000} { status = "disabled"; };
+&{/soc@0/iommu@5040000} { status = "disabled"; };
+&{/soc@0/gmu@506a000} { status = "disabled"; };
+&{/soc@0/clock-controller@5090000} { status = "disabled"; };
+&{/soc@0/dma@10a2000} { status = "disabled"; };
+&{/soc@0/stm@6002000} { status = "disabled"; };
+&{/soc@0/funnel@6041000} { status = "disabled"; };
+&{/soc@0/funnel@6042000} { status = "disabled"; };
+&{/soc@0/funnel@6045000} { status = "disabled"; };
+&{/soc@0/replicator@6046000} { status = "disabled"; };
+&{/soc@0/etr@6048000} { status = "disabled"; };
+&{/soc@0/funnel@6b04000} { status = "disabled"; };
+&{/soc@0/etf@6b05000} { status = "disabled"; };
+&{/soc@0/replicator@6b06000} { status = "disabled"; };
+&{/soc@0/etm@7040000} { status = "disabled"; };
+&{/soc@0/etm@7140000} { status = "disabled"; };
+&{/soc@0/etm@7240000} { status = "disabled"; };
+&{/soc@0/etm@7340000} { status = "disabled"; };
+&{/soc@0/etm@7440000} { status = "disabled"; };
+&{/soc@0/etm@7540000} { status = "disabled"; };
+&{/soc@0/etm@7640000} { status = "disabled"; };
+&{/soc@0/etm@7740000} { status = "disabled"; };
+&{/soc@0/funnel@7800000} { status = "disabled"; };
+&{/soc@0/funnel@7810000} { status = "disabled"; };
+&{/soc@0/mmc@8804000} { status = "disabled"; };
+&{/soc@0/spi@88dc000} { status = "disabled"; };
+&{/soc@0/pmu@90b6300} { status = "disabled"; };
+&{/soc@0/pmu@90cd000} { status = "disabled"; };
+&{/soc@0/system-cache-controller@9200000} { status = "disabled"; };
+&{/soc@0/interconnect@9990000} { status = "disabled"; };
+&{/soc@0/video-codec@aa00000} { status = "disabled"; };
+&{/soc@0/clock-controller@ab00000} { status = "disabled"; };
+&{/soc@0/interconnect@ac00000} { status = "disabled"; };
+&{/soc@0/clock-controller@ad00000} { status = "disabled"; };
+&{/soc@0/display-subsystem@ae00000} { status = "disabled"; };
+&{/soc@0/clock-controller@af00000} { status = "disabled"; };
+&{/soc@0/thermal-sensor@c263000} { status = "disabled"; };
+&{/soc@0/thermal-sensor@c265000} { status = "disabled"; };
+&{/soc@0/sram@c3f0000} { status = "disabled"; };
+&{/soc@0/spmi@c440000} { status = "disabled"; };
+&{/soc@0/sram@14680000} { status = "disabled"; };
+&{/soc@0/watchdog@17c10000} { status = "disabled"; };
+&{/soc@0/timer@17c20000} { status = "disabled"; };
+&{/soc@0/interconnect@18321000} { status = "disabled"; };
+&{/soc@0/cpufreq@18323000} { status = "disabled"; };
+&{/soc@0/wifi@18800000} { status = "disabled"; };
+&{/soc@0/remoteproc@62400000} { status = "disabled"; };
+&{/soc@0/clock-controller@62d00000} { status = "disabled"; };
+&{/soc@0/lpass@62d87000} { status = "disabled"; };
+&{/soc@0/clock-controller@63000000} { status = "disabled"; };
+&cpu0 {
+    /delete-property/ clocks;
+    /delete-property/ power-domains;
+    /delete-property/ power-domain-names;
+    /delete-property/ operating-points-v2;
+    /delete-property/ interconnects;
+    /delete-property/ qcom,freq-domain;
+};
+&cpu1 {
+    /delete-property/ clocks;
+    /delete-property/ power-domains;
+    /delete-property/ power-domain-names;
+    /delete-property/ operating-points-v2;
+    /delete-property/ interconnects;
+    /delete-property/ qcom,freq-domain;
+};
+&cpu2 {
+    /delete-property/ clocks;
+    /delete-property/ power-domains;
+    /delete-property/ power-domain-names;
+    /delete-property/ operating-points-v2;
+    /delete-property/ interconnects;
+    /delete-property/ qcom,freq-domain;
+};
+&cpu3 {
+    /delete-property/ clocks;
+    /delete-property/ power-domains;
+    /delete-property/ power-domain-names;
+    /delete-property/ operating-points-v2;
+    /delete-property/ interconnects;
+    /delete-property/ qcom,freq-domain;
+};
+&cpu4 {
+    /delete-property/ clocks;
+    /delete-property/ power-domains;
+    /delete-property/ power-domain-names;
+    /delete-property/ operating-points-v2;
+    /delete-property/ interconnects;
+    /delete-property/ qcom,freq-domain;
+};
+&cpu5 {
+    /delete-property/ clocks;
+    /delete-property/ power-domains;
+    /delete-property/ power-domain-names;
+    /delete-property/ operating-points-v2;
+    /delete-property/ interconnects;
+    /delete-property/ qcom,freq-domain;
+};
+&cpu6 {
+    /delete-property/ clocks;
+    /delete-property/ power-domains;
+    /delete-property/ power-domain-names;
+    /delete-property/ operating-points-v2;
+    /delete-property/ interconnects;
+    /delete-property/ qcom,freq-domain;
+};
+&cpu7 {
+    /delete-property/ clocks;
+    /delete-property/ power-domains;
+    /delete-property/ power-domain-names;
+    /delete-property/ operating-points-v2;
+    /delete-property/ interconnects;
+    /delete-property/ qcom,freq-domain;
+};
+&rmtfs_mem { status = "disabled"; };
+&intc { /delete-property/ interrupts; };
+&apps_rsc { /delete-property/ power-domains; };
+&qupv3_id_0 { status = "okay"; };
+&qup_i2c4_default { drive-strength = <2>; bias-disable; };
+&i2c4 {
+    status = "okay";
+    clock-frequency = <400000>;
+    keyboard@5 {
+        compatible = "hid-over-i2c";
+        reg = <5>;
+        hid-descr-addr = <0x20>;
+        interrupts-extended = <&tlmm 33 IRQ_TYPE_LEVEL_LOW>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&keyboard_irq &keyboard_enable>;
+    };
+    touchpad@2c {
+        compatible = "hid-over-i2c";
+        reg = <0x2c>;
+        hid-descr-addr = <0x20>;
+        interrupts-extended = <&tlmm 94 IRQ_TYPE_LEVEL_LOW>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&touchpad_irq &touchpad_enable>;
+    };
+};
+&tlmm {
+    keyboard_irq: keyboard-irq-state { pins = "gpio33"; function = "gpio"; drive-strength = <2>; bias-pull-up; };
+    keyboard_enable: keyboard-enable-state { pins = "gpio32"; function = "gpio"; drive-strength = <2>; bias-disable; output-high; };
+    touchpad_irq: touchpad-irq-state { pins = "gpio94"; function = "gpio"; drive-strength = <2>; bias-disable; };
+    touchpad_enable: touchpad-enable-state { pins = "gpio25"; function = "gpio"; drive-strength = <2>; bias-disable; output-high; };
+};
+&apps_rsc {
+    regulators-0 {
+        compatible = "qcom,pm6150-rpmh-regulators";
+        qcom,pmic-id = "a";
+        l4a: ldo4 { regulator-min-microvolt = <880000>; regulator-max-microvolt = <880000>; regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>; };
+        l11a: ldo11 { regulator-min-microvolt = <1800000>; regulator-max-microvolt = <1800000>; regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>; };
+        l17a: ldo17 { regulator-min-microvolt = <3088000>; regulator-max-microvolt = <3088000>; regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>; };
+    };
+    regulators-1 {
+        compatible = "qcom,pm6150l-rpmh-regulators";
+        qcom,pmic-id = "c";
+        l3c: ldo3 { regulator-min-microvolt = <1200000>; regulator-max-microvolt = <1200000>; regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>; };
+    };
+};
+&usb_1 { status = "okay"; };
+&usb_1_dwc3 { dr_mode = "host"; };
+&usb_1_hsphy {
+    status = "okay";
+    vdd-supply = <&l4a>;
+    vdda-pll-supply = <&l11a>;
+    vdda-phy-dpdm-supply = <&l17a>;
+};
+&usb_1_qmpphy {
+    status = "okay";
+    vdda-phy-supply = <&l3c>;
+    vdda-pll-supply = <&l4a>;
+};
+
+&{/soc@0/remoteproc@4080000} { /delete-property/ memory-region; };
+&{/soc@0/video-codec@aa00000} { /delete-property/ memory-region; };
+&{/soc@0/wifi@18800000} { /delete-property/ memory-region; };
+
+// Isolation variant: infrastructure
+&i2c4 { status = "disabled"; };
+&usb_1 { status = "disabled"; };
+&usb_1_hsphy { status = "disabled"; };
+&usb_1_qmpphy { status = "disabled"; };

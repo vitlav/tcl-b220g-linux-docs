@@ -1,0 +1,16 @@
+/include/ "../../video-decode/venus1/venus.dts"
+/* DRAFT ONLY: ADSP transport probe, not a functional sound-card description.
+ * Carveout from OEM ELF paddr span; relocation supported, runtime placement unproven.
+ */
+&{/reserved-memory} {
+ tcl_adsp_mem: adsp@90b00000 {
+  reg = <0 0x90b00000 0 0x2800000>;
+  no-map;
+ };
+};
+&{/smp2p-lpass} { status = "okay"; };
+&{/soc@0/remoteproc@62400000} {
+ status = "okay";
+ memory-region = <&tcl_adsp_mem>;
+ firmware-name = "qcom/sc7180/tcl/b220g/qcadsp7180.mbn";
+};

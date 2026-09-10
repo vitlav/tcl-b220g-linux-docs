@@ -1,0 +1,16 @@
+/dts-v1/;
+/plugin/;
+/ { fragment@0 { target-path="/soc@0"; __overlay__ {
+ #address-cells=<2>; #size-cells=<2>;
+ lpi: pinctrl@627c0000 {
+  compatible="qcom,sc7280-lpass-lpi-pinctrl";
+  reg=<0 0x627c0000 0 0x10000>, <0 0x62950000 0 0x10000>;
+  clocks=<0xda 102 1>, <0xda 103 1>;
+  clock-names="core", "audio";
+  gpio-controller; #gpio-cells=<2>;
+  gpio-ranges=<&lpi 0 0 15>;
+  rxclk: rx-clock-state { pins="gpio3"; function="swr_rx_clk"; drive-strength=<10>; slew-rate=<3>; bias-disable; };
+  rxdata: rx-data-state { pins="gpio4", "gpio5"; function="swr_rx_data"; drive-strength=<10>; slew-rate=<3>; bias-bus-hold; };
+ };
+rx-pin-test { compatible="tcl,rx-pin-test"; pinctrl-names="default"; pinctrl-0=<&rxclk &rxdata>; };
+}; }; };

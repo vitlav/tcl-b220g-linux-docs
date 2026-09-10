@@ -1,0 +1,38 @@
+/dts-v1/;
+/plugin/;
+/ {
+ fragment@0 { target-path="/soc@0/pinctrl@627c0000"; __overlay__ {
+ txclk: tx-clock-state { pins="gpio0"; function="swr_tx_clk"; drive-strength=<10>; slew-rate=<3>; bias-disable; };
+ txdata: tx-data-state { pins="gpio1", "gpio2", "gpio14"; function="swr_tx_data"; drive-strength=<10>; slew-rate=<3>; bias-bus-hold; };
+ }; };
+ fragment@1 { target-path="/soc@0"; __overlay__ { #address-cells=<2>; #size-cells=<2>;
+		soundwire@62630000 {
+			reg = <0 0x62630000 0 0x2000>;
+			compatible = "qcom,soundwire-v1.5.1";
+			interrupts = <0 296 1>;
+			interrupt-names = "core";
+			status = "okay";
+
+			clocks = <0xe3>;
+			clock-names = "iface";
+			label = "TX";
+ pinctrl-names = "default"; pinctrl-0 = <&txclk &txdata>;
+
+			qcom,din-ports = <5>;
+			qcom,dout-ports = <0>;
+			qcom,ports-sinterval-low =	/bits/ 8 <0xff 0x01 0x01 0x03 0x03>;
+			qcom,ports-offset1 =		/bits/ 8 <0xff 0x01 0x00 0x02 0x00>;
+			qcom,ports-offset2 =		/bits/ 8 <0xff 0x00 0x00 0x00 0x00>;
+			qcom,ports-block-pack-mode =	/bits/ 8 <0xff 0xff 0xff 0xff 0xff>;
+			qcom,ports-hstart =		/bits/ 8 <0xff 0xff 0xff 0xff 0xff>;
+			qcom,ports-hstop =		/bits/ 8 <0xff 0xff 0xff 0xff 0xff>;
+			qcom,ports-word-length =	/bits/ 8 <0xff 0xff 0xff 0xff 0xff>;
+			qcom,ports-block-group-count =	/bits/ 8 <0xff 0xff 0xff 0xff 0xff>;
+			qcom,ports-lane-control =	/bits/ 8 <0xff 0x00 0x01 0x00 0x01>;
+			#sound-dai-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <0>;
+ codec@0,3 { compatible="sdw20217010d00"; reg=<0 3>; qcom,tx-port-mapping=<2 3 4 5>; };
+		};
+
+ }; }; };

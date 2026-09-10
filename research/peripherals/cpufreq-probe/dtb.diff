@@ -1,0 +1,91 @@
+--- ufs
++++ cpufreq
+@@ -57,6 +57,8 @@
+ 		#size-cells = <0x00>;
+ 
+ 		cpu@0 {
++			qcom,freq-domain = <0xbb 0x00>;
++			clocks = <0xbb 0x00>;
+ 			device_type = "cpu";
+ 			compatible = "qcom,kryo468";
+ 			reg = <0x00 0x00>;
+@@ -84,6 +86,8 @@
+ 		};
+ 
+ 		cpu@100 {
++			qcom,freq-domain = <0xbb 0x00>;
++			clocks = <0xbb 0x00>;
+ 			device_type = "cpu";
+ 			compatible = "qcom,kryo468";
+ 			reg = <0x00 0x100>;
+@@ -104,6 +108,8 @@
+ 		};
+ 
+ 		cpu@200 {
++			qcom,freq-domain = <0xbb 0x00>;
++			clocks = <0xbb 0x00>;
+ 			device_type = "cpu";
+ 			compatible = "qcom,kryo468";
+ 			reg = <0x00 0x200>;
+@@ -124,6 +130,8 @@
+ 		};
+ 
+ 		cpu@300 {
++			qcom,freq-domain = <0xbb 0x00>;
++			clocks = <0xbb 0x00>;
+ 			device_type = "cpu";
+ 			compatible = "qcom,kryo468";
+ 			reg = <0x00 0x300>;
+@@ -144,6 +152,8 @@
+ 		};
+ 
+ 		cpu@400 {
++			qcom,freq-domain = <0xbb 0x00>;
++			clocks = <0xbb 0x00>;
+ 			device_type = "cpu";
+ 			compatible = "qcom,kryo468";
+ 			reg = <0x00 0x400>;
+@@ -164,6 +174,8 @@
+ 		};
+ 
+ 		cpu@500 {
++			qcom,freq-domain = <0xbb 0x00>;
++			clocks = <0xbb 0x00>;
+ 			device_type = "cpu";
+ 			compatible = "qcom,kryo468";
+ 			reg = <0x00 0x500>;
+@@ -184,6 +196,8 @@
+ 		};
+ 
+ 		cpu@600 {
++			qcom,freq-domain = <0xbb 0x01>;
++			clocks = <0xbb 0x01>;
+ 			device_type = "cpu";
+ 			compatible = "qcom,kryo468";
+ 			reg = <0x00 0x600>;
+@@ -204,6 +218,8 @@
+ 		};
+ 
+ 		cpu@700 {
++			qcom,freq-domain = <0xbb 0x01>;
++			clocks = <0xbb 0x01>;
+ 			device_type = "cpu";
+ 			compatible = "qcom,kryo468";
+ 			reg = <0x00 0x700>;
+@@ -3776,6 +3792,7 @@
+ 		};
+ 
+ 		cpufreq@18323000 {
++			phandle = <0xbb>;
+ 			compatible = "qcom,sc7180-cpufreq-hw", "qcom,cpufreq-hw";
+ 			reg = <0x00 0x18323000 0x00 0x1400 0x00 0x18325800 0x00 0x1400>;
+ 			reg-names = "freq-domain0", "freq-domain1";
+@@ -3783,7 +3800,7 @@
+ 			clock-names = "xo", "alternate";
+ 			#freq-domain-cells = <0x01>;
+ 			#clock-cells = <0x01>;
+-			status = "disabled";
++			status = "okay";
+ 		};
+ 
+ 		wifi@18800000 {

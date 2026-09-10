@@ -1,0 +1,31 @@
+/include/ "base.dtsi"
+
+/* Review candidate only. Not installed. LT8911 cold-start is not implemented. */
+&{/soc@0/interconnect@1740000} { status = "okay"; };
+&{/soc@0/clock-controller@af00000} { status = "okay"; };
+&{/soc@0/display-subsystem@ae00000} { status = "okay"; };
+
+&{/soc@0/display-subsystem@ae00000/dsi@ae94000} {
+	status = "okay";
+	vdda-supply = <&{/soc@0/rsc@18200000/regulators-1/ldo3}>;
+};
+&{/soc@0/display-subsystem@ae00000/phy@ae94400} {
+	status = "okay";
+	vdds-supply = <&{/soc@0/rsc@18200000/regulators-0/ldo4}>;
+};
+&{/soc@0/display-subsystem@ae00000/dsi@ae94000/ports/port@1/endpoint} {
+	remote-endpoint = <&tcl_bridge_in>;
+	data-lanes = <0 1 2 3>;
+};
+&{/soc@0/geniqup@ac0000/i2c@a90000} {
+	bridge@29 {
+		compatible = "tcl,b220g-lt8911exb-handoff-test";
+		reg = <0x29>;
+		port {
+			tcl_bridge_in: endpoint {
+				remote-endpoint = <&{/soc@0/display-subsystem@ae00000/dsi@ae94000/ports/port@1/endpoint}>;
+				data-lanes = <0 1 2 3>;
+			};
+		};
+	};
+};

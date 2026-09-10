@@ -1,0 +1,847 @@
+{
+  "boot_id": "4e6555b5-375b-4855-8672-59a720177a4c",
+  "kernel": "6.18.34-tcl-audio2",
+  "cmdline": "BOOT_IMAGE=/tcl-memdiag/Image console=tty0 earlycon=efifb efi=novamap,noruntime,debug clk_ignore_unused pd_ignore_unused regulator_ignore_unused maxcpus=8 cpuidle.off=1 cpufreq.default_governor=schedutil nokaslr loglevel=7 panic=0 rdinit=/init modprobe.blacklist=msm,tcl_lt8911_handoff,venus_core,venus_dec,venus_enc tcl.kms=early tcl.adsp=probe tcl.memdiag=1",
+  "bindings": [
+    {
+      "bus": "genpd_provider",
+      "device": "cx_gdsc",
+      "of_node": "/soc@0/clock-controller@5090000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "ufs_phy_gdsc",
+      "of_node": "/soc@0/clock-controller@100000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "gx_gdsc",
+      "of_node": "/soc@0/clock-controller@5090000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "mx_ao",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "vcodec0_gdsc",
+      "of_node": "/soc@0/clock-controller@ab00000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "mdss_gdsc",
+      "of_node": "/soc@0/clock-controller@af00000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cpu6",
+      "of_node": "/psci/power-domain-cpu6",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "hlos1_vote_mmnoc_mmu_tbu_hf0_gdsc",
+      "of_node": "/soc@0/clock-controller@100000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cpu4",
+      "of_node": "/psci/power-domain-cpu4",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "mss",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "gfx",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cpu2",
+      "of_node": "/psci/power-domain-cpu2",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cpu0",
+      "of_node": "/psci/power-domain-cpu0",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "hlos1_vote_mmnoc_mmu_tbu_sf_gdsc",
+      "of_node": "/soc@0/clock-controller@100000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "cx_ao",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "lmx",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "mx",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cpu7",
+      "of_node": "/psci/power-domain-cpu7",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "venus_gdsc",
+      "of_node": "/soc@0/clock-controller@ab00000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "usb30_prim_gdsc",
+      "of_node": "/soc@0/clock-controller@100000",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cpu5",
+      "of_node": "/psci/power-domain-cpu5",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cluster",
+      "of_node": "/psci/power-domain-cluster",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cpu3",
+      "of_node": "/psci/power-domain-cpu3",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "lcx",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "cx",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "genpd_provider",
+      "device": "power-domain-cpu1",
+      "of_node": "/psci/power-domain-cpu1",
+      "driver": "genpd_provider"
+    },
+    {
+      "bus": "rpmsg",
+      "device": "62400000.remoteproc:glink-edge.apr_audio_svc.-1.-1",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr",
+      "driver": "qcom,apr"
+    },
+    {
+      "bus": "rpmsg",
+      "device": "62400000.remoteproc:glink-edge.fastrpcglink-apps-dsp.-1.-1",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/fastrpc",
+      "driver": "qcom,fastrpc"
+    },
+    {
+      "bus": "gpio",
+      "device": "gpiochip1",
+      "of_node": "/soc@0/pinctrl@627c0000",
+      "driver": null
+    },
+    {
+      "bus": "gpio",
+      "device": "gpiochip0",
+      "of_node": "/soc@0/pinctrl@3500000",
+      "driver": null
+    },
+    {
+      "bus": "platform",
+      "device": "1d90000.crypto",
+      "of_node": "/soc@0/crypto@1d90000",
+      "driver": "qcom-ice"
+    },
+    {
+      "bus": "platform",
+      "device": "af00000.clock-controller",
+      "of_node": "/soc@0/clock-controller@af00000",
+      "driver": "sc7180-dispcc"
+    },
+    {
+      "bus": "platform",
+      "device": "80600000.memory",
+      "of_node": "/reserved-memory/memory@80600000",
+      "driver": "qcom_rmtfs_mem"
+    },
+    {
+      "bus": "platform",
+      "device": "5000000.gpu",
+      "of_node": "/soc@0/gpu@5000000",
+      "driver": "adreno"
+    },
+    {
+      "bus": "platform",
+      "device": "soc@0",
+      "of_node": "/soc@0",
+      "driver": "simple-pm-bus"
+    },
+    {
+      "bus": "platform",
+      "device": "18200000.rsc",
+      "of_node": "/soc@0/rsc@18200000",
+      "driver": "rpmh"
+    },
+    {
+      "bus": "platform",
+      "device": "smp2p-mpss",
+      "of_node": "/smp2p-mpss",
+      "driver": "qcom_smp2p"
+    },
+    {
+      "bus": "platform",
+      "device": "c265000.thermal-sensor",
+      "of_node": "/soc@0/thermal-sensor@c265000",
+      "driver": "qcom-tsens"
+    },
+    {
+      "bus": "platform",
+      "device": "506a000.gmu",
+      "of_node": "/soc@0/gmu@506a000",
+      "driver": null
+    },
+    {
+      "bus": "platform",
+      "device": "890000.i2c",
+      "of_node": "/soc@0/geniqup@8c0000/i2c@890000",
+      "driver": "geni_i2c"
+    },
+    {
+      "bus": "platform",
+      "device": "1705000.interconnect",
+      "of_node": "/soc@0/interconnect@1705000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "1500000.interconnect",
+      "of_node": "/soc@0/interconnect@1500000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "soc@0:rx-pin-test",
+      "of_node": "/soc@0/rx-pin-test",
+      "driver": "tcl-rx-pin-test"
+    },
+    {
+      "bus": "platform",
+      "device": "smem",
+      "of_node": "/smem",
+      "driver": "qcom-smem"
+    },
+    {
+      "bus": "platform",
+      "device": "aa00000.video-codec",
+      "of_node": "/soc@0/video-codec@aa00000",
+      "driver": null
+    },
+    {
+      "bus": "platform",
+      "device": "17c00000.mailbox",
+      "of_node": "/soc@0/mailbox@17c00000",
+      "driver": "qcom_apcs_ipc"
+    },
+    {
+      "bus": "platform",
+      "device": "62400000.remoteproc:glink-edge:apr:service@7:dais",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr/service@7/dais",
+      "driver": "q6asm-dai"
+    },
+    {
+      "bus": "platform",
+      "device": "62400000.remoteproc:glink-edge:fastrpc:compute-cb@5",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/fastrpc/compute-cb@5",
+      "driver": "qcom,fastrpc-cb"
+    },
+    {
+      "bus": "platform",
+      "device": "5040000.iommu",
+      "of_node": "/soc@0/iommu@5040000",
+      "driver": "arm-smmu"
+    },
+    {
+      "bus": "platform",
+      "device": "b2e0000.reset-controller",
+      "of_node": "/soc@0/reset-controller@b2e0000",
+      "driver": "qcom_pdc_reset"
+    },
+    {
+      "bus": "platform",
+      "device": "ae94400.phy",
+      "of_node": "/soc@0/display-subsystem@ae00000/phy@ae94400",
+      "driver": "msm_dsi_phy"
+    },
+    {
+      "bus": "platform",
+      "device": "627c0000.pinctrl",
+      "of_node": "/soc@0/pinctrl@627c0000",
+      "driver": "qcom-sc7280-lpass-lpi-pinctrl"
+    },
+    {
+      "bus": "platform",
+      "device": "1d84000.ufshc",
+      "of_node": "/soc@0/ufshc@1d84000",
+      "driver": "ufshcd-qcom"
+    },
+    {
+      "bus": "platform",
+      "device": "18800000.wifi",
+      "of_node": "/soc@0/wifi@18800000",
+      "driver": "ath10k_snoc"
+    },
+    {
+      "bus": "platform",
+      "device": "18200000.rsc:regulators-0",
+      "of_node": "/soc@0/rsc@18200000/regulators-0",
+      "driver": "qcom-rpmh-regulator"
+    },
+    {
+      "bus": "platform",
+      "device": "3500000.pinctrl",
+      "of_node": "/soc@0/pinctrl@3500000",
+      "driver": "sc7180-pinctrl"
+    },
+    {
+      "bus": "platform",
+      "device": "62400000.remoteproc:glink-edge:fastrpc:compute-cb@3",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/fastrpc/compute-cb@3",
+      "driver": "qcom,fastrpc-cb"
+    },
+    {
+      "bus": "platform",
+      "device": "62770000.codec",
+      "of_node": "/soc@0/codec@62770000",
+      "driver": "va_macro"
+    },
+    {
+      "bus": "platform",
+      "device": "5090000.clock-controller",
+      "of_node": "/soc@0/clock-controller@5090000",
+      "driver": "sc7180-gpucc"
+    },
+    {
+      "bus": "platform",
+      "device": "88e3000.phy",
+      "of_node": "/soc@0/phy@88e3000",
+      "driver": "qcom-qusb2-phy"
+    },
+    {
+      "bus": "platform",
+      "device": "18323000.cpufreq",
+      "of_node": "/soc@0/cpufreq@18323000",
+      "driver": "qcom-cpufreq-hw"
+    },
+    {
+      "bus": "platform",
+      "device": "62400000.remoteproc:glink-edge:apr:service@8:routing",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr/service@8/routing",
+      "driver": "q6routing"
+    },
+    {
+      "bus": "platform",
+      "device": "c263000.thermal-sensor",
+      "of_node": "/soc@0/thermal-sensor@c263000",
+      "driver": "qcom-tsens"
+    },
+    {
+      "bus": "platform",
+      "device": "psci",
+      "of_node": "/psci",
+      "driver": "psci-cpuidle-domain"
+    },
+    {
+      "bus": "platform",
+      "device": "ae01000.display-controller",
+      "of_node": "/soc@0/display-subsystem@ae00000/display-controller@ae01000",
+      "driver": "msm_dpu"
+    },
+    {
+      "bus": "platform",
+      "device": "1620000.interconnect",
+      "of_node": "/soc@0/interconnect@1620000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "18200000.rsc:power-controller",
+      "of_node": "/soc@0/rsc@18200000/power-controller",
+      "driver": "qcom-rpmhpd"
+    },
+    {
+      "bus": "platform",
+      "device": "ac0000.geniqup",
+      "of_node": "/soc@0/geniqup@ac0000",
+      "driver": "geni_se_qup"
+    },
+    {
+      "bus": "platform",
+      "device": "ae94000.dsi",
+      "of_node": "/soc@0/display-subsystem@ae00000/dsi@ae94000",
+      "driver": "msm_dsi"
+    },
+    {
+      "bus": "platform",
+      "device": "62600000.rxmacro",
+      "of_node": "/soc@0/rxmacro@62600000",
+      "driver": "rx_macro"
+    },
+    {
+      "bus": "platform",
+      "device": "a6f8800.usb",
+      "of_node": "/soc@0/usb@a6f8800",
+      "driver": "dwc3-qcom-legacy"
+    },
+    {
+      "bus": "platform",
+      "device": "4080000.remoteproc",
+      "of_node": "/soc@0/remoteproc@4080000",
+      "driver": "qcom_q6v5_pas"
+    },
+    {
+      "bus": "platform",
+      "device": "1fc0000.syscon",
+      "of_node": "/soc@0/syscon@1fc0000",
+      "driver": null
+    },
+    {
+      "bus": "platform",
+      "device": "62400000.remoteproc",
+      "of_node": "/soc@0/remoteproc@62400000",
+      "driver": "qcom_q6v5_pas"
+    },
+    {
+      "bus": "platform",
+      "device": "timer",
+      "of_node": "/timer",
+      "driver": null
+    },
+    {
+      "bus": "platform",
+      "device": "88e8000.phy",
+      "of_node": "/soc@0/phy@88e8000",
+      "driver": "qcom-qmp-combo-phy"
+    },
+    {
+      "bus": "platform",
+      "device": "c300000.power-management",
+      "of_node": "/soc@0/power-management@c300000",
+      "driver": "qcom_aoss_qmp"
+    },
+    {
+      "bus": "platform",
+      "device": "ae00000.display-subsystem",
+      "of_node": "/soc@0/display-subsystem@ae00000",
+      "driver": "msm-mdss"
+    },
+    {
+      "bus": "platform",
+      "device": "c2a0000.reset-controller",
+      "of_node": "/soc@0/reset-controller@c2a0000",
+      "driver": "qcom_aoss_reset"
+    },
+    {
+      "bus": "platform",
+      "device": "9680000.interconnect",
+      "of_node": "/soc@0/interconnect@9680000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "16e0000.interconnect",
+      "of_node": "/soc@0/interconnect@16e0000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "1f60000.syscon",
+      "of_node": "/soc@0/syscon@1f60000",
+      "driver": null
+    },
+    {
+      "bus": "platform",
+      "device": "784000.efuse",
+      "of_node": "/soc@0/efuse@784000",
+      "driver": "qcom,qfprom"
+    },
+    {
+      "bus": "platform",
+      "device": "62400000.remoteproc:glink-edge:apr:service@4:dais",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr/service@4/dais",
+      "driver": "q6afe-dai"
+    },
+    {
+      "bus": "platform",
+      "device": "15000000.iommu",
+      "of_node": "/soc@0/iommu@15000000",
+      "driver": "arm-smmu"
+    },
+    {
+      "bus": "platform",
+      "device": "18200000.rsc:bcm-voter",
+      "of_node": "/soc@0/rsc@18200000/bcm-voter",
+      "driver": "bcm_voter"
+    },
+    {
+      "bus": "platform",
+      "device": "a90000.i2c",
+      "of_node": "/soc@0/geniqup@ac0000/i2c@a90000",
+      "driver": "geni_i2c"
+    },
+    {
+      "bus": "platform",
+      "device": "a600000.usb",
+      "of_node": "/soc@0/usb@a6f8800/usb@a600000",
+      "driver": "dwc3"
+    },
+    {
+      "bus": "platform",
+      "device": "ab00000.clock-controller",
+      "of_node": "/soc@0/clock-controller@ab00000",
+      "driver": "sc7180-videocc"
+    },
+    {
+      "bus": "platform",
+      "device": "18200000.rsc:regulators-1",
+      "of_node": "/soc@0/rsc@18200000/regulators-1",
+      "driver": "qcom-rpmh-regulator"
+    },
+    {
+      "bus": "platform",
+      "device": "1740000.interconnect",
+      "of_node": "/soc@0/interconnect@1740000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "62400000.remoteproc:glink-edge:fastrpc:compute-cb@4",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/fastrpc/compute-cb@4",
+      "driver": "qcom,fastrpc-cb"
+    },
+    {
+      "bus": "platform",
+      "device": "80820000.memory",
+      "of_node": "/reserved-memory/memory@80820000",
+      "driver": "cmd-db"
+    },
+    {
+      "bus": "platform",
+      "device": "smp2p-lpass",
+      "of_node": "/smp2p-lpass",
+      "driver": "qcom_smp2p"
+    },
+    {
+      "bus": "platform",
+      "device": "62610000.soundwire",
+      "of_node": "/soc@0/soundwire@62610000",
+      "driver": "qcom-soundwire"
+    },
+    {
+      "bus": "platform",
+      "device": "62400000.remoteproc:glink-edge:apr:service@4:clock-controller",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr/service@4/clock-controller",
+      "driver": "q6afe-clock"
+    },
+    {
+      "bus": "platform",
+      "device": "18200000.rsc:clock-controller",
+      "of_node": "/soc@0/rsc@18200000/clock-controller",
+      "driver": "clk-rpmh"
+    },
+    {
+      "bus": "platform",
+      "device": "1638000.interconnect",
+      "of_node": "/soc@0/interconnect@1638000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "pmu",
+      "of_node": "/pmu",
+      "driver": "armv8-pmu"
+    },
+    {
+      "bus": "platform",
+      "device": "1f40000.hwlock",
+      "of_node": "/soc@0/hwlock@1f40000",
+      "driver": "qcom_hwspinlock"
+    },
+    {
+      "bus": "platform",
+      "device": "62780000.clock-controller",
+      "of_node": "/soc@0/clock-controller@62780000",
+      "driver": "lpass-gfm-clk"
+    },
+    {
+      "bus": "platform",
+      "device": "firmware:scm",
+      "of_node": "/firmware/scm",
+      "driver": "qcom_scm"
+    },
+    {
+      "bus": "platform",
+      "device": "1650000.interconnect",
+      "of_node": "/soc@0/interconnect@1650000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "8c0000.geniqup",
+      "of_node": "/soc@0/geniqup@8c0000",
+      "driver": "geni_se_qup"
+    },
+    {
+      "bus": "platform",
+      "device": "9160000.interconnect",
+      "of_node": "/soc@0/interconnect@9160000",
+      "driver": "qnoc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "100000.clock-controller",
+      "of_node": "/soc@0/clock-controller@100000",
+      "driver": "gcc-sc7180"
+    },
+    {
+      "bus": "platform",
+      "device": "888000.i2c",
+      "of_node": "/soc@0/geniqup@8c0000/i2c@888000",
+      "driver": "geni_i2c"
+    },
+    {
+      "bus": "platform",
+      "device": "1d87000.phy",
+      "of_node": "/soc@0/phy@1d87000",
+      "driver": "qcom-qmp-ufs-phy"
+    },
+    {
+      "bus": "platform",
+      "device": "b220000.interrupt-controller",
+      "of_node": "/soc@0/interrupt-controller@b220000",
+      "driver": "qcom_pdc"
+    },
+    {
+      "bus": "cpu",
+      "device": "cpu7",
+      "of_node": "/cpus/cpu@700",
+      "driver": null
+    },
+    {
+      "bus": "cpu",
+      "device": "cpu5",
+      "of_node": "/cpus/cpu@500",
+      "driver": null
+    },
+    {
+      "bus": "cpu",
+      "device": "cpu3",
+      "of_node": "/cpus/cpu@300",
+      "driver": null
+    },
+    {
+      "bus": "cpu",
+      "device": "cpu1",
+      "of_node": "/cpus/cpu@100",
+      "driver": null
+    },
+    {
+      "bus": "cpu",
+      "device": "cpu6",
+      "of_node": "/cpus/cpu@600",
+      "driver": null
+    },
+    {
+      "bus": "cpu",
+      "device": "cpu4",
+      "of_node": "/cpus/cpu@400",
+      "driver": null
+    },
+    {
+      "bus": "cpu",
+      "device": "cpu2",
+      "of_node": "/cpus/cpu@200",
+      "driver": null
+    },
+    {
+      "bus": "cpu",
+      "device": "cpu0",
+      "of_node": "/cpus/cpu@0",
+      "driver": null
+    },
+    {
+      "bus": "auxiliary",
+      "device": "aux_bridge.aux_bridge.0",
+      "of_node": "/soc@0/phy@88e8000",
+      "driver": null
+    },
+    {
+      "bus": "usb",
+      "device": "usb1",
+      "of_node": "/soc@0/usb@a6f8800/usb@a600000",
+      "driver": "usb"
+    },
+    {
+      "bus": "usb",
+      "device": "usb2",
+      "of_node": "/soc@0/usb@a6f8800/usb@a600000",
+      "driver": "usb"
+    },
+    {
+      "bus": "usb",
+      "device": "1-0:1.0",
+      "of_node": "/soc@0/usb@a6f8800/usb@a600000",
+      "driver": "hub"
+    },
+    {
+      "bus": "usb",
+      "device": "2-0:1.0",
+      "of_node": "/soc@0/usb@a6f8800/usb@a600000",
+      "driver": "hub"
+    },
+    {
+      "bus": "nvmem",
+      "device": "qfprom0",
+      "of_node": "/soc@0/efuse@784000",
+      "driver": null
+    },
+    {
+      "bus": "genpd",
+      "device": "genpd:0:62400000.remoteproc",
+      "of_node": "/soc@0/remoteproc@62400000",
+      "driver": null
+    },
+    {
+      "bus": "genpd",
+      "device": "genpd:0:506a000.gmu",
+      "of_node": "/soc@0/gmu@506a000",
+      "driver": null
+    },
+    {
+      "bus": "genpd",
+      "device": "genpd:2:4080000.remoteproc",
+      "of_node": "/soc@0/remoteproc@4080000",
+      "driver": null
+    },
+    {
+      "bus": "genpd",
+      "device": "genpd:1:506a000.gmu",
+      "of_node": "/soc@0/gmu@506a000",
+      "driver": null
+    },
+    {
+      "bus": "genpd",
+      "device": "genpd:1:62400000.remoteproc",
+      "of_node": "/soc@0/remoteproc@62400000",
+      "driver": null
+    },
+    {
+      "bus": "genpd",
+      "device": "genpd:0:4080000.remoteproc",
+      "of_node": "/soc@0/remoteproc@4080000",
+      "driver": null
+    },
+    {
+      "bus": "soundwire",
+      "device": "sdw-master-2-0",
+      "of_node": "/soc@0/soundwire@62610000",
+      "driver": null
+    },
+    {
+      "bus": "aprbus",
+      "device": "aprsvc:service:4:3",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr/service@3",
+      "driver": "qcom-q6core"
+    },
+    {
+      "bus": "aprbus",
+      "device": "aprsvc:service:4:8",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr/service@8",
+      "driver": "qcom-q6adm"
+    },
+    {
+      "bus": "aprbus",
+      "device": "aprsvc:service:4:4",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr/service@4",
+      "driver": "qcom-q6afe"
+    },
+    {
+      "bus": "aprbus",
+      "device": "aprsvc:service:4:7",
+      "of_node": "/soc@0/remoteproc@62400000/glink-edge/apr/service@7",
+      "driver": "qcom-q6asm"
+    },
+    {
+      "bus": "i2c",
+      "device": "i2c-10",
+      "of_node": "/soc@0/geniqup@ac0000/i2c@a90000",
+      "driver": null
+    },
+    {
+      "bus": "i2c",
+      "device": "i2c-4",
+      "of_node": "/soc@0/geniqup@8c0000/i2c@890000",
+      "driver": null
+    },
+    {
+      "bus": "i2c",
+      "device": "i2c-2",
+      "of_node": "/soc@0/geniqup@8c0000/i2c@888000",
+      "driver": null
+    },
+    {
+      "bus": "i2c",
+      "device": "10-0029",
+      "of_node": "/soc@0/geniqup@ac0000/i2c@a90000/bridge@29",
+      "driver": "tcl-lt8911-handoff"
+    },
+    {
+      "bus": "i2c",
+      "device": "4-002c",
+      "of_node": "/soc@0/geniqup@8c0000/i2c@890000/touchpad@2c",
+      "driver": "i2c_hid_of"
+    },
+    {
+      "bus": "i2c",
+      "device": "4-0005",
+      "of_node": "/soc@0/geniqup@8c0000/i2c@890000/keyboard@5",
+      "driver": "i2c_hid_of"
+    }
+  ]
+}

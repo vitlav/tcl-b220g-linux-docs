@@ -1,0 +1,7 @@
+/dts-v1/;
+/plugin/;
+/ { fragment@0 { target-path = "/soc@0/soundwire@62610000";
+ __overlay__ { #address-cells = <2>; #size-cells = <0>;
+ codec@0,4 { compatible = "sdw20217010d00"; reg = <0 4>;
+ qcom,rx-port-mapping = <1 2 3 4 5>; };
+ }; }; };

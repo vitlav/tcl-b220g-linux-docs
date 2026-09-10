@@ -1,0 +1,53 @@
+# Симуляция всех 47 _STA
+
+ACPICA20260408; виртуальная память fill0, без аппаратных обращений. Значения не являются показаниями реального TCL.
+
+| Метод | Результат |
+|---|---|
+| `\_SB.UFS0._STA` | `0x0f` |
+| `\_SB.SDC1._STA` | `0x00` |
+| `\_SB.SDC2._STA` | `0x0f` |
+| `\_SB.PMIC._STA` | `0x0b` |
+| `\_SB.PM01._STA` | `0x0b` |
+| `\_SB.PMAP._STA` | `0x0b` |
+| `\_SB.PRTC._STA` | `0x0b` |
+| `\_SB.PMBM._STA` | `0x00` |
+| `\_SB.BCL1._STA` | `0x0f` |
+| `\_SB.PMGK._STA` | `0x00` |
+| `\_SB.UAR4._STA` | `0x0b` |
+| `\_SB.CDI._STA` | `0x0f` |
+| `\_SB.ADSP._STA` | `0x0f` |
+| `\_SB.AMSS.QWLN.WRST._STA` | `0x0f` |
+| `\_SB.QSM._STA` | `0x0f` |
+| `\_SB.CDSP._STA` | `0x0f` |
+| `\_SB.SPSS._STA` | `0x00` |
+| `\_SB.QCSK._STA` | `0x0b` |
+| `\_SB.AMSS._STA` | `0x0f` |
+| `\_SB.GPU0._STA` | `0x0f` |
+| `\_SB.RFS0._STA` | `0x0b` |
+| `\_SB.IPA._STA` | `0x0f` |
+| `\_SB.GSI._STA` | `0x0f` |
+| `\_SB.SSM._STA` | `0x00` |
+| `\_SB.SYSM.CLUS.CPU0._STA` | `0x0f` |
+| `\_SB.SYSM.CLUS.CPU1._STA` | `0x0f` |
+| `\_SB.SYSM.CLUS.CPU2._STA` | `0x0f` |
+| `\_SB.SYSM.CLUS.CPU3._STA` | `0x0f` |
+| `\_SB.SYSM.CLUS.CPU4._STA` | `0x0f` |
+| `\_SB.SYSM.CLUS.CPU5._STA` | `0x0f` |
+| `\_SB.SYSM.CLUS.CPU6._STA` | `0x0f` |
+| `\_SB.SYSM.CLUS.CPU7._STA` | `0x0f` |
+| `\_SB.GPS._STA` | `0x0f` |
+| `\_SB.QCSP._STA` | `0x00` |
+| `\_SB.RMNT._STA` | `0x0f` |
+| `\_SB.MBRG._STA` | `0x0f` |
+| `\_SB.RMAT._STA` | `0x0f` |
+| `\_SB.DPLB._STA` | `0x0f` |
+| `\_SB.CCID._STA` | `0x0f` |
+| `\_SB.HWN0._STA` | `0x0f` |
+| `\_SB.URS0.USB0._STA` | `0x0f` |
+| `\_SB.SAR1._STA` | `0x0f` |
+| `\_SB.I2C3.ADP1._STA` | `0x0f` |
+| `\_SB.I2C3.BAT0._STA` | `AE_NOT_EXIST` |
+| `\_SB.HWN1._STA` | `0x00` |
+| `\_SB.RVRM._STA` | `0x0f` |
+| `\_SB.BTH0._STA` | `0x0f` |

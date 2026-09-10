@@ -1,0 +1,28 @@
+--- working-cpufreq
++++ i2c10-candidate
+@@ -1144,7 +1144,7 @@
+ 			#size-cells = <0x02>;
+ 			ranges;
+ 			iommus = <0x25 0x4c3 0x00>;
+-			status = "disabled";
++			status = "okay";
+ 
+ 			i2c@a80000 {
+ 				compatible = "qcom,geni-i2c";
+@@ -1309,6 +1309,7 @@
+ 			};
+ 
+ 			i2c@a90000 {
++				clock-frequency = <0x186a0>;
+ 				compatible = "qcom,geni-i2c";
+ 				reg = <0x00 0xa90000 0x00 0x4000>;
+ 				clock-names = "se";
+@@ -1322,7 +1323,7 @@
+ 				interconnect-names = "qup-core", "qup-config", "qup-memory";
+ 				power-domains = <0x23 0x00>;
+ 				required-opps = <0x13>;
+-				status = "disabled";
++				status = "okay";
+ 			};
+ 
+ 			spi@a90000 {

@@ -1,0 +1,9 @@
+[Unit]
+Description=TCL ADSP1 diagnostic logs to root and USB
+After=local-fs.target
+ConditionKernelCommandLine=tcl.adsp=probe
+[Service]
+Type=simple
+ExecStart=/bin/sh /var/tmp/tcl-adsp1/collect.sh
+[Install]
+WantedBy=multi-user.target

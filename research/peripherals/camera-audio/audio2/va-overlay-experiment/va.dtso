@@ -1,0 +1,39 @@
+/dts-v1/;
+/plugin/;
+/ {
+ fragment@0 {
+  target-path = "/soc@0/remoteproc@62400000/glink-edge/apr/service@4";
+  __overlay__ {
+   afeclk: clock-controller {
+    compatible = "qcom,q6afe-clocks";
+    #clock-cells = <2>;
+   };
+  };
+ };
+ fragment@1 {
+  target-path = "/soc@0";
+  __overlay__ {
+   #address-cells = <2>;
+   #size-cells = <2>;
+   aon: clock-controller@62780000 {
+    compatible = "qcom,sm7180-lpass-aoncc", "qcom,sm8250-lpass-aoncc";
+    reg = <0 0x62780000 0 0x40000>;
+    #clock-cells = <1>;
+    clocks = <&afeclk 102 1>, <&afeclk 103 1>, <&afeclk 58 1>;
+    clock-names = "core", "audio", "bus";
+    status = "okay";
+   };
+   va: codec@62770000 {
+    compatible = "qcom,sm7180-lpass-va-macro", "qcom,sm8250-lpass-va-macro";
+    reg = <0 0x62770000 0 0x1000>;
+    clocks = <&aon 0>, <&afeclk 102 1>, <&afeclk 103 1>;
+    clock-names = "mclk", "macro", "dcodec";
+    #clock-cells = <0>;
+    clock-frequency = <9600000>;
+    clock-output-names = "fsgen";
+    #sound-dai-cells = <1>;
+    status = "okay";
+   };
+  };
+ };
+};

@@ -1,0 +1,12 @@
+/include/ "../../ice-research/ice-probe.dts"
+/* Candidate: OEM PIL pool base+5MiB reservation, corroborated by upstream SC7180 laptops.
+ * Exact Windows runtime placement is not captured. Keep Venus autoload blocked for manual probe.
+ */
+&{/reserved-memory} {
+ tcl_venus_mem: venus@85b00000 { reg = <0 0x85b00000 0 0x500000>; no-map; };
+};
+&{/soc@0/clock-controller@ab00000} { status = "okay"; };
+&{/soc@0/video-codec@aa00000} {
+ status = "okay";
+ memory-region = <&tcl_venus_mem>;
+};

@@ -1,0 +1,16 @@
+# Материалы по подсистемам
+
+| Подсистема | Что искать | Первичные материалы |
+|---|---|---|
+| CPU / частота / криптография | cpufreq, аппаратные crypto-инструкции, измерения | [CPU freq](../research/peripherals/cpufreq-probe/README.md), [CPU crypto](../research/peripherals/cpu-crypto/README.md) |
+| Wi-Fi | ath10k, OEM firmware, RMTFS, DHCP, постоянный доступ | [Исследование](../research/peripherals/wifi-research/README.md), [Службы](../research/peripherals/wifi-services/README.md), [Постоянная настройка](../research/peripherals/wifi-persistent/README.md) |
+| UFS / ICE | PHY, LUN, inline encryption, проверка чтения | [UFS](../research/peripherals/ufs-probe/README.md), [ICE](../research/peripherals/ice-research/README.md), [Windows backup](../research/peripherals/windows-backup/README.md) |
+| Экран / GPU | DPU, DSI, LT8911EXB handoff, Mesa/Weston, тесты | [Handoff](../research/peripherals/wayland-probe/native-display/handoff/README.md), [GPU](../research/peripherals/wayland-probe/native-display/kms1-gpu/README.md), [Benchmark](../research/peripherals/wayland-probe/native-display/kms1-gpu/full-benchmark/README.md) |
+| Видео | Venus отдельно от GPU-вывода; CPU сравнения | [Decode](../research/peripherals/video-decode/README.md), [mpv CPU](../research/peripherals/video-decode/venus1/mpv-cpu/README.md), [A/B playback](../research/peripherals/video-decode/venus1/playback-cpu/README.md) |
+| Звук / камера | WCD9385, ADSP, SoundWire, питание, повторный запуск | [Обзор](../research/peripherals/camera-audio/README.md), [audio2](../research/peripherals/camera-audio/audio2/README.md), [IRQ lifetime](../research/peripherals/camera-audio/audio2/irq-lifetime-fix/README.md), [Q6ASM reprepare](../research/peripherals/camera-audio/audio2/q6asm-reprepare/README.md) |
+| EC / батарея | ACPI I²C-протокол, проверенные поля, зарядка | [Power/EC](../research/peripherals/power-storage-video/README.md) |
+| SAR / крышка | AW96105, IIO, EC lid | [Датчики](../research/peripherals/sensors/README.md) |
+| GNSS / LTE | NM и полный MPSS, резерв RAM, LOC/PDS | [GNSS](../research/peripherals/gnss/README.md) |
+| Браузер / звук | Firefox, Wayland, PulseAudio | [Браузеры](../research/peripherals/browser/README.md) |
+
+Материалы Windows используются для сопоставления адресов, схем питания и firmware. Драйверы Windows и прошивки не включены в Git; они перечислены в архивном манифесте. Отсутствие устройства в текущем DT не отменяет данные Windows: в частности, сохранены сведения Snapdragon X15 LTE и Qualcomm Location, но Linux GNSS fix и LTE-сеанс не подтверждены.

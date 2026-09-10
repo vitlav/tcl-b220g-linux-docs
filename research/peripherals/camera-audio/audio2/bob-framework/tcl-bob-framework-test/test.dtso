@@ -1,0 +1,11 @@
+/dts-v1/;
+/plugin/;
+/ {
+ fragment@0 { target-path="/soc@0/rsc@18200000"; __overlay__ {
+ tcl-audio-bob-test { compatible="tcl,book14-bob-test"; qcom,pmic-id="c";
+ bobtest: bob { regulator-name="tcl-bob-3300-test"; regulator-min-microvolt=<3300000>; regulator-max-microvolt=<3300000>; qcom,always-wait-for-ack; };
+ }; }; };
+ fragment@1 { target-path="/soc@0"; __overlay__ {
+ tcl-bob-consumer { compatible="tcl,bob-consumer-test"; power-supply=<&bobtest>; };
+ }; };
+};

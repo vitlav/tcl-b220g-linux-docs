@@ -1,0 +1,9 @@
+# Venus1 preflight
+
+Separate DT on unchanged6.18.34-tcl-ice1 Image/initramfs. New defaulttcl-venus1, oldtcl-ice1 preserved; EFI backupBOOTAA64-before-venus1.bak. Kernel modules unchanged, automatic Venus loading blacklisted until manual SSH probe. Existing initramfs saves early boot and six snapshots to USB tcl-ice1/logs/BOOTID; supplemental collect.sh saves Venus logs every3s for90s to root+USB.
+
+OEM qcpilext7180.inf UTF16 decoded: VENUS MemoryReservation0x500000, MemoryAlignment0; PGCM BaseAddress0x85b00000,Size0xde00000. XBL PIL reserved0x85b00000+0xeb00000. Candidate uses first5MiB0x85b00000..0x85ffffff, immediately before existingMPSS0x86000000. No overlap with named DT reserved regions. Exact Windows runtime allocation was NOT captured; placement is a test inference corroborated by upstream Acer/Samsung SC7180 DT, not a directly recorded Venus base. Original DT had removed memory-region and no Venus reserve; driver requires it.
+
+DT audit250nodes, no disabled suppliers/missing references. DT change: only reserve+Venus memory-region/status+VIDEOCC status. Firmware upstream commit48d27ba4bec1da103113ffac1055243fe0eb0912 (VP9 assertion fix), VIDEO.VE.5.4-00064-PROD-1, file922376bytes,SHA256db2a2efefa7149519b36f01be8a7c37bdf21efd2f06eff5028f80d4295aef7d9. ELF32 Qualcomm MDT relocatable flag present, mapped span5MiB, PAS9 driver path. Signature acceptance and hardware boot NOT yet tested. Licence/notice included.
+
+Synthetic sample:300frames1920x1080@30, testsrc2/libx264 mediumCRF20,yuv420p. SHA256931e1c1176f441fc8c2ceb58860bd2873a5b5347ff7af30a21a26d7002a12a47. Hardware decode must explicitly select h264_v4l2m2m; software h264. Measure frame count, wall/user/sys time, compare decoded pixel hashes after common yuv420p normalization separately from speed, with same stream. Screen playback is a separate test. No hidden software fallback accepted as hardware success.

@@ -1,0 +1,24 @@
+# ACPI: что установлено и что мешает загрузке
+
+Рабочая система использует DT. OEM ACPI — отдельная исследовательская ветка; переключение на ACPI после запуска ядра не переносит уже созданные устройства автоматически.
+
+## Таблицы проверены на живом ноутбуке
+
+MEMDIAG прочитал XSDT `0xffffc000` (13 указателей) и DSDT через FADT, проверил длины и checksum. DSDT 189125 байт, SHA256 `78b42f6edc265bffdb3ad1d82c0e63bd98792ab42db9238571f893eeeb06b19f`, побайтно совпадает с Windows. Другие прочитанные основные таблицы также совпадают; BGRT отличается статусом изображения и соответствующей checksum. В текущей XSDT SSDT нет. MSDM payload не читался.
+
+## Независимые проблемы
+
+| Проблема | Установленный факт | Ограничение вывода |
+|---|---|---|
+| ACPI при PCI=n | Default address space PCI_CONFIG регистрировался при выключенном обработчике; подготовлен условный compile guard | После исправления ACPI всё ещё не даёт рабочую систему |
+| GPU0.AVS0 | Ссылка присутствует в DSDT TZ7._TZD и IORT, определения в текущих таблицах нет | Это не доказанная причина чёрного экрана |
+| SCM QCOM080B | Нет ACPI match в исходной SCM реализации; unconditional OF interconnect даёт ENODEV | Простой match не решает DMA и побочные вызовы probe |
+| SCM DMA | В OEM SCM0 нет _CCA; на ARM64 это ведёт к dma_dummy_ops | Требуется ранняя таблица/корректная конфигурация до создания device |
+| SMMU | IORT OEM revision 0x7180 отсутствует в Qualcomm ACPI match list; Apps и Adreno требуют разных impl | Потеря display DMA при generic reset — гипотеза, последняя строка зависания не получена |
+| BAT0 GSBus | Для батареи требуется EC/I²C handler и зависимости | Ошибка прямого вызова _STA в симуляторе не доказывает преждевременный вызов Linux |
+
+SCM текущего рабочего DT: `coherent=0`, обе DMA-маски `0xffffffff`; одноразовая проба успешно выделила и освободила 4096 байт. SMC не вызывался. Это доказательство Linux DMA-конфигурации, не проверка ACPI/TrustZone передачи.
+
+Подготовлена SSDT с `_SB.SCM0._CCA = 0`; компиляция и acpiexec успешны. Она **не установлена**. Черновик SCM v2 с проверкой DMA скомпилирован лишь как объект. Ранний CPIO с таблицей и аппаратный тест ещё предстоят.
+
+[Общий аудит](../research/acpi-audit/README.md) · [AML](../research/acpi-audit/aml-static/README.md) · [SCM](../research/acpi-audit/scm/README.md) · [SMMU](../research/acpi-audit/smmu/README.md) · [PCI=n](../research/acpi-boot/pci-disabled/README.md).

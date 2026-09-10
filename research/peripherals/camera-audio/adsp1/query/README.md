@@ -1,0 +1,1 @@
+Built against /tmp/tcl-ice1-linux, same6.18.34-tcl-ice1 running kernel, ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-. One-shot readiness and service version queries; no PCM/routes/GPIO actions. insmod then rmmod completed. q6core_is_adsp_ready may return true for unsupported command, so concrete service versions are stronger evidence.

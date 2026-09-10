@@ -1,0 +1,22 @@
+/dts-v1/;
+/plugin/;
+/ {
+ fragment@0 {
+  target-path = "/soc@0";
+  __overlay__ {
+   #address-cells = <2>;
+   #size-cells = <2>;
+   rxmacro@62600000 {
+    compatible = "qcom,sm8250-lpass-rx-macro";
+    reg = <0 0x62600000 0 0x1000>;
+    clocks = <0xda 57 1>, <0xda 58 1>, <0xda 102 1>, <0xda 103 1>;
+    clock-names = "mclk", "npl", "macro", "dcodec";
+    #clock-cells = <0>;
+    clock-output-names = "mclk";
+    #sound-dai-cells = <1>;
+    phandle = <1>;
+    status = "okay";
+   };
+  };
+ };
+};

@@ -1,0 +1,10 @@
+--- a/sound/soc/qcom/qdsp6/q6afe.c
++++ b/sound/soc/qcom/qdsp6/q6afe.c
+@@ -1666,6 +1666,7 @@
+ 	dma_cfg->bit_width = cfg->bit_width;
+ 	dma_cfg->data_format = cfg->data_format;
+ 	dma_cfg->num_channels = cfg->num_channels;
++	dma_cfg->active_channels_mask = cfg->active_channels_mask;
+ 	if (!cfg->active_channels_mask)
+ 		dma_cfg->active_channels_mask = (1 << cfg->num_channels) - 1;
+ }

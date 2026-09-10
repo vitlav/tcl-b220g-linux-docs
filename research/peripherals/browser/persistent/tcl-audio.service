@@ -1,0 +1,19 @@
+[Unit]
+Description=TCL WCD9385 speakers and PulseAudio
+Requires=tcl-weston.service
+After=tcl-weston.service tcl-radio.service tcl-audio2-collect.service
+ConditionPathExists=/usr/local/lib/tcl-audio2/tcl_audio_card.ko
+
+[Service]
+Type=simple
+ExecCondition=/bin/sh -c 'test "$(uname -r)" = 6.18.34-tcl-audio2'
+ExecStartPre=/bin/sh /usr/local/lib/tcl-audio2/prepare.sh
+ExecStart=/bin/sh /usr/local/lib/tcl-audio2/enable-browser-audio.sh
+KillMode=mixed
+TimeoutStartSec=180
+TimeoutStopSec=30
+Restart=no
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

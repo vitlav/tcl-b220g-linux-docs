@@ -1,0 +1,13 @@
+[Unit]
+Description=TCL diagnostic ACPI table collection from reserved memory
+After=local-fs.target
+ConditionKernelCommandLine=tcl.memdiag=1
+ConditionPathIsMountPoint=/run/initramfs/usb
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/tcl-memdiag/collect.sh
+TimeoutStartSec=90
+
+[Install]
+WantedBy=multi-user.target

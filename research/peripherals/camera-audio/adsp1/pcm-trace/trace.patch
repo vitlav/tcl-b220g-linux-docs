@@ -1,0 +1,21 @@
+--- a/sound/soc/qcom/qdsp6/q6asm.c
++++ b/sound/soc/qcom/qdsp6/q6asm.c
+@@ -615,9 +615,11 @@
+ 		return 0;
+ 
+ 	result = data->payload;
++	dev_info_ratelimited(ac->dev, "TCL_ASM_RX session=%d op=%#x token=%#x bytes=%d\n", session_id, hdr->opcode, hdr->token, data->payload_size);
+ 
+ 	switch (hdr->opcode) {
+ 	case APR_BASIC_RSP_RESULT:
++		dev_info(ac->dev, "TCL_ASM_RESULT op=%#x status=%#x\n", result->opcode, result->status);
+ 		switch (result->opcode) {
+ 		case ASM_SESSION_CMD_PAUSE:
+ 			client_event = ASM_CLIENT_EVENT_CMD_PAUSE_DONE;
+@@ -1615,6 +1617,7 @@
+ 
+ 	spin_unlock_irqrestore(&ac->lock, flags);
+ 	rc = apr_send_pkt(ac->adev, pkt);
++	dev_info_ratelimited(ac->dev, "TCL_ASM_WRITE addr=%#x:%#x size=%u handle=%#x send=%d expected=%d\n", write->buf_addr_msw, write->buf_addr_lsw, write->buf_size, write->mem_map_handle, rc, pkt_size);
+ 	if (rc == pkt_size)
+ 		rc = 0;

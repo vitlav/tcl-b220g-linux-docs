@@ -1,0 +1,17 @@
+*.ko
+*.o
+*.dtb
+*.dtbo
+*.EFI
+*.efi
+*.img
+*.mbn
+*.dll
+*.sys
+*.jpg
+*.tar
+*.tar.gz
+*.cpio*
+__pycache__/
+.env
+*.key

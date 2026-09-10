@@ -1,0 +1,57 @@
+--- ec-bus
++++ ufs-probe
+@@ -1457,6 +1457,8 @@
+ 		};
+ 
+ 		ufshc@1d84000 {
++			vccq2-supply = <0xb9>;
++			vcc-supply = <0xba>;
+ 			compatible = "qcom,sc7180-ufshc", "qcom,ufshc", "jedec,ufs-2.0";
+ 			reg = <0x00 0x1d84000 0x00 0x3000>;
+ 			interrupts = <0x00 0x109 0x04>;
+@@ -1473,12 +1475,13 @@
+ 			freq-table-hz = <0x2faf080 0xbebc200 0x00 0x00 0x00 0x00 0x23c3460 0x8f0d180 0x00 0x00 0x00 0x00 0x00 0x00>;
+ 			interconnects = <0x26 0x05 0x07 0x27 0x01 0x07 0x28 0x00 0x07 0x29 0x2f 0x07>;
+ 			interconnect-names = "ufs-ddr", "cpu-ufs";
+-			qcom,ice = <0x5d>;
+-			status = "disabled";
++			status = "okay";
+ 			phandle = <0x5e>;
+ 		};
+ 
+ 		phy@1d87000 {
++			vdda-pll-supply = <0x97>;
++			vdda-phy-supply = <0x94>;
+ 			compatible = "qcom,sc7180-qmp-ufs-phy";
+ 			reg = <0x00 0x1d87000 0x00 0x1000>;
+ 			clocks = <0x21 0x00 0x24 0x67 0x24 0x61>;
+@@ -1487,7 +1490,7 @@
+ 			resets = <0x5e 0x00>;
+ 			reset-names = "ufsphy";
+ 			#phy-cells = <0x00>;
+-			status = "disabled";
++			status = "okay";
+ 			phandle = <0x5c>;
+ 		};
+ 
+@@ -3681,6 +3684,20 @@
+ 				compatible = "qcom,pm6150-rpmh-regulators";
+ 				qcom,pmic-id = "a";
+ 
++				ldo19 {
++					regulator-initial-mode = <0x03>;
++					regulator-max-microvolt = <0x2d2a80>;
++					regulator-min-microvolt = <0x2d2a80>;
++					phandle = <0xba>;
++				};
++
++				ldo12 {
++					regulator-initial-mode = <0x03>;
++					regulator-max-microvolt = <0x1b7740>;
++					regulator-min-microvolt = <0x1b7740>;
++					phandle = <0xb9>;
++				};
++
+ 				ldo4 {
+ 					regulator-min-microvolt = <0xd6d80>;
+ 					regulator-max-microvolt = <0xd6d80>;
