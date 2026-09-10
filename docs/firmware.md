@@ -64,3 +64,5 @@
 [Проверка содержимого Ubuntu DEB](../research/firmware-upstream/ubuntu-deb-inspection.md): A630 и ath10k API совпадают, Venus и board-2 отличаются от исследованного upstream; пакеты содержат `.zst` и ставят триггер update-initramfs. Пакет misc не содержит установленных OEM имён TCL.
 
 [Версия Venus в Ubuntu-пакете](../research/firmware-upstream/venus-comparison.md) — 00063; установленная 00064 совпадает с upstream. Несжатый рабочий файл имеет приоритет перед пакетным `.zst` по коду загрузчика firmware; установка пакета не означает перехода на пакетную версию.
+
+[Проверены также все 488 firmware-файлов трёх Qualcomm DEB](../research/firmware-upstream/ubuntu-payload-coverage.md): точных аналогов OEM DSP/MPSS/secure GPU под другими именами не найдено. Вложенные board payload проверены отдельно.

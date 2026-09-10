@@ -1,0 +1,103 @@
+{
+  "scope": "All regular files under usr/lib/firmware in the three inspected Ubuntu Qualcomm packages; symlinks not independently hashed; containers not recursively unpacked",
+  "packages": [
+    {
+      "group": "graphics",
+      "regular_firmware_files_checked": 80,
+      "uncompressed_bytes_hashed": 33664858
+    },
+    {
+      "group": "wireless",
+      "regular_firmware_files_checked": 258,
+      "uncompressed_bytes_hashed": 132304668
+    },
+    {
+      "group": "misc",
+      "regular_firmware_files_checked": 150,
+      "uncompressed_bytes_hashed": 442470208
+    }
+  ],
+  "matches": [],
+  "unmatched_tcl_files": [
+    {
+      "name": "venus.mbn",
+      "sha256": "db2a2efefa7149519b36f01be8a7c37bdf21efd2f06eff5028f80d4295aef7d9"
+    },
+    {
+      "name": "bdwlan.b36",
+      "sha256": "12c738f0393672ccfa2acf0d5ee5d80f4d7e868cb1238f003fd563362e009e6e"
+    },
+    {
+      "name": "bdwlan.b37",
+      "sha256": "93c6e9f50ec6d3dd3acc88921911dbc68a80aa7a581df28062cba59ca3afb6a2"
+    },
+    {
+      "name": "bdwlan.b46",
+      "sha256": "e10ef5e66070bd21f005d309a81afe5aee2a6affd11b33c97ab264c02d7119f2"
+    },
+    {
+      "name": "bdwlan.b47",
+      "sha256": "58725816a65596dbdf20d1fecdf5b62cfc7ab51c35999daa337c62afa72dfbc3"
+    },
+    {
+      "name": "bdwlan.b48",
+      "sha256": "cef488c8ecf2da501299ef150128aa4d8d208e5faa76bea2c7f82e14c251c128"
+    },
+    {
+      "name": "bdwlan.b59",
+      "sha256": "8da568415c32b4946f123a2dc2cda75dc077218516353ca452cd109bca3fd586"
+    },
+    {
+      "name": "bdwlan.b5b",
+      "sha256": "c3f0406864e479752072253c9562c88d780eaebcb61573c110d7c9c44acac1ed"
+    },
+    {
+      "name": "bdwlan.b67",
+      "sha256": "da2e615dea087b66889d09ab627e091710a35ce05167b0bd95cf4926196a62e1"
+    },
+    {
+      "name": "bdwlan.b71",
+      "sha256": "cd3ffca25b10d79c154830b2037e5b144da73472d42b0375ef8ff1e4e598e1df"
+    },
+    {
+      "name": "bdwlan.bin",
+      "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c"
+    },
+    {
+      "name": "bdwlanu.b59",
+      "sha256": "c7ceb9dbf330587755aeb3116d3757399b2d75aadf1ed6d38d00c85c7b6f505a"
+    },
+    {
+      "name": "bdwlanu.b5b",
+      "sha256": "7c54c92b39d34c26d53c783d79ab0d81dedbf785e08ed600adae610d8e3814e9"
+    },
+    {
+      "name": "bdwlanu.b67",
+      "sha256": "da2e615dea087b66889d09ab627e091710a35ce05167b0bd95cf4926196a62e1"
+    },
+    {
+      "name": "bdwlanu.bin",
+      "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c"
+    },
+    {
+      "name": "qcmpss7180_nm.mbn",
+      "sha256": "9ea0c34b4bcd380aec638135ba0751067a46ae988d207e959d33883430c36ab3"
+    },
+    {
+      "name": "wlanmdsp.mbn",
+      "sha256": "b3213d834d11e602c2422690edf316f8fa786ab2d1a34df60b9f4bf83801fa82"
+    },
+    {
+      "name": "qcdxkmsuc7180.mbn",
+      "sha256": "34b3a965a2cfd98495f1b2f3f06ff0254032a293a321fd32b21518525a6ac618"
+    },
+    {
+      "name": "qcadsp7180.mbn",
+      "sha256": "24d665684966cab76eb0ca58536cd96f9e978267f52ffef1dd300d8e3dfe2860"
+    },
+    {
+      "name": "qcmpss7180.mbn",
+      "sha256": "fdad8d193bc1310bd9ee70f7b2d6dcf350bbb28f633d6a27e3eff00ddbef09b8"
+    }
+  ]
+}
