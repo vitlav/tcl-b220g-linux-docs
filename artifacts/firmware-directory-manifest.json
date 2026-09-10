@@ -1,0 +1,172 @@
+{
+  "files": [
+    {
+      "path": "ath10k/WCN3990/hw1.0/board.bin",
+      "bytes": 26328,
+      "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c",
+      "symlink": false
+    },
+    {
+      "path": "ath10k/WCN3990/hw1.0/firmware-5.bin",
+      "bytes": 60,
+      "sha256": "fef6539e0127579536bc977be57a90d018b83f2931fedc3a8870fbe38d6c4127",
+      "symlink": false
+    },
+    {
+      "path": "aw96103_0.bin",
+      "bytes": 892,
+      "sha256": "7a7be16421d74b963a73bc7a4c0c16fae90af4fb306c49762ad612acdbe526f4",
+      "symlink": false,
+      "dpkg_owner": null
+    },
+    {
+      "path": "qcom/a630_gmu.bin",
+      "bytes": 32768,
+      "sha256": "da8d9b1b1f5c1a0b311f32567093b4828f3c80031dd8435f91ac13c664e173a6",
+      "symlink": false
+    },
+    {
+      "path": "qcom/a630_sqe.fw",
+      "bytes": 34188,
+      "sha256": "1c21b527d9183487cc550dabbb3f43e555df5a977a461934fc61f0635a9aa90c",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/b220g/qcadsp7180.mbn",
+      "bytes": 13463676,
+      "sha256": "24d665684966cab76eb0ca58536cd96f9e978267f52ffef1dd300d8e3dfe2860",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b36",
+      "bytes": 26328,
+      "sha256": "12c738f0393672ccfa2acf0d5ee5d80f4d7e868cb1238f003fd563362e009e6e",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b37",
+      "bytes": 26328,
+      "sha256": "93c6e9f50ec6d3dd3acc88921911dbc68a80aa7a581df28062cba59ca3afb6a2",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b46",
+      "bytes": 26328,
+      "sha256": "e10ef5e66070bd21f005d309a81afe5aee2a6affd11b33c97ab264c02d7119f2",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b47",
+      "bytes": 26328,
+      "sha256": "58725816a65596dbdf20d1fecdf5b62cfc7ab51c35999daa337c62afa72dfbc3",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b48",
+      "bytes": 26328,
+      "sha256": "cef488c8ecf2da501299ef150128aa4d8d208e5faa76bea2c7f82e14c251c128",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b59",
+      "bytes": 26328,
+      "sha256": "8da568415c32b4946f123a2dc2cda75dc077218516353ca452cd109bca3fd586",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b5b",
+      "bytes": 26328,
+      "sha256": "c3f0406864e479752072253c9562c88d780eaebcb61573c110d7c9c44acac1ed",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b67",
+      "bytes": 26328,
+      "sha256": "da2e615dea087b66889d09ab627e091710a35ce05167b0bd95cf4926196a62e1",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.b71",
+      "bytes": 26328,
+      "sha256": "cd3ffca25b10d79c154830b2037e5b144da73472d42b0375ef8ff1e4e598e1df",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlan.bin",
+      "bytes": 26328,
+      "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlanu.b59",
+      "bytes": 26328,
+      "sha256": "c7ceb9dbf330587755aeb3116d3757399b2d75aadf1ed6d38d00c85c7b6f505a",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlanu.b5b",
+      "bytes": 26328,
+      "sha256": "7c54c92b39d34c26d53c783d79ab0d81dedbf785e08ed600adae610d8e3814e9",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlanu.b67",
+      "bytes": 26328,
+      "sha256": "da2e615dea087b66889d09ab627e091710a35ce05167b0bd95cf4926196a62e1",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/bdwlanu.bin",
+      "bytes": 26328,
+      "sha256": "e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/qcdxkmsuc7180.mbn",
+      "bytes": 14256,
+      "sha256": "34b3a965a2cfd98495f1b2f3f06ff0254032a293a321fd32b21518525a6ac618",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/qcmpss7180_nm.mbn",
+      "bytes": 5057288,
+      "sha256": "9ea0c34b4bcd380aec638135ba0751067a46ae988d207e959d33883430c36ab3",
+      "symlink": false
+    },
+    {
+      "path": "qcom/sc7180/tcl/wlanmdsp.mbn",
+      "bytes": 3832108,
+      "sha256": "b3213d834d11e602c2422690edf316f8fa786ab2d1a34df60b9f4bf83801fa82",
+      "symlink": false
+    },
+    {
+      "path": "qcom/venus-5.4/venus.mbn",
+      "bytes": 922376,
+      "sha256": "db2a2efefa7149519b36f01be8a7c37bdf21efd2f06eff5028f80d4295aef7d9",
+      "symlink": false
+    },
+    {
+      "path": "regulatory.db",
+      "bytes": 6380,
+      "sha256": "2fb33ca0074db573e05ef7dd50bb45b63c0ff98b7e852e1105ebad536fae8e6b",
+      "symlink": false
+    },
+    {
+      "path": "regulatory.db.p7s",
+      "bytes": 1085,
+      "sha256": "c941c08f51c93e46722293b85631604c3740d86c3de0c75f79aef50d2e919179",
+      "symlink": false
+    },
+    {
+      "path": "skl_hda_dsp_generic-tplg.bin",
+      "bytes": 67152,
+      "sha256": "9db7ccea4edb16bebff53ea4c99d953ec862db951fb6f2ec90c3e81ee6083bab",
+      "symlink": false,
+      "package": "alsa-topology-conf",
+      "package_version": "1.2.5.1-3build1"
+    }
+  ],
+  "observed_on": "2026-09-10",
+  "scope": "Complete recursive inventory of regular files in /usr/lib/firmware in the observed DT/MEMDIAG system; no unresolved or directory symlinks observed; not a list of files consumed by drivers",
+  "kernel_release": "6.18.34-tcl-audio2"
+}
