@@ -2,6 +2,7 @@
 
 | Подсистема | Содержание | Спецификация |
 |---|---|---|
+| USB / ввод | DWC3, PHY, I²C HID, клавиатура и тачпад | [Спецификация USB и ввода](hardware/usb-input.md) |
 | CPU / частота / криптография | cpufreq, аппаратные crypto-инструкции, измерения | [Спецификация CPU](hardware/cpu.md) |
 | Wi-Fi | ath10k, OEM firmware, RMTFS, DHCP, постоянный доступ | [Спецификация Wi-Fi](hardware/wifi.md), [службы Ubuntu](ubuntu.md#firmware-и-запуск-wi-fi) |
 | UFS / ICE | PHY, LUN, inline encryption, проверка чтения | [Спецификация UFS / ICE](hardware/storage.md), [охват резервной копии](../research/peripherals/windows-backup/README.md) |

@@ -4,6 +4,7 @@
 
 | Подсистема | Доказано | Что остаётся |
 |---|---|---|
+| [USB / ввод](hardware/usb-input.md) | USB rootfs, tethering, UVC; клавиатура и I²C HID | SuperSpeed по портам, role switching, wakeup и жесты |
 | [CPU](hardware/cpu.md) | 8 CPU, cpufreq-hw, рабочая Linux DT-загрузка | EL2 не предоставлен firmware: Linux стартует в EL1, /dev/kvm нет |
 | [UFS](hardware/storage.md) | Накопитель доступен, архив всех 6 LUN проверен по SHA256 | Реальное восстановление Windows из архива не испытывалось |
 | [Wi-Fi](hardware/wifi.md) | ath10k SNOC, 5 ГГц, автоматические Wi-Fi/SSH после загрузки подтверждены | Не считать настройку перенесённой в каждый новый initramfs без проверки |
