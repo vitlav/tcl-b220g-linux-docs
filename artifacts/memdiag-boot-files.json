@@ -1,0 +1,31 @@
+{
+  "scope": "Files inspected on the USB boot medium, not proof of bytes loaded at an earlier boot",
+  "observed_on": "2026-09-10",
+  "kernel_release": "6.18.34-tcl-audio2",
+  "configuration": "MEMDIAG / Device Tree",
+  "files": [
+    {
+      "role": "Image",
+      "path_on_medium": "tcl-memdiag/Image",
+      "bytes": 32074240,
+      "sha256": "78c251e585d082d221b17429769b4ad861e9aeb23ef64e5249029610ca059ef5"
+    },
+    {
+      "role": "DTB",
+      "path_on_medium": "tcl-audio2/va-probe.dtb",
+      "bytes": 79287,
+      "sha256": "f795878b99d960c253b2b2cd994cbe29e15b7f2aed2e9da169c63cb807de1dd0"
+    },
+    {
+      "role": "initramfs",
+      "path_on_medium": "tcl-audio2/initramfs.cpio.gz",
+      "bytes": 14952280,
+      "sha256": "3c196074a0602c528840711587fefbb3a39b196a1f81affd2ec8641959de071c"
+    },
+    {
+      "role": "reference kernel configuration",
+      "repository_path": "research/acpi-audit/memdiag/kernel.config",
+      "sha256": "943ef791c2c37e20ca086b4c2b5b9ca3534f40c1a3911e40b6e6381169d15adc"
+    }
+  ]
+}

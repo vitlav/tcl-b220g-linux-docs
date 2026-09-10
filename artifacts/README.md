@@ -14,6 +14,8 @@
 | [Полный каталог firmware](firmware-directory-manifest.json) | Все 27 файлов наблюдавшегося /usr/lib/firmware; не содержимое initramfs/RMTFS |
 | [Сверка на TCL](firmware-live-audit.json) | Совпадение 25 эталонных путей при чтении работающей системы |
 | [Firmware initramfs](initramfs-firmware-manifest.json) | Три GPU-файла сохранённого AUDIO2 initramfs и их совпадение с rootfs |
+| [Комплект MEMDIAG](memdiag-boot-files.json) | Image/DTB/initramfs на носителе и сохранённая конфигурация |
+| [Модули initramfs](initramfs-module-manifest.json) | 949 файлов модулей, побайтно совпавших с rootfs |
 | [OEM WLAN](../research/peripherals/wifi-services/firmware-sha256.txt) | Сохранённый набор OEM-файлов, не выбор каждого файла firmware во время запуска |
 
 Документация после импорта редактируется, часть исторических текстов вынесена из актуального дерева. Поэтому git-пути и hashes исходного манифеста не являются перечнем обязательных файлов текущего checkout. Их нельзя использовать для проверки всей актуальной документации без учёта версии. Историю изменений файлов фиксирует Git.
