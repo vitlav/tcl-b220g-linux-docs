@@ -44,7 +44,7 @@
 
 #define SDM845_QSCRATCH_BASE_OFFSET		0xf8800
 #define SDM845_QSCRATCH_SIZE			0x400
-#define SDM845_DWC3_CORE_SIZE			0xcd00
+#define TCL_SC7180_DWC3_CORE_SIZE			0xe000
 
 /* Interconnect path bandwidths in MBps */
 #define USB_MEMORY_AVG_HS_BW MBps_to_icc(240)
@@ -528,6 +528,9 @@ static int dwc3_qcom_get_irq(struct platform_device *pdev,
 	struct device_node *np = pdev->dev.of_node;
 	int ret;
 
+	if (!np && num < 0)
+		return 0;
+
 	if (np)
 		ret = platform_get_irq_byname_optional(pdev_irq, name);
 	else
@@ -653,6 +656,12 @@ static int dwc3_qcom_clk_init(struct dwc3_qcom *qcom, int count)
 static const struct property_entry dwc3_qcom_acpi_properties[] = {
 	PROPERTY_ENTRY_STRING("dr_mode", "host"),
 	PROPERTY_ENTRY_BOOL("linux,sysdev_is_parent"),
+	PROPERTY_ENTRY_BOOL("snps,dis_u2_susphy_quirk"),
+	PROPERTY_ENTRY_BOOL("snps,dis_enblslpm_quirk"),
+	PROPERTY_ENTRY_BOOL("snps,parkmode-disable-ss-quirk"),
+	PROPERTY_ENTRY_BOOL("snps,dis-u1-entry-quirk"),
+	PROPERTY_ENTRY_BOOL("snps,dis-u2-entry-quirk"),
+	PROPERTY_ENTRY_STRING("maximum-speed", "super-speed"),
 	{}
 };
 
@@ -819,14 +828,13 @@ static int tcl_acpi_usb_check(struct platform_device *pdev)
 	struct acpi_device *adev = ACPI_COMPANION(dev);
 	struct iommu_fwspec *fwspec;
 	struct resource *res;
-	char path[64];
-	struct acpi_buffer name = { sizeof(path), path };
+	acpi_handle expected;
 
 	if (dev->of_node || !adev ||
 	    !acpi_dev_hid_uid_match(adev, "QCOM0897", NULL))
 		return -ENODEV;
-	if (ACPI_FAILURE(acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &name)) ||
-	    strcmp(path, "\\_SB.URS0"))
+	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.URS0", &expected)) ||
+	    adev->handle != expected)
 		return dev_err_probe(dev, -ENODEV, "unexpected ACPI USB parent\n");
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!res || res->start != 0x0a600000 || resource_size(res) != 0x000fffff)
@@ -1041,6 +1049,9 @@ static int __maybe_unused dwc3_qcom_pm_suspend(struct device *dev)
 	bool wakeup = device_may_wakeup(dev);
 	int ret;
 
+	if (has_acpi_companion(dev))
+		return -EBUSY;
+
 	ret = dwc3_qcom_suspend(qcom, wakeup);
 	if (ret)
 		return ret;
@@ -1069,6 +1080,9 @@ static int __maybe_unused dwc3_qcom_runtime_suspend(struct device *dev)
 {
 	struct dwc3_qcom *qcom = dev_get_drvdata(dev);
 
+	if (has_acpi_companion(dev))
+		return -EBUSY;
+
 	return dwc3_qcom_suspend(qcom, true);
 }
 
@@ -1089,11 +1103,15 @@ static const struct dev_pm_ops dwc3_qcom_dev_pm_ops = {
 static const struct dwc3_acpi_pdata tcl_sc7180_acpi_urs_pdata = {
 	.qscratch_base_offset = SDM845_QSCRATCH_BASE_OFFSET,
 	.qscratch_base_size = SDM845_QSCRATCH_SIZE,
-	.dwc3_core_base_size = SDM845_DWC3_CORE_SIZE,
-	.qusb2_phy_irq_index = 1,
-	.dp_hs_phy_irq_index = 4,
-	.dm_hs_phy_irq_index = 3,
-	.ss_phy_irq_index = 2,
+	.dwc3_core_base_size = TCL_SC7180_DWC3_CORE_SIZE,
+	/* Diagnostic boot only: do not claim wake lines or enter suspend.
+	 * ACPI IRQ index 1 is power_event (GSI162), not HS PHY (GSI163).
+	 * PDC routing/power management must be implemented before wake use.
+	 */
+	.qusb2_phy_irq_index = -1,
+	.dp_hs_phy_irq_index = -1,
+	.dm_hs_phy_irq_index = -1,
+	.ss_phy_irq_index = -1,
 	.is_urs = true,
 };
 
