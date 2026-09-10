@@ -2,21 +2,17 @@
 
 Здесь собраны сохранённые изменения Linux из исследования. Это **каталог, не единая применяемая серия**: есть альтернативные версии и диагностические патчи. Нельзя автоматически применить все файлы подряд. Основная исследованная база — Linux 6.18.34 с локальными изменениями; точный контекст каждого патча указан в первичном отчёте.
 
-## История коммитов
+## Происхождение и применимость
 
-Рабочие `/tmp/tcl-audio2-linux`, `/tmp/tcl-memdiag-linux` и `/tmp/tcl-acpi1-linux` созданы как деревья исходников **без `.git`**. Поэтому отдельных исторических коммитов наших изменений в этих деревьях нет. Патчи и полные исходники сохранялись по этапам.
-
-В этом репозитории файлы сохранены коммитами: `9a19f61` — первоначальный импорт; `50faa7b` — ранняя SCM SSDT и аудит клиентов SMMU. Добавление этого каталога и нового SMMU-патча имеет собственный коммит. Это коммиты коллекции материалов, не восстановленная задним числом серия Linux-коммитов.
-
-Исключение по происхождению: GLINK-патч является backport upstream `5a5a48e788e02`. Это не наш отдельный commit в локальном Linux-дереве. Никаких фиктивных Signed-off-by или авторов не добавлено.
+Полная последовательная серия для чистой upstream-базы пока не сформирована. GLINK-патч — backport upstream `5a5a48e788e02`; остальные изменения имеют назначение и степень проверки, указанные ниже. Сохранённые заголовки патчей определяют авторство и происхождение.
 
 ## Перечень
 
 | Файл | Назначение | Статус / ограничения | Первичный отчёт |
 |---|---|---|---|
-| [acpi/scm-acpi-draft-v2.patch](acpi/scm-acpi-draft-v2.patch) | SCM ACPI v2: match, DMA guard, начальный TZMEM pool, зависимости | Черновик; object-build; требует ранней _CCA и аппаратной проверки | [Отчёт](../../research/acpi-audit/scm/README.md) |
+| [acpi/scm-acpi-draft-v2.patch](acpi/scm-acpi-draft-v2.patch) | SCM ACPI v2: match, DMA guard, начальный TZMEM pool, зависимости | Собран в полном ACPI2 Image; требует ранней _CCA; аппаратно не проверен | [Отчёт](../../research/acpi-audit/scm/README.md) |
 | [acpi/scm-acpi-draft.patch](acpi/scm-acpi-draft.patch) | SCM ACPI v1: match QCOM080B, условный OF ICC | Предыдущий вариант, заменён v2; не применять вместе | [Отчёт](../../research/acpi-audit/scm/README.md) |
-| [acpi/sc7180-acpi-smmu-selection.patch](acpi/sc7180-acpi-smmu-selection.patch) | Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам | Черновик; object-build ACPI=y/n и host-матрица; не установлен | [Отчёт](../../research/acpi-audit/smmu/selection-draft/README.md) |
+| [acpi/sc7180-acpi-smmu-selection.patch](acpi/sc7180-acpi-smmu-selection.patch) | Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам | Полный ACPI2 Image; object-build ACPI=y/n и host-матрица; аппаратно не проверен | [Отчёт](../../research/acpi-audit/smmu/selection-draft/README.md) |
 | [acpi/acpica-default-spaces-without-pci.patch](acpi/acpica-default-spaces-without-pci.patch) | Исключить PCI_CONFIG из default address spaces при PCI=n | Собран в ACPI1; вся ACPI-загрузка ещё не работает | [Отчёт](../../research/acpi-boot/pci-disabled/README.md) |
 | [audio/adsp1-pcm-trace.patch](audio/adsp1-pcm-trace.patch) | Q6ASM: ранняя трассировка PCM | Историческая диагностика ADSP1 | [Отчёт](../../research/peripherals/camera-audio/adsp1/README.md) |
 | [audio/adsp1-q6afe-active-mask.patch](audio/adsp1-q6afe-active-mask.patch) | Ранняя версия передачи явной маски каналов Q6AFE | Исторический вариант; сравнить с AUDIO2 0002, не применять оба | [Отчёт](../../research/peripherals/camera-audio/adsp1/README.md) |

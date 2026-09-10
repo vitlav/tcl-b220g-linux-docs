@@ -14,7 +14,8 @@
 | [Полный DT](docs/hardware/full-inventory.md) | 738 узлов, включая pinctrl, OPP и регуляторы |
 | [Загрузка и восстановление доступа](docs/boot.md) | UEFI, GRUB, состав загрузочного комплекта и диагностика |
 | [Патчи ядра](patches/kernel/README.md) | Изменения, назначение и степень проверки |
-| [Ядро и изменения Ubuntu](docs/kernel-and-ubuntu.md) | Исходники, кросс-сборка, отличия образа |
+| [Ядро и патчи](docs/kernel-and-ubuntu.md) | Конфигурация и кросс-сборка |
+| [Ubuntu 26.04.1 LTS](docs/ubuntu.md) | Состав системы, firmware, службы, сеть и rootfs |
 | [Подсистемы](docs/subsystems.md) | Wi-Fi, UFS/ICE, графика, видео, звук, EC, датчики, GNSS |
 | [ACPI](docs/acpi.md) | Проверка OEM-таблиц, SCM, DMA, SMMU и открытые вопросы |
 | [Задачи и внешние проекты](docs/issues-and-upstream.md) | Связанные баги и места для будущего отчёта |
