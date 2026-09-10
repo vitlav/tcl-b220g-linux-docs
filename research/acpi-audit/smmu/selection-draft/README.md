@@ -1,6 +1,6 @@
 # SC7180 ACPI: отдельный выбор Apps и Adreno SMMU
 
-2026-09-10. **Изолированный черновик, object-build и host-проверки. Не установлен на TCL; полный Image с патчем не собирался.**
+**Статус:** object-build, host-проверки и полный ACPI2 Image собраны; аппаратно не проверен. [Состав ACPI2](../../../acpi-boot/acpi2/README.md).
 
 ## Изменение
 
@@ -50,7 +50,7 @@ python3 check-selection.py --kernel /path/to/configured-kernel \
   --iort /path/to/07-IORT.dat
 ```
 
-Это не сборка загружаемого модуля: modpost и линковка полного ядра здесь не выполнялись. Использован репозиторный aarch64 GCC 15.3.1.
+Приведённая команда проверяет отдельный объект. Полная линковка с SCM v2 выполнена отдельно в ACPI2. Использован aarch64 GCC 15.3.1.
 
 ## Что ещё не решено
 
@@ -61,8 +61,8 @@ python3 check-selection.py --kernel /path/to/configured-kernel \
 - Причина прежнего чёрного экрана всё ещё не подтверждена последними строками ядра.
 - До следующего аппаратного теста требуется диагностируемый загрузочный комплект и отдельное согласование перезагрузки.
 
-Архив кандидата, объектов и логов: `/var/ftp/tmp/lav/tcl/acpi-smmu/selection-draft/`. Исторические рабочие Image/DTB/EFI не менялись.
+
 
 ## Файлы патчей
 
-- [sc7180-acpi-smmu-selection.patch](../../../../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) — Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам. Черновик; object-build ACPI=y/n и host-матрица; не установлен.
+- [sc7180-acpi-smmu-selection.patch](../../../../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) — Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам. Полный ACPI2 build, object-build ACPI=y/n и host-матрица; аппаратно не проверен.
