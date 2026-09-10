@@ -1,0 +1,31 @@
+{
+  "scope": "Firmware entries only from the inspected USB initramfs; other entry names and contents excluded",
+  "image_bytes": 14952280,
+  "image_sha256": "3c196074a0602c528840711587fefbb3a39b196a1f81affd2ec8641959de071c",
+  "cpio_entries_checked": 1270,
+  "trailing_padding_only": true,
+  "firmware": [
+    {
+      "path": "lib/firmware/qcom/a630_gmu.bin",
+      "bytes": 32768,
+      "sha256": "da8d9b1b1f5c1a0b311f32567093b4828f3c80031dd8435f91ac13c664e173a6",
+      "type": "regular",
+      "rootfs_match": true
+    },
+    {
+      "path": "lib/firmware/qcom/a630_sqe.fw",
+      "bytes": 34188,
+      "sha256": "1c21b527d9183487cc550dabbb3f43e555df5a977a461934fc61f0635a9aa90c",
+      "type": "regular",
+      "rootfs_match": true
+    },
+    {
+      "path": "lib/firmware/qcom/sc7180/tcl/qcdxkmsuc7180.mbn",
+      "bytes": 14256,
+      "sha256": "34b3a965a2cfd98495f1b2f3f06ff0254032a293a321fd32b21518525a6ac618",
+      "type": "regular",
+      "rootfs_match": true
+    }
+  ],
+  "observed_on": "2026-09-10"
+}
