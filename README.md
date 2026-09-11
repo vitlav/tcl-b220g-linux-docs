@@ -15,6 +15,7 @@
 | [Полный DT](docs/hardware/full-inventory.md) | 738 узлов, включая pinctrl, OPP и регуляторы |
 | [Загрузка и восстановление доступа](docs/boot.md) | UEFI, GRUB, состав загрузочного комплекта и диагностика |
 | [Патчи ядра](patches/kernel/README.md) | Изменения, назначение и степень проверки |
+| [Происхождение qc7](research/qc7-provenance/README.md) | Исходные коммиты и патчи до изменений TCL |
 | [Ядро и патчи](docs/kernel-and-ubuntu.md) | Конфигурация и кросс-сборка |
 | [Ubuntu 26.04.1 LTS](docs/ubuntu.md) | Состав системы, firmware, службы, сеть и rootfs |
 | [Подсистемы](docs/subsystems.md) | Wi-Fi, UFS/ICE, графика, видео, звук, EC, датчики, GNSS |
