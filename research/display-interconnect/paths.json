@@ -1,0 +1,31 @@
+{
+  "sources": {
+    "6.18": {
+      "file": "sc7180-6.18.c",
+      "sha256": "8a87ecc318e820ea9b002e4afaf1a8912faba486f6166c82151e8253c1c4d1a5"
+    },
+    "7.2.4": {
+      "file": "sc7180-7.2.4.c",
+      "sha256": "dc55a2e30779c1e1e34d628e08ca517c87861adf317d65f2318b0e1dccca58e2"
+    }
+  },
+  "paths": {
+    "mdp0-mem": [
+      "qxm_mdp0",
+      "qns_mem_noc_hf",
+      "qnm_mnoc_hf",
+      "qns_llcc",
+      "llcc_mc",
+      "ebi"
+    ],
+    "cpu-cfg": [
+      "acm_apps0",
+      "qns_gem_noc_snoc",
+      "qnm_gemnoc",
+      "qns_cnoc",
+      "qnm_snoc",
+      "qhs_display_cfg"
+    ]
+  },
+  "verification": "Every consecutive directed edge exists in both saved source files; not a per-hop hardware measurement"
+}

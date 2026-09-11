@@ -20,6 +20,7 @@
 | [Ядро и патчи](docs/kernel-and-ubuntu.md) | Конфигурация и кросс-сборка |
 | [Ubuntu 26.04.1 LTS](docs/ubuntu.md) | Состав системы, firmware, службы, сеть и rootfs |
 | [Подсистемы](docs/subsystems.md) | Wi-Fi, UFS/ICE, графика, видео, звук, EC, датчики, GNSS |
+| [Дисплей: DT](docs/hardware/display.md) / [ACPI](docs/hardware/display-acpi.md) | Пути ICC, такты, питание, DSI/eDP и отдельные статусы поддержки |
 | [ACPI](docs/acpi.md) | Проверка OEM-таблиц, SCM, DMA, SMMU и открытые вопросы |
 | [Задачи и внешние проекты](docs/issues-and-upstream.md) | Связанные баги и места для будущего отчёта |
 | [Архив материалов](artifacts/README.md) | Полный перечень исходных файлов, размеры, SHA256 и расположение |
