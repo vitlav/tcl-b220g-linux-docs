@@ -1,0 +1,41 @@
+From d14e31657472e1f592085741882249e3e6fa87c8 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 11:41:38 +0300
+Subject: [PATCH 01/16] acpi: allow default address spaces without PCI support
+
+Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
+---
+ drivers/acpi/acpica/evhandler.c | 2 ++
+ include/acpi/acconfig.h         | 4 ++++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/acpi/acpica/evhandler.c b/drivers/acpi/acpica/evhandler.c
+index d9a3b1ca5..11020d739 100644
+--- a/drivers/acpi/acpica/evhandler.c
++++ b/drivers/acpi/acpica/evhandler.c
+@@ -26,7 +26,9 @@ acpi_ev_install_handler(acpi_handle obj_handle,
+ u8 acpi_gbl_default_address_spaces[ACPI_NUM_DEFAULT_SPACES] = {
+ 	ACPI_ADR_SPACE_SYSTEM_MEMORY,
+ 	ACPI_ADR_SPACE_SYSTEM_IO,
++#ifdef ACPI_PCI_CONFIGURED
+ 	ACPI_ADR_SPACE_PCI_CONFIG,
++#endif
+ 	ACPI_ADR_SPACE_DATA_TABLE
+ };
+ 
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 6bce050f0..3d29bc147 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -161,7 +161,11 @@
+ /* Maximum space_ids for Operation Regions */
+ 
+ #define ACPI_MAX_ADDRESS_SPACE          255
++#ifdef ACPI_PCI_CONFIGURED
+ #define ACPI_NUM_DEFAULT_SPACES         4
++#else
++#define ACPI_NUM_DEFAULT_SPACES         3
++#endif
+ 
+ /* Array sizes.  Used for range checking also */
+ 

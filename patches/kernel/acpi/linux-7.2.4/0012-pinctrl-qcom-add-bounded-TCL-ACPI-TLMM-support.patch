@@ -1,0 +1,137 @@
+From e29884ba456d67512659bf489bd96090b138c1d2 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 11:43:41 +0300
+Subject: [PATCH 12/16] pinctrl: qcom: add bounded TCL ACPI TLMM support
+
+Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+---
+ drivers/pinctrl/qcom/pinctrl-msm.c    | 14 ++++++-
+ drivers/pinctrl/qcom/pinctrl-msm.h    |  2 +
+ drivers/pinctrl/qcom/pinctrl-sc7180.c | 60 +++++++++++++++++++++++++++
+ 3 files changed, 75 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/pinctrl/qcom/pinctrl-msm.c b/drivers/pinctrl/qcom/pinctrl-msm.c
+index fd0add4e7..a38733b02 100644
+--- a/drivers/pinctrl/qcom/pinctrl-msm.c
++++ b/drivers/pinctrl/qcom/pinctrl-msm.c
+@@ -1561,7 +1561,19 @@ int msm_pinctrl_probe(struct platform_device *pdev,
+ 
+ 	raw_spin_lock_init(&pctrl->lock);
+ 
+-	if (soc_data->tiles) {
++	if (soc_data->acpi_tile_offsets) {
++		void __iomem *base;
++
++		base = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
++		if (IS_ERR(base))
++			return PTR_ERR(base);
++		for (i = 0; i < soc_data->ntiles; i++) {
++			if (soc_data->acpi_tile_offsets[i] >= resource_size(res))
++				return -EINVAL;
++			pctrl->regs[i] = base + soc_data->acpi_tile_offsets[i];
++			pctrl->phys_base[i] = res->start + soc_data->acpi_tile_offsets[i];
++		}
++	} else if (soc_data->tiles) {
+ 		for (i = 0; i < soc_data->ntiles; i++) {
+ 			res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+ 							   soc_data->tiles[i]);
+diff --git a/drivers/pinctrl/qcom/pinctrl-msm.h b/drivers/pinctrl/qcom/pinctrl-msm.h
+index b94ba1a41..4b8e73f95 100644
+--- a/drivers/pinctrl/qcom/pinctrl-msm.h
++++ b/drivers/pinctrl/qcom/pinctrl-msm.h
+@@ -178,6 +178,8 @@ struct msm_pinctrl_soc_data {
+ 	bool pull_no_keeper;
+ 	const char *const *tiles;
+ 	unsigned int ntiles;
++	/* Optional tile offsets within one ACPI MMIO resource. */
++	const u32 *acpi_tile_offsets;
+ 	const int *reserved_gpios;
+ 	const struct msm_gpio_wakeirq_map *wakeirq_map;
+ 	unsigned int nwakeirq_map;
+diff --git a/drivers/pinctrl/qcom/pinctrl-sc7180.c b/drivers/pinctrl/qcom/pinctrl-sc7180.c
+index a02a9a78a..7183e7bb4 100644
+--- a/drivers/pinctrl/qcom/pinctrl-sc7180.c
++++ b/drivers/pinctrl/qcom/pinctrl-sc7180.c
+@@ -1,6 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0
+ // Copyright (c) 2019, The Linux Foundation. All rights reserved.
+ 
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/irq.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
+@@ -1139,8 +1142,64 @@ static const struct msm_pinctrl_soc_data sc7180_pinctrl = {
+ 	.wakeirq_dual_edge_errata = true,
+ };
+ 
++#ifdef CONFIG_ACPI
++/* ACPI GIO0 covers all three tiles; DT keeps named resources. */
++static const u32 sc7180_acpi_tile_offsets[] = {
++	[NORTH] = 0x500000, [SOUTH] = 0x900000, [WEST] = 0x100000,
++};
++
++static int sc7180_pinctrl_acpi_probe(struct platform_device *pdev)
++{
++	struct msm_pinctrl_soc_data *soc;
++	struct resource *res;
++	struct irq_data *irqdata;
++	acpi_handle handle;
++	u16 pins[4];
++	int irq;
++
++	if (!dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    !device_property_read_bool(&pdev->dev, "qcom,tcl-acpi-input") ||
++	    ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.GIO0", &handle)) ||
++	    handle != ACPI_HANDLE(&pdev->dev))
++		return -ENODEV;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res || res->start != 0x3400000 || resource_size(res) != 0xc00000)
++		return -EINVAL;
++	/* Limit this diagnostic to the keyboard and its I2C pins. */
++	if (device_property_count_u16(&pdev->dev, "gpios") != ARRAY_SIZE(pins) ||
++	    device_property_read_u16_array(&pdev->dev, "gpios", pins, ARRAY_SIZE(pins)) ||
++	    pins[0] != 32 || pins[1] != 33 || pins[2] != 115 || pins[3] != 116)
++		return -EINVAL;
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0)
++		return irq;
++	irqdata = irq_get_irq_data(irq);
++	if (!irqdata || irqd_to_hwirq(irqdata) != 240)
++		return -EINVAL;
++	soc = devm_kmemdup(&pdev->dev, &sc7180_pinctrl, sizeof(*soc), GFP_KERNEL);
++	if (!soc)
++		return -ENOMEM;
++	soc->acpi_tile_offsets = sc7180_acpi_tile_offsets;
++	/* Normal input uses the TLMM summary IRQ; PDC wake is not described. */
++	soc->wakeirq_map = NULL;
++	soc->nwakeirq_map = 0;
++	dev_info(&pdev->dev, "TCL ACPI keyboard GPIOs: 32,33,115,116; summary GSI240\n");
++	return msm_pinctrl_probe(pdev, soc);
++}
++
++static const struct acpi_device_id sc7180_pinctrl_acpi_match[] = {
++	{ "QCOM080D" }, { }
++};
++MODULE_DEVICE_TABLE(acpi, sc7180_pinctrl_acpi_match);
++#endif
++
+ static int sc7180_pinctrl_probe(struct platform_device *pdev)
+ {
++#ifdef CONFIG_ACPI
++	if (has_acpi_companion(&pdev->dev))
++		return sc7180_pinctrl_acpi_probe(pdev);
++#endif
+ 	return msm_pinctrl_probe(pdev, &sc7180_pinctrl);
+ }
+ 
+@@ -1155,6 +1214,7 @@ static struct platform_driver sc7180_pinctrl_driver = {
+ 		.name = "sc7180-pinctrl",
+ 		.pm = &msm_pinctrl_dev_pm_ops,
+ 		.of_match_table = sc7180_pinctrl_of_match,
++		.acpi_match_table = ACPI_PTR(sc7180_pinctrl_acpi_match),
+ 	},
+ 	.probe = sc7180_pinctrl_probe,
+ };

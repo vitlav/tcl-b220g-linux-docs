@@ -1,0 +1,365 @@
+From d5807fb5df0d63385f0170d97226d6fb00d252d3 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 11:43:41 +0300
+Subject: [PATCH 10/16] remoteproc: qcom: support TCL ACPI modem resources
+
+Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+---
+ drivers/remoteproc/qcom_common.c   | 52 +++++++++++++++++++++++++-
+ drivers/remoteproc/qcom_common.h   |  7 ++++
+ drivers/remoteproc/qcom_q6v5.c     |  8 +++-
+ drivers/remoteproc/qcom_q6v5_pas.c | 60 ++++++++++++++++++++++++++++--
+ drivers/remoteproc/qcom_sysmon.c   |  8 +++-
+ drivers/soc/qcom/qcom_pd_mapper.c  | 22 +++++++++--
+ 6 files changed, 145 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/remoteproc/qcom_common.c b/drivers/remoteproc/qcom_common.c
+index e1a955476..141aaf283 100644
+--- a/drivers/remoteproc/qcom_common.c
++++ b/drivers/remoteproc/qcom_common.c
+@@ -12,6 +12,7 @@
+ #include <linux/module.h>
+ #include <linux/notifier.h>
+ #include <linux/remoteproc.h>
++#include <linux/property.h>
+ #include <linux/remoteproc/qcom_rproc.h>
+ #include <linux/auxiliary_bus.h>
+ #include <linux/rpmsg/qcom_glink.h>
+@@ -217,7 +218,11 @@ static int glink_subdev_start(struct rproc_subdev *subdev)
+ {
+ 	struct qcom_rproc_glink *glink = to_glink_subdev(subdev);
+ 
+-	glink->edge = qcom_glink_smem_register(glink->dev, glink->node);
++	if (glink->fwnode)
++		glink->edge = qcom_glink_smem_register_fwnode(glink->dev,
++							    glink->fwnode, glink->irq);
++	else
++		glink->edge = qcom_glink_smem_register(glink->dev, glink->node);
+ 
+ 	return PTR_ERR_OR_ZERO(glink->edge);
+ }
+@@ -265,6 +270,45 @@ void qcom_add_glink_subdev(struct rproc *rproc, struct qcom_rproc_glink *glink,
+ }
+ EXPORT_SYMBOL_GPL(qcom_add_glink_subdev);
+ 
++/**
++ * qcom_add_glink_subdev_fwnode() - add an explicitly described GLINK edge
++ * @rproc: remote processor
++ * @glink: zero-initialized, unused subdevice context
++ * @ssr_name: subsystem restart identifier
++ * @fwnode: edge properties and mailbox reference
++ * @irq: Linux IRQ whose mapping must outlive the subdevice
++ *
++ * The caller resolves the IRQ from platform/ACPI resources. An owned firmware
++ * node reference is kept until qcom_remove_glink_subdev().
++ *
++ * Return: 0 on success, a negative error code on failure.
++ */
++int qcom_add_glink_subdev_fwnode(struct rproc *rproc,
++			       struct qcom_rproc_glink *glink,
++			       const char *ssr_name,
++			       struct fwnode_handle *fwnode, int irq)
++{
++	if (!fwnode || !ssr_name || irq <= 0)
++		return irq < 0 ? irq : -EINVAL;
++	if (glink->node || glink->fwnode)
++		return -EBUSY;
++
++	glink->ssr_name = kstrdup_const(ssr_name, GFP_KERNEL);
++	if (!glink->ssr_name)
++		return -ENOMEM;
++
++	glink->fwnode = fwnode_handle_get(fwnode);
++	glink->irq = irq;
++	glink->dev = &rproc->dev;
++	glink->subdev.start = glink_subdev_start;
++	glink->subdev.stop = glink_subdev_stop;
++	glink->subdev.unprepare = glink_subdev_unprepare;
++	rproc_add_subdev(rproc, &glink->subdev);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(qcom_add_glink_subdev_fwnode);
++
+ /**
+  * qcom_remove_glink_subdev() - remove a GLINK subdevice from rproc
+  * @rproc:	rproc handle
+@@ -272,12 +316,16 @@ EXPORT_SYMBOL_GPL(qcom_add_glink_subdev);
+  */
+ void qcom_remove_glink_subdev(struct rproc *rproc, struct qcom_rproc_glink *glink)
+ {
+-	if (!glink->node)
++	if (!glink->node && !glink->fwnode)
+ 		return;
+ 
+ 	rproc_remove_subdev(rproc, &glink->subdev);
+ 	kfree_const(glink->ssr_name);
+ 	of_node_put(glink->node);
++	fwnode_handle_put(glink->fwnode);
++	glink->node = NULL;
++	glink->fwnode = NULL;
++	glink->ssr_name = NULL;
+ }
+ EXPORT_SYMBOL_GPL(qcom_remove_glink_subdev);
+ 
+diff --git a/drivers/remoteproc/qcom_common.h b/drivers/remoteproc/qcom_common.h
+index b07fbaa09..89bf65188 100644
+--- a/drivers/remoteproc/qcom_common.h
++++ b/drivers/remoteproc/qcom_common.h
+@@ -7,6 +7,7 @@
+ #include <linux/soc/qcom/qmi.h>
+ 
+ struct qcom_glink_smem;
++struct fwnode_handle;
+ struct qcom_sysmon;
+ 
+ struct qcom_rproc_glink {
+@@ -17,6 +18,8 @@ struct qcom_rproc_glink {
+ 	struct device *dev;
+ 	struct device_node *node;
+ 	struct qcom_glink_smem *edge;
++	struct fwnode_handle *fwnode;
++	int irq;
+ };
+ 
+ struct qcom_rproc_subdev {
+@@ -48,6 +51,10 @@ void qcom_minidump(struct rproc *rproc, unsigned int minidump_id,
+ 
+ void qcom_add_glink_subdev(struct rproc *rproc, struct qcom_rproc_glink *glink,
+ 			   const char *ssr_name);
++int qcom_add_glink_subdev_fwnode(struct rproc *rproc,
++			       struct qcom_rproc_glink *glink,
++			       const char *ssr_name,
++			       struct fwnode_handle *fwnode, int irq);
+ void qcom_remove_glink_subdev(struct rproc *rproc, struct qcom_rproc_glink *glink);
+ 
+ int qcom_register_dump_segments(struct rproc *rproc, const struct firmware *fw);
+diff --git a/drivers/remoteproc/qcom_q6v5.c b/drivers/remoteproc/qcom_q6v5.c
+index 58d5b85e5..8ddc733be 100644
+--- a/drivers/remoteproc/qcom_q6v5.c
++++ b/drivers/remoteproc/qcom_q6v5.c
+@@ -8,6 +8,7 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
++#include <linux/property.h>
+ #include <linux/interconnect.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+@@ -346,7 +347,12 @@ int qcom_q6v5_init(struct qcom_q6v5 *q6v5, struct platform_device *pdev,
+ 		return load_state ? -ENOMEM : -EINVAL;
+ 	}
+ 
+-	q6v5->path = devm_of_icc_get(&pdev->dev, NULL);
++	/* The TCL SC7180 MPSS DT has no interconnect path to vote on. */
++	if (!pdev->dev.of_node &&
++	    device_property_read_bool(&pdev->dev, "qcom,tcl-no-interconnect"))
++		q6v5->path = NULL;
++	else
++		q6v5->path = devm_of_icc_get(&pdev->dev, NULL);
+ 	if (IS_ERR(q6v5->path))
+ 		return dev_err_probe(&pdev->dev, PTR_ERR(q6v5->path),
+ 				     "failed to acquire interconnect path\n");
+diff --git a/drivers/remoteproc/qcom_q6v5_pas.c b/drivers/remoteproc/qcom_q6v5_pas.c
+index 808e96099..607fc06fd 100644
+--- a/drivers/remoteproc/qcom_q6v5_pas.c
++++ b/drivers/remoteproc/qcom_q6v5_pas.c
+@@ -7,6 +7,7 @@
+  * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+  */
+ 
++#include <linux/property.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
+@@ -18,6 +19,7 @@
+ #include <linux/of_address.h>
+ #include <linux/of_reserved_mem.h>
+ #include <linux/platform_device.h>
++#include <linux/platform_data/qcom-tcl-acpi.h>
+ #include <linux/pm_domain.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/firmware/qcom/qcom_scm.h>
+@@ -77,6 +79,7 @@ struct qcom_pas {
+ 	struct device *proxy_pds[3];
+ 
+ 	int proxy_pd_count;
++	bool board_proxy_pds;
+ 
+ 	const char *dtb_firmware_name;
+ 	int pas_id;
+@@ -573,6 +576,16 @@ static int qcom_pas_pds_attach(struct device *dev, struct device **devs, char **
+ 	int ret;
+ 	int i;
+ 
++	if (!dev->of_node) {
++		const struct qcom_tcl_pas_data *data = dev_get_platdata(dev);
++
++		if (!data || !data->proxy_pds[0] || !data->proxy_pds[1])
++			return -EINVAL;
++		devs[0] = data->proxy_pds[0];
++		devs[1] = data->proxy_pds[1];
++		return 2;
++	}
++
+ 	if (!pd_names)
+ 		return 0;
+ 
+@@ -608,6 +621,9 @@ static void qcom_pas_pds_detach(struct qcom_pas *pas, struct device **pds, size_
+ 	struct device *dev = pas->dev;
+ 	int i;
+ 
++	if (pas->board_proxy_pds)
++		return;
++
+ 	/* Handle single power domain */
+ 	if (pd_count == 1 && dev->pm_domain) {
+ 		pm_runtime_disable(dev);
+@@ -622,6 +638,22 @@ static int qcom_pas_alloc_memory_region(struct qcom_pas *pas)
+ {
+ 	struct resource res;
+ 	int ret;
++	struct resource *acpi_res;
++
++	if (!pas->dev->of_node) {
++		if (pas->dtb_pas_id)
++			return -EOPNOTSUPP;
++		acpi_res = platform_get_resource_byname(to_platform_device(pas->dev),
++						   IORESOURCE_MEM, "firmware");
++		if (!acpi_res || !resource_size(acpi_res))
++			return -EINVAL;
++		pas->mem_phys = pas->mem_reloc = acpi_res->start;
++		pas->mem_size = resource_size(acpi_res);
++		pas->mem_region = devm_ioremap_wc(pas->dev, acpi_res->start,
++						pas->mem_size);
++		return pas->mem_region ? 0 : -ENOMEM;
++	}
++
+ 
+ 	ret = of_reserved_mem_region_to_resource(pas->dev->of_node, 0, &res);
+ 	if (ret) {
+@@ -739,7 +771,9 @@ static int qcom_pas_probe(struct platform_device *pdev)
+ 	const struct rproc_ops *ops = &qcom_pas_ops;
+ 	int ret;
+ 
+-	desc = of_device_get_match_data(&pdev->dev);
++	desc = device_get_match_data(&pdev->dev);
++	if (!desc && platform_get_device_id(pdev))
++		desc = (const void *)platform_get_device_id(pdev)->driver_data;
+ 	if (!desc)
+ 		return -EINVAL;
+ 
+@@ -747,7 +781,7 @@ static int qcom_pas_probe(struct platform_device *pdev)
+ 		return -EPROBE_DEFER;
+ 
+ 	fw_name = desc->firmware_name;
+-	ret = of_property_read_string(pdev->dev.of_node, "firmware-name",
++	ret = device_property_read_string(&pdev->dev, "firmware-name",
+ 				      &fw_name);
+ 	if (ret < 0 && ret != -EINVAL)
+ 		return ret;
+@@ -776,6 +810,7 @@ static int qcom_pas_probe(struct platform_device *pdev)
+ 
+ 	pas = rproc->priv;
+ 	pas->dev = &pdev->dev;
++	pas->board_proxy_pds = !pdev->dev.of_node;
+ 	pas->rproc = rproc;
+ 	pas->minidump_id = desc->minidump_id;
+ 	pas->pas_id = desc->pas_id;
+@@ -824,7 +859,19 @@ static int qcom_pas_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto detach_proxy_pds;
+ 
+-	qcom_add_glink_subdev(rproc, &pas->glink_subdev, desc->ssr_name);
++	if (pas->board_proxy_pds) {
++		const struct qcom_tcl_pas_data *data = dev_get_platdata(&pdev->dev);
++
++		ret = qcom_add_glink_subdev_fwnode(rproc, &pas->glink_subdev,
++						   desc->ssr_name, data->glink_node,
++						   data->glink_irq);
++		if (ret) {
++			qcom_q6v5_deinit(&pas->q6v5);
++			goto detach_proxy_pds;
++		}
++	} else {
++		qcom_add_glink_subdev(rproc, &pas->glink_subdev, desc->ssr_name);
++	}
+ 	qcom_add_smd_subdev(rproc, &pas->smd_subdev);
+ 	qcom_add_pdm_subdev(rproc, &pas->pdm_subdev);
+ 	pas->sysmon = qcom_add_sysmon_subdev(rproc, desc->sysmon_name, desc->ssctl_id);
+@@ -1653,7 +1700,14 @@ static const struct of_device_id qcom_pas_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, qcom_pas_of_match);
+ 
++static const struct platform_device_id qcom_pas_platform_ids[] = {
++	{ "tcl-sc7180-mpss", (kernel_ulong_t)&mpss_resource_init },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, qcom_pas_platform_ids);
++
+ static struct platform_driver qcom_pas_driver = {
++	.id_table = qcom_pas_platform_ids,
+ 	.probe = qcom_pas_probe,
+ 	.remove = qcom_pas_remove,
+ 	.driver = {
+diff --git a/drivers/remoteproc/qcom_sysmon.c b/drivers/remoteproc/qcom_sysmon.c
+index 913e3b750..7e1612d1e 100644
+--- a/drivers/remoteproc/qcom_sysmon.c
++++ b/drivers/remoteproc/qcom_sysmon.c
+@@ -645,8 +645,12 @@ struct qcom_sysmon *qcom_add_sysmon_subdev(struct rproc *rproc,
+ 	mutex_init(&sysmon->lock);
+ 	mutex_init(&sysmon->state_lock);
+ 
+-	sysmon->shutdown_irq = of_irq_get_byname(sysmon->dev->of_node,
+-						 "shutdown-ack");
++	if (sysmon->dev->of_node)
++		sysmon->shutdown_irq = of_irq_get_byname(sysmon->dev->of_node,
++							 "shutdown-ack");
++	else
++		sysmon->shutdown_irq = platform_get_irq_byname(
++				to_platform_device(sysmon->dev), "shutdown-ack");
+ 	if (sysmon->shutdown_irq < 0) {
+ 		if (sysmon->shutdown_irq != -ENODATA) {
+ 			dev_err(sysmon->dev,
+diff --git a/drivers/soc/qcom/qcom_pd_mapper.c b/drivers/soc/qcom/qcom_pd_mapper.c
+index 0dc1a7946..e3e500884 100644
+--- a/drivers/soc/qcom/qcom_pd_mapper.c
++++ b/drivers/soc/qcom/qcom_pd_mapper.c
+@@ -5,6 +5,7 @@
+  * Copyright (c) 2023 Linaro Ltd.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/auxiliary_bus.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -648,12 +649,25 @@ static struct qcom_pdm_data *qcom_pdm_start(void)
+ 	int ret, i;
+ 
+ 	match = of_machine_get_match(qcom_pdm_domains);
+-	if (!match) {
+-		pr_notice("PDM: no support for the platform, userspace daemon might be required.\n");
++	if (match) {
++		domains = match->data;
++	} else if (!of_root) {
++		struct acpi_table_header *table;
++		bool tcl;
++
++		if (acpi_disabled ||
++		    ACPI_FAILURE(acpi_get_table(ACPI_SIG_IORT, 0, &table)))
++			return ERR_PTR(-ENODEV);
++		tcl = !memcmp(table->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE) &&
++			!memcmp(table->oem_table_id, "QCOMEDK2", ACPI_OEM_TABLE_ID_SIZE) &&
++			table->oem_revision == 0x7180;
++		acpi_put_table(table);
++		if (!tcl)
++			return ERR_PTR(-ENODEV);
++		domains = sc7180_domains;
++	} else {
+ 		return ERR_PTR(-ENODEV);
+ 	}
+-
+-	domains = match->data;
+ 	if (!domains) {
+ 		pr_debug("PDM: no domains\n");
+ 		return ERR_PTR(-ENODEV);

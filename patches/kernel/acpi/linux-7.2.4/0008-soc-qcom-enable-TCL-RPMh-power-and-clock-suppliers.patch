@@ -1,0 +1,573 @@
+From d336edc8c4d373530a8c492f7fccfcb0383fd3d5 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 11:43:40 +0300
+Subject: [PATCH 08/16] soc: qcom: enable TCL RPMh power and clock suppliers
+
+Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+---
+ drivers/clk/qcom/clk-rpmh.c             | 22 +++++++++-
+ drivers/pmdomain/qcom/rpmhpd.c          | 25 ++++++++++--
+ drivers/regulator/qcom-rpmh-regulator.c | 54 ++++++++++++++++++++++---
+ drivers/soc/qcom/cmd-db.c               | 21 +++++++---
+ drivers/soc/qcom/qcom_aoss.c            | 37 +++++++++--------
+ drivers/soc/qcom/rmtfs_mem.c            | 33 ++++++++++-----
+ drivers/soc/qcom/rpmh-rsc.c             | 34 ++++++++--------
+ 7 files changed, 169 insertions(+), 57 deletions(-)
+
+diff --git a/drivers/clk/qcom/clk-rpmh.c b/drivers/clk/qcom/clk-rpmh.c
+index 6367b2a5a..8ed17f2ae 100644
+--- a/drivers/clk/qcom/clk-rpmh.c
++++ b/drivers/clk/qcom/clk-rpmh.c
+@@ -4,6 +4,8 @@
+  */
+ 
+ #include <linux/clk-provider.h>
++#include <linux/clkdev.h>
++#include <linux/property.h>
+ #include <linux/err.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -1032,7 +1034,9 @@ static int clk_rpmh_probe(struct platform_device *pdev)
+ 	const struct clk_rpmh_desc *desc;
+ 	int ret, i;
+ 
+-	desc = of_device_get_match_data(&pdev->dev);
++	desc = device_get_match_data(&pdev->dev);
++	if (!desc && platform_get_device_id(pdev))
++		desc = (const void *)platform_get_device_id(pdev)->driver_data;
+ 	if (!desc)
+ 		return -ENODEV;
+ 
+@@ -1083,8 +1087,17 @@ static int clk_rpmh_probe(struct platform_device *pdev)
+ 			dev_err(&pdev->dev, "failed to register %s\n", name);
+ 			return ret;
+ 		}
++		if (!pdev->dev.of_node) {
++			ret = devm_clk_hw_register_clkdev(&pdev->dev, hw_clks[i],
++							name, dev_name(&pdev->dev));
++			if (ret)
++				return ret;
++		}
+ 	}
+ 
++	if (!pdev->dev.of_node)
++		return 0;
++
+ 	/* typecast to silence compiler warning */
+ 	ret = devm_of_clk_add_hw_provider(&pdev->dev, of_clk_rpmh_hw_get,
+ 					  (void *)desc);
+@@ -1132,7 +1145,14 @@ static const struct of_device_id clk_rpmh_match_table[] = {
+ };
+ MODULE_DEVICE_TABLE(of, clk_rpmh_match_table);
+ 
++static const struct platform_device_id clk_rpmh_platform_ids[] = {
++	{ "qcom-sc7180-rpmhcc", (kernel_ulong_t)&clk_rpmh_sc7180 },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, clk_rpmh_platform_ids);
++
+ static struct platform_driver clk_rpmh_driver = {
++	.id_table = clk_rpmh_platform_ids,
+ 	.probe		= clk_rpmh_probe,
+ 	.driver		= {
+ 		.name	= "clk-rpmh",
+diff --git a/drivers/pmdomain/qcom/rpmhpd.c b/drivers/pmdomain/qcom/rpmhpd.c
+index ffc46de8d..98157f646 100644
+--- a/drivers/pmdomain/qcom/rpmhpd.c
++++ b/drivers/pmdomain/qcom/rpmhpd.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
++#include <linux/property.h>
+ #include <linux/pm_opp.h>
+ #include <soc/qcom/cmd-db.h>
+ #include <soc/qcom/rpmh.h>
+@@ -1130,7 +1131,9 @@ static int rpmhpd_probe(struct platform_device *pdev)
+ 	struct rpmhpd **rpmhpds;
+ 	const struct rpmhpd_desc *desc;
+ 
+-	desc = of_device_get_match_data(dev);
++	desc = device_get_match_data(dev);
++	if (!desc && platform_get_device_id(pdev))
++		desc = (const void *)platform_get_device_id(pdev)->driver_data;
+ 	if (!desc)
+ 		return -EINVAL;
+ 
+@@ -1187,18 +1190,27 @@ static int rpmhpd_probe(struct platform_device *pdev)
+ 					       &rpmhpds[i]->pd);
+ 	}
+ 
++	/* Non-DT board glue attaches explicit consumers with pm_genpd_add_device. */
++	platform_set_drvdata(pdev, data);
++	if (!pdev->dev.of_node)
++		return 0;
++
+ 	return of_genpd_add_provider_onecell(pdev->dev.of_node, data);
+ }
+ 
+ static void rpmhpd_sync_state(struct device *dev)
+ {
+-	const struct rpmhpd_desc *desc = of_device_get_match_data(dev);
+-	struct rpmhpd **rpmhpds = desc->rpmhpds;
++	const struct rpmhpd_desc *desc = device_get_match_data(dev);
++	struct rpmhpd **rpmhpds;
+ 	unsigned int corner;
+ 	struct rpmhpd *pd;
+ 	unsigned int i;
+ 	int ret;
+ 
++	/* Preserve boot votes until all non-DT consumers have been described. */
++	if (!dev->of_node || !desc)
++		return;
++	rpmhpds = desc->rpmhpds;
+ 	of_genpd_sync_state(dev->of_node);
+ 
+ 	mutex_lock(&rpmhpd_lock);
+@@ -1220,7 +1232,14 @@ static void rpmhpd_sync_state(struct device *dev)
+ 	mutex_unlock(&rpmhpd_lock);
+ }
+ 
++static const struct platform_device_id rpmhpd_platform_ids[] = {
++	{ "qcom-sc7180-rpmhpd", (kernel_ulong_t)&sc7180_desc },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, rpmhpd_platform_ids);
++
+ static struct platform_driver rpmhpd_driver = {
++	.id_table = rpmhpd_platform_ids,
+ 	.driver = {
+ 		.name = "qcom-rpmhpd",
+ 		.of_match_table = rpmhpd_match_table,
+diff --git a/drivers/regulator/qcom-rpmh-regulator.c b/drivers/regulator/qcom-rpmh-regulator.c
+index 73856e3df..a8120abdf 100644
+--- a/drivers/regulator/qcom-rpmh-regulator.c
++++ b/drivers/regulator/qcom-rpmh-regulator.c
+@@ -9,6 +9,8 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
++#include <linux/platform_data/qcom-tcl-acpi.h>
++#include <linux/property.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/regulator/driver.h>
+@@ -443,11 +445,14 @@ static const struct regulator_ops rpmh_regulator_xob_ops = {
+  * @pmic_rpmh_data:	Pointer to a null-terminated array of rpmh-regulator
+  *			resources defined for the top level PMIC device
+  *
++ * @board: optional non-DT regulator name and constraints
++ *
+  * Return: 0 on success, or a negative error number on failure
+  */
+ static int rpmh_regulator_init_vreg(struct rpmh_vreg *vreg, struct device *dev,
+ 			struct device_node *node, const char *pmic_id,
+-			const struct rpmh_vreg_init_data *pmic_rpmh_data)
++			const struct rpmh_vreg_init_data *pmic_rpmh_data,
++			const struct qcom_tcl_regulator *board)
+ {
+ 	struct regulator_config reg_config = {};
+ 	char rpmh_resource_name[20] = "";
+@@ -460,7 +465,8 @@ static int rpmh_regulator_init_vreg(struct rpmh_vreg *vreg, struct device *dev,
+ 	vreg->dev = dev;
+ 
+ 	for (rpmh_data = pmic_rpmh_data; rpmh_data->name; rpmh_data++)
+-		if (of_node_name_eq(node, rpmh_data->name))
++		if (node ? of_node_name_eq(node, rpmh_data->name) :
++		    board && !strcmp(board->name, rpmh_data->name))
+ 			break;
+ 
+ 	if (!rpmh_data->name) {
+@@ -487,7 +493,12 @@ static int rpmh_regulator_init_vreg(struct rpmh_vreg *vreg, struct device *dev,
+ 	}
+ 
+ 	vreg->rdesc.name = rpmh_data->name;
+-	vreg->rdesc.supply_name = rpmh_data->supply_name;
++	/* The working TCL DT leaves these input rails without a provider. */
++	vreg->rdesc.supply_name = board && board->firmware_supply ?
++		NULL : rpmh_data->supply_name;
++	if (board && board->firmware_supply)
++		dev_info(dev, "%s: input supply remains firmware-managed\n",
++			 board->name);
+ 	vreg->hw_data = rpmh_data->hw_data;
+ 
+ 	vreg->enabled = -EINVAL;
+@@ -508,7 +519,8 @@ static int rpmh_regulator_init_vreg(struct rpmh_vreg *vreg, struct device *dev,
+ 	vreg->rdesc.ops		= vreg->hw_data->ops;
+ 	vreg->rdesc.of_map_mode	= vreg->hw_data->of_map_mode;
+ 
+-	init_data = of_get_regulator_init_data(dev, node, &vreg->rdesc);
++	init_data = board ? board->init_data :
++		of_get_regulator_init_data(dev, node, &vreg->rdesc);
+ 	if (!init_data)
+ 		return -ENOMEM;
+ 
+@@ -1820,10 +1832,32 @@ static int rpmh_regulator_probe(struct platform_device *pdev)
+ 	const char *pmic_id;
+ 	int ret;
+ 
+-	vreg_data = of_device_get_match_data(dev);
++	vreg_data = device_get_match_data(dev);
++	if (!vreg_data && platform_get_device_id(pdev))
++		vreg_data = (const void *)platform_get_device_id(pdev)->driver_data;
+ 	if (!vreg_data)
+ 		return -ENODEV;
+ 
++	if (!dev->of_node) {
++		const struct qcom_tcl_regulator_data *data = dev_get_platdata(dev);
++		unsigned int i;
++
++		if (!data || !data->pmic_id || !data->regulators || !data->count)
++			return -EINVAL;
++		for (i = 0; i < data->count; i++) {
++			if (!data->regulators[i].name || !data->regulators[i].init_data)
++				return -EINVAL;
++			vreg = devm_kzalloc(dev, sizeof(*vreg), GFP_KERNEL);
++			if (!vreg)
++				return -ENOMEM;
++			ret = rpmh_regulator_init_vreg(vreg, dev, NULL,
++					data->pmic_id, vreg_data, &data->regulators[i]);
++			if (ret)
++				return ret;
++		}
++		return 0;
++	}
++
+ 	ret = of_property_read_string(dev->of_node, "qcom,pmic-id", &pmic_id);
+ 	if (ret < 0) {
+ 		dev_err(dev, "qcom,pmic-id missing in DT node\n");
+@@ -1836,7 +1870,7 @@ static int rpmh_regulator_probe(struct platform_device *pdev)
+ 			return -ENOMEM;
+ 
+ 		ret = rpmh_regulator_init_vreg(vreg, dev, node, pmic_id,
+-						vreg_data);
++						vreg_data, NULL);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -2005,7 +2039,15 @@ static const struct of_device_id __maybe_unused rpmh_regulator_match_table[] = {
+ };
+ MODULE_DEVICE_TABLE(of, rpmh_regulator_match_table);
+ 
++static const struct platform_device_id rpmh_regulator_platform_ids[] = {
++	{ "tcl-pm6150-reg", (kernel_ulong_t)pm6150_vreg_data },
++	{ "tcl-pm6150l-reg", (kernel_ulong_t)pm6150l_vreg_data },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, rpmh_regulator_platform_ids);
++
+ static struct platform_driver rpmh_regulator_driver = {
++	.id_table = rpmh_regulator_platform_ids,
+ 	.driver = {
+ 		.name = "qcom-rpmh-regulator",
+ 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
+diff --git a/drivers/soc/qcom/cmd-db.c b/drivers/soc/qcom/cmd-db.c
+index 84a75d8c4..c1d8669b7 100644
+--- a/drivers/soc/qcom/cmd-db.c
++++ b/drivers/soc/qcom/cmd-db.c
+@@ -341,15 +341,26 @@ static const struct file_operations cmd_db_debugfs_ops = {
+ static int cmd_db_dev_probe(struct platform_device *pdev)
+ {
+ 	struct reserved_mem *rmem;
++	struct resource *res;
++	phys_addr_t base;
++	size_t size;
+ 	int ret = 0;
+ 
+-	rmem = of_reserved_mem_lookup(pdev->dev.of_node);
+-	if (!rmem) {
+-		dev_err(&pdev->dev, "failed to acquire memory region\n");
+-		return -EINVAL;
++	if (pdev->dev.of_node) {
++		rmem = of_reserved_mem_lookup(pdev->dev.of_node);
++		if (!rmem)
++			return -EINVAL;
++		base = rmem->base;
++		size = rmem->size;
++	} else {
++		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++		if (!res || resource_size(res) < sizeof(*cmd_db_header))
++			return -EINVAL;
++		base = res->start;
++		size = resource_size(res);
+ 	}
+ 
+-	cmd_db_header = devm_memremap(&pdev->dev, rmem->base, rmem->size, MEMREMAP_WC);
++	cmd_db_header = devm_memremap(&pdev->dev, base, size, MEMREMAP_WC);
+ 	if (IS_ERR(cmd_db_header)) {
+ 		ret = PTR_ERR(cmd_db_header);
+ 		cmd_db_header = NULL;
+diff --git a/drivers/soc/qcom/qcom_aoss.c b/drivers/soc/qcom/qcom_aoss.c
+index 259c41f0c..e642a9ad1 100644
+--- a/drivers/soc/qcom/qcom_aoss.c
++++ b/drivers/soc/qcom/qcom_aoss.c
+@@ -10,6 +10,7 @@
+ #include <linux/module.h>
+ #include <linux/of_platform.h>
+ #include <linux/platform_device.h>
++#include <linux/property.h>
+ #include <linux/thermal.h>
+ #include <linux/slab.h>
+ #include <linux/string_choices.h>
+@@ -447,26 +448,25 @@ static void qmp_cooling_devices_remove(struct qmp *qmp)
+  */
+ struct qmp *qmp_get(struct device *dev)
+ {
+-	struct platform_device *pdev;
+-	struct device_node *np;
++	struct fwnode_handle *node;
++	struct device *provider;
+ 	struct qmp *qmp;
+ 
+-	if (!dev || !dev->of_node)
++	if (!dev)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	np = of_parse_phandle(dev->of_node, "qcom,qmp", 0);
+-	if (!np)
+-		return ERR_PTR(-ENODEV);
+-
+-	pdev = of_find_device_by_node(np);
+-	of_node_put(np);
+-	if (!pdev)
+-		return ERR_PTR(-EINVAL);
++	node = fwnode_find_reference(dev_fwnode(dev), "qcom,qmp", 0);
++	if (IS_ERR(node))
++		return ERR_PTR(PTR_ERR(node) == -ENOENT ? -ENODEV : PTR_ERR(node));
+ 
+-	qmp = platform_get_drvdata(pdev);
++	provider = bus_find_device_by_fwnode(&platform_bus_type, node);
++	fwnode_handle_put(node);
++	if (!provider)
++		return ERR_PTR(-EPROBE_DEFER);
+ 
++	qmp = dev_get_drvdata(provider);
+ 	if (!qmp) {
+-		put_device(&pdev->dev);
++		put_device(provider);
+ 		return ERR_PTR(-EPROBE_DEFER);
+ 	}
+ 	return qmp;
+@@ -600,6 +600,10 @@ static int qmp_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		ret = irq;
++		goto err_free_mbox;
++	}
+ 	ret = devm_request_irq(&pdev->dev, irq, qmp_intr, 0,
+ 			       "aoss-qmp", qmp);
+ 	if (ret < 0) {
+@@ -611,11 +615,11 @@ static int qmp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_free_mbox;
+ 
+-	ret = qmp_qdss_clk_add(qmp);
++	ret = pdev->dev.of_node ? qmp_qdss_clk_add(qmp) : 0;
+ 	if (ret)
+ 		goto err_close_qmp;
+ 
+-	ret = qmp_cooling_devices_register(qmp);
++	ret = pdev->dev.of_node ? qmp_cooling_devices_register(qmp) : 0;
+ 	if (ret)
+ 		dev_err(&pdev->dev, "failed to register aoss cooling devices\n");
+ 
+@@ -639,7 +643,8 @@ static void qmp_remove(struct platform_device *pdev)
+ 
+ 	debugfs_remove_recursive(qmp->debugfs_root);
+ 
+-	qmp_qdss_clk_remove(qmp);
++	if (pdev->dev.of_node)
++		qmp_qdss_clk_remove(qmp);
+ 	qmp_cooling_devices_remove(qmp);
+ 
+ 	qmp_close(qmp);
+diff --git a/drivers/soc/qcom/rmtfs_mem.c b/drivers/soc/qcom/rmtfs_mem.c
+index 342c08451..b02d958ca 100644
+--- a/drivers/soc/qcom/rmtfs_mem.c
++++ b/drivers/soc/qcom/rmtfs_mem.c
+@@ -10,6 +10,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/of.h>
+ #include <linux/of_reserved_mem.h>
++#include <linux/property.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+@@ -171,6 +172,9 @@ static void qcom_rmtfs_mem_release_device(struct device *dev)
+ static int qcom_rmtfs_mem_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
++	struct resource *res;
++	phys_addr_t base;
++	size_t size;
+ 	struct qcom_scm_vmperm perms[NUM_MAX_VMIDS + 1];
+ 	struct reserved_mem *rmem;
+ 	struct qcom_rmtfs_mem *rmtfs_mem;
+@@ -179,13 +183,21 @@ static int qcom_rmtfs_mem_probe(struct platform_device *pdev)
+ 	int num_vmids;
+ 	int ret, i;
+ 
+-	rmem = of_reserved_mem_lookup(node);
+-	if (!rmem) {
+-		dev_err(&pdev->dev, "failed to acquire memory region\n");
+-		return -EINVAL;
++	if (node) {
++		rmem = of_reserved_mem_lookup(node);
++		if (!rmem)
++			return -EINVAL;
++		base = rmem->base;
++		size = rmem->size;
++	} else {
++		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++		if (!res || !resource_size(res))
++			return -EINVAL;
++		base = res->start;
++		size = resource_size(res);
+ 	}
+ 
+-	ret = of_property_read_u32(node, "qcom,client-id", &client_id);
++	ret = device_property_read_u32(&pdev->dev, "qcom,client-id", &client_id);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to parse \"qcom,client-id\"\n");
+ 		return ret;
+@@ -196,15 +208,15 @@ static int qcom_rmtfs_mem_probe(struct platform_device *pdev)
+ 	if (!rmtfs_mem)
+ 		return -ENOMEM;
+ 
+-	rmtfs_mem->addr = rmem->base;
++	rmtfs_mem->addr = base;
+ 	rmtfs_mem->client_id = client_id;
+-	rmtfs_mem->size = rmem->size;
++	rmtfs_mem->size = size;
+ 
+ 	/*
+ 	 * If requested, discard the first and last 4k block in order to ensure
+ 	 * that the rmtfs region isn't adjacent to other protected regions.
+ 	 */
+-	if (of_property_read_bool(node, "qcom,use-guard-pages")) {
++	if (device_property_read_bool(&pdev->dev, "qcom,use-guard-pages")) {
+ 		rmtfs_mem->addr += SZ_4K;
+ 		rmtfs_mem->size -= 2 * SZ_4K;
+ 	}
+@@ -236,7 +248,7 @@ static int qcom_rmtfs_mem_probe(struct platform_device *pdev)
+ 		goto put_device;
+ 	}
+ 
+-	num_vmids = of_property_count_u32_elems(node, "qcom,vmid");
++	num_vmids = device_property_count_u32(&pdev->dev, "qcom,vmid");
+ 	if (num_vmids == -EINVAL) {
+ 		/* qcom,vmid is optional */
+ 		num_vmids = 0;
+@@ -251,7 +263,8 @@ static int qcom_rmtfs_mem_probe(struct platform_device *pdev)
+ 		num_vmids = NUM_MAX_VMIDS;
+ 	}
+ 
+-	ret = of_property_read_u32_array(node, "qcom,vmid", vmid, num_vmids);
++	ret = num_vmids ? device_property_read_u32_array(&pdev->dev, "qcom,vmid",
++						      vmid, num_vmids) : -EINVAL;
+ 	if (ret < 0 && ret != -EINVAL) {
+ 		dev_err(&pdev->dev, "failed to parse qcom,vmid\n");
+ 		goto remove_cdev;
+diff --git a/drivers/soc/qcom/rpmh-rsc.c b/drivers/soc/qcom/rpmh-rsc.c
+index c6f7d5c9c..277a2d75a 100644
+--- a/drivers/soc/qcom/rpmh-rsc.c
++++ b/drivers/soc/qcom/rpmh-rsc.c
+@@ -21,6 +21,7 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+ #include <linux/platform_device.h>
++#include <linux/property.h>
+ #include <linux/pm_domain.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
+@@ -963,12 +964,12 @@ static int rpmh_probe_tcs_config(struct platform_device *pdev, struct rsc_drv *d
+ 		u32 type;
+ 		u32 n;
+ 	} tcs_cfg[TCS_TYPE_NR] = { { 0 } };
+-	struct device_node *dn = pdev->dev.of_node;
+ 	u32 config, max_tcs, ncpt, offset;
++	u32 values[2 * TCS_TYPE_NR];
+ 	int i, ret, n, st = 0;
+ 	struct tcs_group *tcs;
+ 
+-	ret = of_property_read_u32(dn, "qcom,tcs-offset", &offset);
++	ret = device_property_read_u32(&pdev->dev, "qcom,tcs-offset", &offset);
+ 	if (ret)
+ 		return ret;
+ 	drv->tcs_base = drv->base + offset;
+@@ -982,22 +983,21 @@ static int rpmh_probe_tcs_config(struct platform_device *pdev, struct rsc_drv *d
+ 	ncpt = config & (DRV_NCPT_MASK << DRV_NCPT_SHIFT);
+ 	ncpt = ncpt >> DRV_NCPT_SHIFT;
+ 
+-	n = of_property_count_u32_elems(dn, "qcom,tcs-config");
++	n = device_property_count_u32(&pdev->dev, "qcom,tcs-config");
+ 	if (n != 2 * TCS_TYPE_NR)
+ 		return -EINVAL;
+ 
++	ret = device_property_read_u32_array(&pdev->dev, "qcom,tcs-config",
++					     values, ARRAY_SIZE(values));
++	if (ret)
++		return ret;
++
+ 	for (i = 0; i < TCS_TYPE_NR; i++) {
+-		ret = of_property_read_u32_index(dn, "qcom,tcs-config",
+-						 i * 2, &tcs_cfg[i].type);
+-		if (ret)
+-			return ret;
++		tcs_cfg[i].type = values[i * 2];
+ 		if (tcs_cfg[i].type >= TCS_TYPE_NR)
+ 			return -EINVAL;
+ 
+-		ret = of_property_read_u32_index(dn, "qcom,tcs-config",
+-						 i * 2 + 1, &tcs_cfg[i].n);
+-		if (ret)
+-			return ret;
++		tcs_cfg[i].n = values[i * 2 + 1];
+ 		if (tcs_cfg[i].n > MAX_TCS_PER_TYPE)
+ 			return -EINVAL;
+ 	}
+@@ -1030,7 +1030,6 @@ static int rpmh_probe_tcs_config(struct platform_device *pdev, struct rsc_drv *d
+ 
+ static int rpmh_rsc_probe(struct platform_device *pdev)
+ {
+-	struct device_node *dn = pdev->dev.of_node;
+ 	struct rsc_drv *drv;
+ 	char drv_id[10] = {0};
+ 	int ret, irq;
+@@ -1050,11 +1049,13 @@ static int rpmh_rsc_probe(struct platform_device *pdev)
+ 	if (!drv)
+ 		return -ENOMEM;
+ 
+-	ret = of_property_read_u32(dn, "qcom,drv-id", &drv->id);
++	ret = device_property_read_u32(&pdev->dev, "qcom,drv-id", &drv->id);
+ 	if (ret)
+ 		return ret;
++	if (drv->id > 4)
++		return -EINVAL;
+ 
+-	drv->name = of_get_property(dn, "label", NULL);
++	device_property_read_string(&pdev->dev, "label", &drv->name);
+ 	if (!drv->name)
+ 		drv->name = dev_name(&pdev->dev);
+ 
+@@ -1082,7 +1083,8 @@ static int rpmh_rsc_probe(struct platform_device *pdev)
+ 	init_waitqueue_head(&drv->tcs_wait);
+ 	bitmap_zero(drv->tcs_in_use, MAX_TCS_NR);
+ 
+-	irq = platform_get_irq(pdev, drv->id);
++	irq = pdev->dev.of_node ? platform_get_irq(pdev, drv->id) :
++		platform_get_irq_byname(pdev, drv_id);
+ 	if (irq < 0)
+ 		return irq;
+ 
+@@ -1122,7 +1124,7 @@ static int rpmh_rsc_probe(struct platform_device *pdev)
+ 	dev_set_drvdata(&pdev->dev, drv);
+ 	drv->dev = &pdev->dev;
+ 
+-	ret = devm_of_platform_populate(&pdev->dev);
++	ret = pdev->dev.of_node ? devm_of_platform_populate(&pdev->dev) : 0;
+ 	if (ret && pdev->dev.pm_domain) {
+ 		dev_pm_genpd_remove_notifier(&pdev->dev);
+ 		pm_runtime_disable(&pdev->dev);

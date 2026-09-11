@@ -1,0 +1,23 @@
+From 27d59a722e3294d04d3933ebccffd8b3249551fd Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 12:04:10 +0300
+Subject: [PATCH 16/16] firmware: qcom: supply SCM reset controller device for
+ ACPI
+
+The v7.2.4 reset core resolves an absent firmware node through rcdev->dev. Without DT, SCM left both unset and crashed in __dev_fwnode during early probe on TCL B220G. Set the owning device before registration. Extracted-function UBSan regression reproduces the old NULL access and passes the corrected ACPI path, DT path and missing-fwnode rejection. Hardware retest pending.
+---
+ drivers/firmware/qcom/qcom_scm.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/firmware/qcom/qcom_scm.c b/drivers/firmware/qcom/qcom_scm.c
+index aa5b7ce20..e439e2c1e 100644
+--- a/drivers/firmware/qcom/qcom_scm.c
++++ b/drivers/firmware/qcom/qcom_scm.c
+@@ -2777,6 +2777,7 @@ static int qcom_scm_probe(struct platform_device *pdev)
+ 	if (IS_ERR(scm->bus_clk))
+ 		return PTR_ERR(scm->bus_clk);
+ 
++	scm->reset.dev = &pdev->dev;
+ 	scm->reset.ops = &qcom_scm_pas_reset_ops;
+ 	scm->reset.nr_resets = 1;
+ 	scm->reset.of_node = pdev->dev.of_node;

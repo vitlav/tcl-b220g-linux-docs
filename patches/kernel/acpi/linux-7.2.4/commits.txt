@@ -1,0 +1,16 @@
+d14e31657472e1f592085741882249e3e6fa87c8 acpi: allow default address spaces without PCI support
+0146addcec25c881b46de2ed5d58c6744b8cd715 ACPI: IORT: resolve TCL namespace and USB WLAN stream mappings
+ae9091e54e8867fae0b4ec12db0467663175e96f firmware: qcom: enable ACPI SCM initialization for QCOM080B
+7f1aa265b7e7c4ef64fb106de067813dac99cd49 iommu: arm-smmu: select TCL ACPI Qualcomm implementations
+96120355b960d82a8fcd98be2e42a6ab151236cc usb: dwc3: add TCL ACPI firmware handoff driver
+221108f06d738760957db0c5df50440f223a29e8 soc: qcom: add TCL ACPI platform data contracts
+e4db8bb0308eb8ea5f881fc296e711760e03eceb soc: qcom: support firmware-described SMEM and signaling
+d336edc8c4d373530a8c492f7fccfcb0383fd3d5 soc: qcom: enable TCL RPMh power and clock suppliers
+ecc65db07b22a62f2d062c6a9cf0a7e89dfb5795 rpmsg: qcom: describe GLINK edges through firmware nodes
+d5807fb5df0d63385f0170d97226d6fb00d252d3 remoteproc: qcom: support TCL ACPI modem resources
+0ed8c225c62f28b4ab30145aad4bf2790d57ef9a wifi: ath10k: enable TCL ACPI SNOC resources
+e29884ba456d67512659bf489bd96090b138c1d2 pinctrl: qcom: add bounded TCL ACPI TLMM support
+6eb15f4b714a4eb8e1df7f618b9e9851bcf479cf i2c: qcom-geni: handle TCL ACPI keyboard without QUP wrapper
+7db6b7c31939d7b22845fbd9d7f7285ed678bb5f soc: qcom: wire TCL ACPI SMEM and WiFi devices
+c556a5b777c5bb8a04346597d1ba898a56cad711 arm64: add TCL ACPI diagnostic configuration for vanilla 7.2.4
+27d59a722e3294d04d3933ebccffd8b3249551fd firmware: qcom: supply SCM reset controller device for ACPI

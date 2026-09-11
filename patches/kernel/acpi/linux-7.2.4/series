@@ -1,0 +1,16 @@
+0001-acpi-allow-default-address-spaces-without-PCI-suppor.patch
+0002-ACPI-IORT-resolve-TCL-namespace-and-USB-WLAN-stream-.patch
+0003-firmware-qcom-enable-ACPI-SCM-initialization-for-QCO.patch
+0004-iommu-arm-smmu-select-TCL-ACPI-Qualcomm-implementati.patch
+0005-usb-dwc3-add-TCL-ACPI-firmware-handoff-driver.patch
+0006-soc-qcom-add-TCL-ACPI-platform-data-contracts.patch
+0007-soc-qcom-support-firmware-described-SMEM-and-signali.patch
+0008-soc-qcom-enable-TCL-RPMh-power-and-clock-suppliers.patch
+0009-rpmsg-qcom-describe-GLINK-edges-through-firmware-nod.patch
+0010-remoteproc-qcom-support-TCL-ACPI-modem-resources.patch
+0011-wifi-ath10k-enable-TCL-ACPI-SNOC-resources.patch
+0012-pinctrl-qcom-add-bounded-TCL-ACPI-TLMM-support.patch
+0013-i2c-qcom-geni-handle-TCL-ACPI-keyboard-without-QUP-w.patch
+0014-soc-qcom-wire-TCL-ACPI-SMEM-and-WiFi-devices.patch
+0015-arm64-add-TCL-ACPI-diagnostic-configuration-for-vani.patch
+0016-firmware-qcom-supply-SCM-reset-controller-device-for.patch

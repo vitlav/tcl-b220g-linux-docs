@@ -1,0 +1,1 @@
+PASS: 16 patches applied to vanilla v7.2.4 index; resulting tree equals HEAD: 2ef16275e93035bfe1c07011996a4318f985018d

@@ -1,0 +1,191 @@
+From 0146addcec25c881b46de2ed5d58c6744b8cd715 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 11:41:38 +0300
+Subject: [PATCH 02/16] ACPI: IORT: resolve TCL namespace and USB WLAN stream
+ mappings
+
+Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
+---
+ drivers/acpi/arm64/iort.c | 148 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 146 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index af7a9b2fd..976035c07 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -305,6 +305,19 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+ 			device_name = iwb->device_name;
+ 		}
+ 		status = !strcmp(device_name, buf.pointer) ?  AE_OK : AE_NOT_FOUND;
++		/* Firmware can omit trailing underscores in an ACPI NameSeg.
++		 * Compare resolved objects when textual paths differ; namespace
++		 * lookup does not evaluate AML methods.
++		 */
++		if (status == AE_NOT_FOUND &&
++		    node->type == ACPI_IORT_NODE_NAMED_COMPONENT) {
++			acpi_handle handle;
++
++			if (ACPI_SUCCESS(acpi_get_handle(NULL, device_name,
++							&handle)) &&
++			    handle == adev->handle)
++				status = AE_OK;
++		}
+ 		acpi_os_free(buf.pointer);
+ 	} else if (node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+ 		struct acpi_iort_root_complex *pci_rc;
+@@ -1439,6 +1452,123 @@ static int iort_nc_iommu_map_id(struct device *dev,
+ }
+ 
+ 
++/*
++ * TCL diagnostic quirk: firmware describes the URS input ID but does not
++ * mark it SINGLE_MAPPING. Supply that ID during DMA configuration, before
++ * the platform bus claims the default domain. Leave every other device and
++ * every caller-provided ID on the normal path.
++ */
++static bool iort_tcl_urs_input_id(struct device *dev,
++				  struct acpi_iort_node *node, u32 *input)
++{
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	struct acpi_iort_named_component *nc;
++	struct acpi_iort_id_mapping *map;
++	struct acpi_iort_node *parent;
++	struct acpi_iort_smmu *smmu;
++	u32 name_offset = sizeof(*node) + sizeof(*nc);
++	u32 parent_min = sizeof(*parent) + sizeof(*smmu);
++
++	if (!iort_table || !adev || dev->of_node ||
++	    strcmp(acpi_device_hid(adev), "QCOM0897") ||
++	    memcmp(iort_table->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE) ||
++	    memcmp(iort_table->oem_table_id, "QCOMEDK2", ACPI_OEM_TABLE_ID_SIZE) ||
++	    iort_table->oem_revision != 0x7180)
++		return false;
++
++	if (node->type != ACPI_IORT_NODE_NAMED_COMPONENT ||
++	    node->mapping_count != 1 ||
++	    node->length < name_offset + sizeof("\\_SB.URS0") ||
++	    node->mapping_offset < name_offset + sizeof("\\_SB.URS0") ||
++	    node->mapping_offset > node->length - sizeof(*map))
++		return false;
++
++	nc = (struct acpi_iort_named_component *)node->node_data;
++	if (memcmp(nc->device_name, "\\_SB.URS0", sizeof("\\_SB.URS0")))
++		return false;
++
++	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
++			   node->mapping_offset);
++	if (map->flags || map->input_base != 0x80030000 || map->id_count ||
++	    map->output_base != 0x540 || map->output_reference != 48 ||
++	    iort_table->length < parent_min ||
++	    map->output_reference > iort_table->length - parent_min)
++		return false;
++
++	parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
++			      map->output_reference);
++	if (parent->type != ACPI_IORT_NODE_SMMU ||
++	    parent->length < parent_min ||
++	    parent->length > iort_table->length - map->output_reference)
++		return false;
++
++	smmu = (struct acpi_iort_smmu *)parent->node_data;
++	if (smmu->base_address != 0x15000000 || smmu->span != 0x100000 ||
++	    smmu->model != ACPI_IORT_SMMU_CORELINK_MMU500)
++		return false;
++
++	*input = map->input_base;
++	return true;
++}
++
++/* QWLN uses two adjacent stream IDs, not a single mapping. */
++static bool iort_tcl_wlan_input_id(struct device *dev,
++				  struct acpi_iort_node *node, u32 *input)
++{
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	acpi_handle handle;
++	struct acpi_iort_named_component *nc;
++	struct acpi_iort_id_mapping *map;
++	struct acpi_iort_node *parent;
++	struct acpi_iort_smmu *smmu;
++	u32 name_offset = sizeof(*node) + sizeof(*nc);
++	u32 parent_min = sizeof(*parent) + sizeof(*smmu);
++
++	if (!iort_table || !adev || dev->of_node ||
++	    memcmp(iort_table->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE) ||
++	    memcmp(iort_table->oem_table_id, "QCOMEDK2", ACPI_OEM_TABLE_ID_SIZE) ||
++	    iort_table->oem_revision != 0x7180)
++		return false;
++
++	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.AMSS.QWLN", &handle)) ||
++	    handle != adev->handle)
++		return false;
++
++	if (node->type != ACPI_IORT_NODE_NAMED_COMPONENT ||
++	    node->mapping_count != 1 ||
++	    node->length < name_offset + sizeof("\\_SB.AMSS.QWLN") ||
++	    node->mapping_offset < name_offset + sizeof("\\_SB.AMSS.QWLN") ||
++	    node->mapping_offset > node->length - sizeof(*map))
++		return false;
++
++	nc = (struct acpi_iort_named_component *)node->node_data;
++	if (memcmp(nc->device_name, "\\_SB.AMSS.QWLN", sizeof("\\_SB.AMSS.QWLN")))
++		return false;
++
++	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
++			   node->mapping_offset);
++	if (map->flags || map->input_base != 0x11030000 || map->id_count != 1 ||
++	    map->output_base != 0xc0 || map->output_reference != 48 ||
++	    iort_table->length < parent_min ||
++	    map->output_reference > iort_table->length - parent_min)
++		return false;
++
++	parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
++			      map->output_reference);
++	if (parent->type != ACPI_IORT_NODE_SMMU ||
++	    parent->length < parent_min ||
++	    parent->length > iort_table->length - map->output_reference)
++		return false;
++
++	smmu = (struct acpi_iort_smmu *)parent->node_data;
++	if (smmu->base_address != 0x15000000 || smmu->span != 0x100000 ||
++	    smmu->model != ACPI_IORT_SMMU_CORELINK_MMU500)
++		return false;
++
++	*input = map->input_base;
++	return true;
++}
++
+ /**
+  * iort_iommu_configure_id - Set-up IOMMU configuration for a device.
+  *
+@@ -1450,6 +1580,7 @@ static int iort_nc_iommu_map_id(struct device *dev,
+ int iort_iommu_configure_id(struct device *dev, const u32 *id_in)
+ {
+ 	struct acpi_iort_node *node;
++	u32 tcl_input;
+ 	int err = -ENODEV;
+ 
+ 	if (dev_is_pci(dev)) {
+@@ -1477,8 +1608,21 @@ int iort_iommu_configure_id(struct device *dev, const u32 *id_in)
+ 		if (!node)
+ 			return -ENODEV;
+ 
+-		err = id_in ? iort_nc_iommu_map_id(dev, node, id_in) :
+-			      iort_nc_iommu_map(dev, node);
++		if (!id_in && iort_tcl_urs_input_id(dev, node, &tcl_input)) {
++			id_in = &tcl_input;
++			dev_info(dev, "TCL URS IORT input ID %#x\n", tcl_input);
++		}
++
++		if (!id_in && iort_tcl_wlan_input_id(dev, node, &tcl_input)) {
++			err = iort_nc_iommu_map_id(dev, node, &tcl_input);
++			if (!err) {
++				tcl_input++;
++				err = iort_nc_iommu_map_id(dev, node, &tcl_input);
++			}
++		} else {
++			err = id_in ? iort_nc_iommu_map_id(dev, node, id_in) :
++				      iort_nc_iommu_map(dev, node);
++		}
+ 
+ 		if (!err)
+ 			iort_named_component_init(dev, node);

@@ -1,0 +1,101 @@
+{
+  "base_tag": "v7.2.4",
+  "base_commit": "5015d0d945b3d3f2b038d2667880d5762f7d9437",
+  "head": "27d59a722e3294d04d3933ebccffd8b3249551fd",
+  "branch": "tcl/acpi-7.2",
+  "kernel_release": "7.2.4-tcl-acpi-mainline1+",
+  "hardware_tested": true,
+  "full_build": "passed",
+  "patches": [
+    {
+      "file": "0001-acpi-allow-default-address-spaces-without-PCI-suppor.patch",
+      "sha256": "9a3bbd24ccd29a2ff5b7696f425a5f7bf6503586705e5aaed89b7cb9582cae8c"
+    },
+    {
+      "file": "0002-ACPI-IORT-resolve-TCL-namespace-and-USB-WLAN-stream-.patch",
+      "sha256": "37d0cfd92cbbc92a56f10e09d324e126e436be12df258f082baba09e2460ae4f"
+    },
+    {
+      "file": "0003-firmware-qcom-enable-ACPI-SCM-initialization-for-QCO.patch",
+      "sha256": "04680f096a8ad40e571aeb2671cf3f8895a8e5e6d4edd0f13d6aa1371c37774d"
+    },
+    {
+      "file": "0004-iommu-arm-smmu-select-TCL-ACPI-Qualcomm-implementati.patch",
+      "sha256": "425bfd81ecc6230249f731bb50d4e9bf8a71cbdfdf2068188a4294547914e729"
+    },
+    {
+      "file": "0005-usb-dwc3-add-TCL-ACPI-firmware-handoff-driver.patch",
+      "sha256": "3a696dcb7c0db8e2f453135f4a192bc7a1a0e5e9c0d6bc4b5f6d6af80d64e7b0"
+    },
+    {
+      "file": "0006-soc-qcom-add-TCL-ACPI-platform-data-contracts.patch",
+      "sha256": "205dd0ea36c039c156cd1444f42192adec44bfc9cd937e2df7fa8a6720b46280"
+    },
+    {
+      "file": "0007-soc-qcom-support-firmware-described-SMEM-and-signali.patch",
+      "sha256": "9bfb5269a1faf247e2b26442ff5f08f9298f35596e5497826eb1b133ef755b87"
+    },
+    {
+      "file": "0008-soc-qcom-enable-TCL-RPMh-power-and-clock-suppliers.patch",
+      "sha256": "f412dfca137103973c1bd1ec661a4eec721a552f037e4c17c3f78f657ea9318a"
+    },
+    {
+      "file": "0009-rpmsg-qcom-describe-GLINK-edges-through-firmware-nod.patch",
+      "sha256": "38d0ee4f23ec72c477bf411f413ae57a506cb68427e03efe5340224b1916ea67"
+    },
+    {
+      "file": "0010-remoteproc-qcom-support-TCL-ACPI-modem-resources.patch",
+      "sha256": "ad8a61be42197271d1f79c4b5319510c61cd5888253528acaf40ae6d12077b6d"
+    },
+    {
+      "file": "0011-wifi-ath10k-enable-TCL-ACPI-SNOC-resources.patch",
+      "sha256": "27b459629220b3846421f55381963b8e611a30804868e5dc95ee5023a32d331c"
+    },
+    {
+      "file": "0012-pinctrl-qcom-add-bounded-TCL-ACPI-TLMM-support.patch",
+      "sha256": "d4750940d3fa6c37f6e481285f8190921ac80102355a7ebab0d026580542394d"
+    },
+    {
+      "file": "0013-i2c-qcom-geni-handle-TCL-ACPI-keyboard-without-QUP-w.patch",
+      "sha256": "728a71144e1ec2aebb26ae41e1651c216d5d9174bf0a9ba97c13c1434cf40ea7"
+    },
+    {
+      "file": "0014-soc-qcom-wire-TCL-ACPI-SMEM-and-WiFi-devices.patch",
+      "sha256": "5dbca354a0bb3494b881bbf7ec84a81a30f2d4ab54efd0c1a3a6c68a2912f7ad"
+    },
+    {
+      "file": "0015-arm64-add-TCL-ACPI-diagnostic-configuration-for-vani.patch",
+      "sha256": "706466b7b9a2f9288bcd147838c6b82185293c0bd81d26e8d0b4b64dc7abf368"
+    },
+    {
+      "file": "0016-firmware-qcom-supply-SCM-reset-controller-device-for.patch",
+      "sha256": "0048b94080791a18bd7246b0669f3d406e040d3dd26ec4b80a73335814a90294"
+    }
+  ],
+  "modules_install": "passed",
+  "runtime_qemu_checks": 14,
+  "module_vermagic_checks": 953,
+  "depmod_unresolved_symbols": 0,
+  "patch_replay_tree": "60ef07364cd274338aaabd0d057a1434c5273602",
+  "hardware_validation": {
+    "date": "2026-09-11",
+    "kernel_notes_sha256": "d26b5db11685c9b8c7c7ebc696373db48042202ab10ece0b3903d1d4cda6d8e9",
+    "boot_image_path": "/tcl-mainline2/Image",
+    "no_live_dt": true,
+    "wifi_mhz": 5220,
+    "ssh": true,
+    "usb_snapshot_readback": "SHA256 checks passed",
+    "keyboard": "I2C HID enumerated; physical key events not verified",
+    "display": "EFI framebuffer; native DRM not yet available"
+  },
+  "validated_bundle_files": {
+    "Image": {
+      "bytes": 35576320,
+      "sha256": "8574d43fe4fa24b1142fd28cdff8ccbccdeb19fa1b4f962ff086a561ba9a0230"
+    },
+    "initramfs.cpio.gz": {
+      "bytes": 33887330,
+      "sha256": "2b2318f606a6f7c5a770432a74d1a28aa4dd8aa5ce61becf8e2c885c01283057"
+    }
+  }
+}
