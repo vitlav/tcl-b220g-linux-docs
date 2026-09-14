@@ -1,0 +1,39 @@
+#!/bin/sh
+set -eu
+
+adsp=
+for remoteproc in /sys/class/remoteproc/remoteproc*; do
+	[ -r "$remoteproc/name" ] || continue
+	if [ "$(cat "$remoteproc/name")" = adsp ]; then
+		adsp=$remoteproc
+		break
+	fi
+done
+
+[ -n "$adsp" ] || { echo "ADSP remoteproc is not registered" >&2; exit 1; }
+
+state=$(cat "$adsp/state")
+if [ "$state" != running ]; then
+	echo start > "$adsp/state"
+fi
+
+for attempt in $(seq 1 120); do
+	if find /sys/devices -type d -name 'aprsvc:q6adm:4:8' -print -quit 2>/dev/null | grep -q .; then
+		break
+	fi
+	sleep 1
+done
+
+if ! find /sys/devices -type d -name 'aprsvc:q6adm:4:8' -print -quit 2>/dev/null | grep -q .; then
+	echo "ADSP did not register APR q6adm within 120 seconds" >&2
+	exit 1
+fi
+
+# Register the permanent playback card after q6adm is available. SoundWire
+# codec attachment still depends on the separate, not-yet-integrated power path.
+modprobe tcl_acpi_card
+
+if ! grep -Fq 'TCL B220G ACPI Audio' /proc/asound/cards; then
+	echo "TCL B220G ACPI Audio did not register" >&2
+	exit 1
+fi

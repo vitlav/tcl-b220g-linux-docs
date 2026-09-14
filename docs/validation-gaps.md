@@ -6,9 +6,9 @@
 
 | Область | Что остаётся | Критерий подтверждения |
 |---|---|---|
-| [Аудио](hardware/audio.md) · [ACPI](hardware/audio-acpi.md) | Слышимый playback на DT и ACPI проверен; ACPI требует ручных power/mixer/PA настроек | Повторяемый старт после холодной загрузки, штатные regulator/GPIO/ASoC owners и сохранение профиля |
+| [Аудио](hardware/audio.md) · [ACPI](hardware/audio-acpi.md) | Слышимый playback на DT и ACPI проверен; ACPI автоматически запускает ADSP и playback-карту, mixer state восстанавливается | Подтвердить WCD9385 regulator/reset mapping, автоматический SoundWire attach и слышимый playback после холодной загрузки |
 | Аудио: повторный запуск | Проверен отдельный Q6ASM переход, остаются прочие пути | Последовательные start/stop/seek/XRUN recovery без потери звука и новых ошибок DSP |
-| [Динамики](hardware/audio-acpi.md#план-завершения-acpi-audio) | Fade/PA/PCM порядок подтверждён технически; акустическое отсутствие щелчка после этого теста не подтверждено | Проверить mute/fade → PA off пока PCM открыт → PCM close → reset/rail release и повторить stop фильма без треска на слух |
+| [Динамики](hardware/audio-acpi.md#speaker-pa-и-остановка-потока) | Fade/PA/PCM порядок подтверждён технически; акустическое отсутствие щелчка после этого теста не подтверждено | Проверить mute/fade → PA off пока PCM открыт → PCM close → reset/rail release и повторить stop фильма без треска на слух |
 | [Дисплей](hardware/display.md) | Зависимость LT8911EXB от UEFI handoff | Самостоятельные reset/power/PLL/link training, корректное изображение без готовой настройки моста |
 | Дисплей: питание | Подсветка, DPMS, suspend/resume | Стандартное управление яркостью и повторное восстановление изображения без ручного вмешательства |
 | [Venus](hardware/video.md) | Corrupt/incomplete decode и mpv stop/artifacts | Полное число и проверенное содержимое кадров, корректные seek/drain/stop; одинаковые сцены в CPU-сравнении |
@@ -21,7 +21,7 @@
 
 | Функция | Известная опора | Что требуется установить |
 |---|---|---|
-| [Микрофон](hardware/audio-acpi.md#capture-и-статус-микрофона) | Временный MultiMedia2 capture PCM записывает WAV, ожидаемого тона нет | Найти реальные analog/DMIC входы и подтвердить голосовой сигнал в каналах |
+| [Микрофон](hardware/audio-acpi.md#capture) | Временный MultiMedia2 capture PCM записывает WAV, ожидаемого тона нет | Найти реальные analog/DMIC входы и подтвердить голосовой сигнал в каналах |
 | [EC / power_supply](hardware/ec.md) | Рабочее чтение и зарядка | Штатные power_supply/UPower, единицы/знак тока, обработка ошибок; задача19490 |
 | Крышка | Поле ELID и AML | Физическое открытие/закрытие, полярность, события SW_LID и wakeup |
 | [SAR AW96105](hardware/sensors.md) | IIO raw меняется | Источник vcc, знак raw, электроды и IRQ при физическом воздействии; задача19501 |

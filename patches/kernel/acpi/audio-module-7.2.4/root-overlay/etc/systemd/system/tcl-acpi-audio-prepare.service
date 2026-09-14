@@ -1,0 +1,12 @@
+[Unit]
+Description=Prepare TCL ACPI audio transport (DSP remains stopped)
+Wants=network-online.target
+After=network-online.target systemd-modules-load.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/tcl-acpi-audio-prepare
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

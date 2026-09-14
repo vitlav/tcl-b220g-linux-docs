@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eu
+
+ready=no
+for attempt in $(seq 1 120); do
+	ready=yes
+	for provider in qcom-sc7180-rpmhpd qcom-sc7180-rpmhcc qcom-apss-shared qcom_aoss_qmp; do
+		if [ ! -L "/sys/bus/platform/devices/$provider/driver" ]; then
+			ready=no
+			break
+		fi
+	done
+	[ "$ready" = yes ] && break
+	sleep 1
+done
+[ "$ready" = yes ] || { echo "audio providers did not bind in time" >&2; exit 1; }
+
+for module in \
+	qcom_q6v5_pas apr q6core q6afe q6afe-clocks q6afe-dai \
+	q6adm q6asm q6asm-dai q6routing snd-q6dsp-common \
+	snd-soc-lpass-macro-common snd-soc-lpass-va-macro \
+	snd-soc-lpass-rx-macro snd-soc-lpass-tx-macro \
+	soundwire-qcom snd-soc-wcd-common snd-soc-wcd-mbhc \
+	snd-soc-wcd938x snd-soc-wcd938x-sdw tcl_acpi_audio; do
+	modprobe "$module"
+done

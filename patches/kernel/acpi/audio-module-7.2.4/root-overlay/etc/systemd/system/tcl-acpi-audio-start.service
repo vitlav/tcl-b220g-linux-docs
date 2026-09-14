@@ -1,0 +1,12 @@
+[Unit]
+Description=Start TCL ACPI ADSP and wait for Q6 audio services
+Requires=tcl-acpi-audio-prepare.service
+After=tcl-acpi-audio-prepare.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/tcl-acpi-audio-start
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
