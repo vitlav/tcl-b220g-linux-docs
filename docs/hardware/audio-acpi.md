@@ -1,6 +1,6 @@
 # ACPI audio on TCL B220G
 
-Status checked 14 September 2026 on the separate ACPI boot, Linux `7.2.4-tcl-acpi-display1+`. The DT audio path is documented separately in [the DT audio specification](audio.md).
+Status checked 15 September 2026 on the separate ACPI boot, Linux `7.2.4-tcl-acpi-display1+`. The DT audio path is documented separately in [the DT audio specification](audio.md).
 
 ## Playback path
 
@@ -17,10 +17,11 @@ The external modules and build instructions are in [`patches/kernel/acpi/audio-m
 - `tcl_acpi_card.ko` registers the ASoC card and manages speaker PA through DAPM.
 - `tcl_acpi_audio_power_hold.ko` checks the TCL B220G DMI identity and CMD DB addresses, then holds the OEM RPMh votes LDO15_A 1.8 V/HPM7 and BOB_C 3.3 V/AUTO6 for its module lifetime.
 - `tcl_acpi_codec_reset_hold.ko` checks the initial GPIO58 state, applies the OEM reset pulse (low 5 ms, then high), keeps reset deasserted, and restores the initial input state on unload.
+- `tcl_lpi_provider.ko` creates the board-guarded software node/resources consumed by the SC7280 LPASS LPI pinctrl driver; this applies the verified SoundWire GPIO mux and pad configuration.
 
-The enabled `tcl-acpi-audio-prepare.service` loads the Qualcomm audio transport and providers. `tcl-acpi-audio-start.service` starts ADSP, waits for APR `q6adm`, loads the guarded rail/reset owners, resumes RX/TX SoundWire runtime-PM when needed, waits for both WCD9385 slaves to attach, registers the WCD aggregate and playback card, then restores and checks the mixer profile. Its stop script refuses to release resources while a PCM is running; otherwise it unloads the card/aggregate, returns SoundWire runtime-PM to `auto`, and releases reset and rail votes.
+The enabled `tcl-acpi-audio-prepare.service` loads the Qualcomm audio transport, the SC7280 LPI driver, and the board LPI provider, then verifies the pinmux configured message. `tcl-acpi-audio-start.service` starts ADSP, waits for APR `q6adm`, loads the guarded rail/reset owners, resumes RX/TX SoundWire runtime-PM when needed, waits for both WCD9385 slaves to attach, registers the WCD aggregate and playback card, then restores and checks the mixer profile. Its stop script refuses to release resources while a PCM is running; otherwise it unloads the card/aggregate, returns SoundWire runtime-PM to `auto`, and releases reset and rail votes.
 
-The start/stop lifecycle was exercised by restarting the systemd unit without reboot: the service remained enabled and active afterward, the ALSA card registered, and RX/TX WCD9385 slaves reported `Attached` during startup. The tone was audible in the current session. This proves repeatable service startup in the running boot; a cold boot with this configuration has not yet been tested and still needs one reboot validation.
+The start/stop lifecycle was exercised by restarting the systemd unit without reboot: the service remained enabled and active afterward, the ALSA card registered, and RX/TX WCD9385 slaves reported `Attached` during startup. The user heard the test tone in the current session. The updated prepare path now loads and verifies the board LPI provider before ADSP/audio startup; cold-boot validation after this change is still pending.
 
 ## Capture
 
