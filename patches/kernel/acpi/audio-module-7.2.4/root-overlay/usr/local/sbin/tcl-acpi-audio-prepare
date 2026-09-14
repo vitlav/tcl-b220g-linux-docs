@@ -25,24 +25,6 @@ for module in \
 	modprobe "$module"
 done
 
-# The ACPI coordinator creates the TCL Q6AFE clock aliases. Register the
-# SC7280 LPI driver first, then its board-guarded SoundWire pinctrl provider.
+# Load the driver now. The board provider is created by audio-start only after
+# ADSP has registered q6afe clocks and APR q6adm.
 modprobe pinctrl_sc7280_lpass_lpi
-modprobe tcl_lpi_provider
-
-provider=/sys/bus/platform/devices/tcl-lpi-provider.0
-for attempt in $(seq 1 30); do
-	if [ -L "$provider/driver" ] &&
-	   dmesg | grep -Fq 'TCL ACPI SoundWire LPI pinmux configured'; then
-		break
-	fi
-	sleep 1
-done
-[ -L "$provider/driver" ] || {
-	echo "TCL ACPI SoundWire LPI provider did not bind" >&2
-	exit 1
-}
-dmesg | grep -Fq 'TCL ACPI SoundWire LPI pinmux configured' || {
-	echo "TCL ACPI SoundWire LPI pinmux was not configured" >&2
-	exit 1
-}

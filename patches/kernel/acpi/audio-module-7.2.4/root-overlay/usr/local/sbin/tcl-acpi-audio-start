@@ -29,6 +29,28 @@ if ! find /sys/devices -type d -name 'aprsvc:q6adm:4:8' -print -quit 2>/dev/null
 	exit 1
 fi
 
+# The q6afe clock aliases used by the LPI provider become available only after
+# ADSP has registered its APR services. The pinctrl driver was loaded by the
+# prepare unit; register the board provider now and verify the actual pinmux.
+modprobe pinctrl_sc7280_lpass_lpi
+modprobe tcl_lpi_provider
+lpi_provider=/sys/bus/platform/devices/tcl-lpi-provider.0
+for attempt in $(seq 1 30); do
+	if [ -L "$lpi_provider/driver" ] &&
+	   dmesg | grep -Fq 'TCL ACPI SoundWire LPI pinmux configured'; then
+		break
+	fi
+	sleep 1
+done
+[ -L "$lpi_provider/driver" ] || {
+	echo "TCL ACPI SoundWire LPI provider did not bind" >&2
+	exit 1
+}
+dmesg | grep -Fq 'TCL ACPI SoundWire LPI pinmux configured' || {
+	echo "TCL ACPI SoundWire LPI pinmux was not configured" >&2
+	exit 1
+}
+
 # Hold the two OEM AUDD audio rails for the service lifetime and run the
 # board-guarded WCD reset sequence before SoundWire re-enumeration.
 modprobe tcl_acpi_audio_power_hold
