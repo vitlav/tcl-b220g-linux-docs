@@ -29,11 +29,52 @@ if ! find /sys/devices -type d -name 'aprsvc:q6adm:4:8' -print -quit 2>/dev/null
 	exit 1
 fi
 
-# Register the permanent playback card after q6adm is available. SoundWire
-# codec attachment still depends on the separate, not-yet-integrated power path.
+# Hold the two OEM AUDD audio rails for the service lifetime and run the
+# board-guarded WCD reset sequence before SoundWire re-enumeration.
+modprobe tcl_acpi_audio_power_hold
+modprobe tcl_acpi_codec_reset_hold
+
+rx_status=/sys/bus/soundwire/devices/sdw:2:0:0217:010d:00:4/status
+tx_status=/sys/bus/soundwire/devices/sdw:3:0:0217:010d:00:3/status
+rx_pm=/sys/bus/platform/devices/tcl-swr-rx/power/control
+tx_pm=/sys/bus/platform/devices/tcl-swr-tx/power/control
+
+for attempt in $(seq 1 60); do
+	if [ -r "$rx_status" ] && [ -r "$tx_status" ] &&
+	   [ "$(cat "$rx_status")" = Attached ] &&
+	   [ "$(cat "$tx_status")" = Attached ]; then
+		break
+	fi
+	if [ "$attempt" = 1 ]; then
+		[ -w "$rx_pm" ] && [ -w "$tx_pm" ] || {
+			echo "SoundWire runtime-PM controls are unavailable" >&2
+			exit 1
+		}
+		echo auto > "$rx_pm"
+		echo auto > "$tx_pm"
+		sleep 2
+		echo on > "$rx_pm"
+		echo on > "$tx_pm"
+	fi
+	sleep 1
+done
+
+if [ "$(cat "$rx_status")" != Attached ] ||
+	[ "$(cat "$tx_status")" != Attached ]; then
+	echo "WCD9385 SoundWire RX/TX did not attach" >&2
+	exit 1
+fi
+
+# Register the WCD aggregate and playback card only after both slaves attach.
+modprobe tcl_acpi_wcd
 modprobe tcl_acpi_card
 
 if ! grep -Fq 'TCL B220G ACPI Audio' /proc/asound/cards; then
 	echo "TCL B220G ACPI Audio did not register" >&2
 	exit 1
 fi
+
+/usr/sbin/alsactl restore 0
+amixer -c 0 cget name='HPHL Volume' | grep -q 'values=20'
+amixer -c 0 cget name='RX_RX0 Digital Volume' | grep -q 'values=78'
+amixer -c 0 cget name='HPHL Switch' | grep -q 'values=on'

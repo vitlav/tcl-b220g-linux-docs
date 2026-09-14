@@ -1,62 +1,27 @@
-# ACPI-аудио TCL B220G
+# ACPI audio on TCL B220G
 
-Состояние проверки на 14 сентября 2026 года. Все сведения относятся к отдельному ACPI-запуску на Linux `7.2.4-tcl-acpi-display1+`; DT-аудиотракт описан отдельно в [спецификации DT-аудио](audio.md).
+Status checked 14 September 2026 on the separate ACPI boot, Linux `7.2.4-tcl-acpi-display1+`. The DT audio path is documented separately in [the DT audio specification](audio.md).
 
-## Подтверждённый тракт воспроизведения
+## Playback path
 
-На оборудовании зарегистрирована ASoC-карта `TCL B220G ACPI Audio` (ALSA ID `Audio`). Воспроизведение идёт через Q6ASM `MultiMedia1`, Q6 routing, Q6AFE backend `RX_CODEC_DMA_RX_0`, LPASS RX macro, SoundWire RX и кодек WCD9385. PCM-параметры backend: stereo, 48 kHz, `S16_LE`.
+The registered ALSA card is `TCL B220G ACPI Audio` (ID `Audio`). Playback uses Q6ASM `MultiMedia1`, Q6 routing, Q6AFE backend `RX_CODEC_DMA_RX_0`, LPASS RX macro, SoundWire RX and WCD9385. The backend runs stereo, 48 kHz, `S16_LE`. The user has heard the 440 Hz test tone through the internal speakers.
 
-Пользователь услышал тестовый 440 Hz тон через встроенные динамики. Также на ACPI-системе проверен запуск Big Buck Bunny через mpv/Wayland: mpv вывел `AO: ALSA 48000Hz stereo`, PCM переходил в `RUNNING`, а DAPM включал GPIO46/47 во время потока. Последний запуск фильма здесь подтверждает работу программного аудиовыхода и видеокомпозиции; отдельного подтверждения слышимости именно этого прогона и акустического отсутствия щелчка при остановке нет.
+The speaker PA uses GPIO46/47, controlled by a DAPM speaker widget. During playback both lines go high; they return low when the PCM closes. For orderly mpv stop, fade volume, switch off `Internal Speaker` while PCM remains `RUNNING`, then close the PCM. The ordering and GPIO transitions were verified; acoustic stop-pop absence has not been confirmed.
 
-| ALSA control | Сохранённое проверенное значение | Интерпретация |
-|---|---:|---|
-| `HPHL Volume`, `HPHR Volume` | 20/24 | Выходная громкость HPH |
-| `RX_RX0 Digital Volume`, `RX_RX1 Digital Volume` | 78/124 | RX digital gain |
-| `RX_MACRO RX0 MUX`, `RX_MACRO RX1 MUX` | `AIF1_PB` | RX macro input |
-| `RX INT0_1 MIX1 INP0`, `RX INT1_1 MIX1 INP0` | `RX0`, `RX1` | Стереомаршрут |
-| `RX INT0_1 INTERP`, `RX INT1_1 INTERP` | соответствующий `RX INT*_1 MIX1` | RX interpolator |
-| `RX INT0 DEM MUX`, `RX INT1 DEM MUX` | `CLSH_DSM_OUT` | Class-H output |
-| `RX HPH Mode` | `CLS_H_LP` | HPH operating mode |
-| `HPHL Switch`, `HPHR Switch`, `CLSH Switch` | `on` | Включение аналогового тракта |
-| `HPHL_RDAC Switch`, `HPHR_RDAC Switch` | `on` | DAC channels |
-| `RX_CODEC_DMA_RX_0 Audio Mixer MultiMedia1` | `on` | Связь frontend с RX backend |
+The persisted moderate ALSA profile is HPH 20/24 and RX digital 78/124, with headphone/RDAC, Class-H, backend and speaker switches enabled. The state is saved in `/var/lib/alsa/asound.state` and restored by the ACPI start unit. The mixer maximum is HPH 24/24 and RX digital 124/124; a short maximum-level test read back these maximum values, then restored and saved the moderate profile. Future short sound checks should use the maximum and verify with `amixer`; the saved normal profile remains moderate. Read-only impedance/HPH-type warnings and the missing UCM profile do not prevent direct ALSA playback.
 
-После изменения mixer control проверяйте его чтение через `amixer -c 0 cget name='CONTROL'`. Сохранённый профиль находится в `/var/lib/alsa/asound.state`; `/usr/sbin/alsactl restore 0` и восстановление по udev-событию карты `Audio` проверены в текущей системе. Значения impedance и HPH type доступны только для чтения. Предупреждение об отсутствующем UCM профиле не препятствует прямому ALSA playback.
+## Modules and service lifecycle
 
-## Speaker PA и остановка потока
+The external modules and build instructions are in [`patches/kernel/acpi/audio-module-7.2.4/`](../../patches/kernel/acpi/audio-module-7.2.4/). They are built for the exact kernel above and are not upstream patches:
 
-Внешний усилитель встроенных динамиков включается GPIO46/47: оба уровня `high` при активном playback и `low` после закрытия PCM. Это проверено по DAPM и GPIO. Постоянный внешний модуль карты управляет PA через стандартный DAPM speaker widget: включает линии после power-up speaker path и выключает перед power-down. Измерения электрического уровня выхода усилителя не выполнялись.
+- `tcl_acpi_card.ko` registers the ASoC card and manages speaker PA through DAPM.
+- `tcl_acpi_audio_power_hold.ko` checks the TCL B220G DMI identity and CMD DB addresses, then holds the OEM RPMh votes LDO15_A 1.8 V/HPM7 and BOB_C 3.3 V/AUTO6 for its module lifetime.
+- `tcl_acpi_codec_reset_hold.ko` checks the initial GPIO58 state, applies the OEM reset pulse (low 5 ms, then high), keeps reset deasserted, and restores the initial input state on unload.
 
-Для снижения риска stop-pop программная последовательность проверена на коротком mpv-фрагменте: плавно уменьшить mpv volume до нуля, отключить `Internal Speaker Switch` пока PCM ещё `RUNNING`, затем закрыть PCM. GPIO46/47 перешли в low до закрытия потока. Программный порядок подтверждён; акустическое отсутствие щелчка при остановке ещё не подтверждено пользователем.
+The enabled `tcl-acpi-audio-prepare.service` loads the Qualcomm audio transport and providers. `tcl-acpi-audio-start.service` starts ADSP, waits for APR `q6adm`, loads the guarded rail/reset owners, resumes RX/TX SoundWire runtime-PM when needed, waits for both WCD9385 slaves to attach, registers the WCD aggregate and playback card, then restores and checks the mixer profile. Its stop script refuses to release resources while a PCM is running; otherwise it unloads the card/aggregate, returns SoundWire runtime-PM to `auto`, and releases reset and rail votes.
 
-## Внешний модуль карты
-
-Исходник карты и сборочная инструкция находятся в [`patches/kernel/acpi/audio-module-7.2.4/`](../../patches/kernel/acpi/audio-module-7.2.4/). Это внешний модуль ASoC, собранный для точного ядра `7.2.4-tcl-acpi-display1+`; он не является патчем к ванильному ядру. Модуль установлен в `/lib/modules/7.2.4-tcl-acpi-display1+/extra/tcl-audio/tcl_acpi_card.ko`, `depmod` выполнен, загрузка через `modprobe tcl_acpi_card` проверена. SHA-256 установленного модуля: `0a26d084d6dc7c03fdba7a6602a0dc139aa6455553f14c4266bbf09a9533ff63`.
-
-Сборка для текущего целевого ядра:
-
-```sh
-make KERNEL_SRC=/path/to/matching/linux-7.2.4 \
-  ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- W=1
-```
-
-Перед сборкой исходники ядра, `.config` и `Module.symvers` должны соответствовать установленному на ноутбуке ядру.
-
-## Автозапуск ACPI-аудиоподсистемы
-
-Установлены и включены две отдельные службы:
-
-1. `tcl-acpi-audio-prepare.service` ждёт привязки нужных Qualcomm providers и загружает Q6/LPASS/SoundWire/WCD модули.
-2. `tcl-acpi-audio-start.service` запускается после подготовки, переводит ADSP в `running`, ждёт появления APR `q6adm`, загружает `tcl_acpi_card` и проверяет регистрацию ALSA-карты.
-
-Обновлённый стартовый сценарий и unit-файлы сохранены в `patches/kernel/acpi/audio-module-7.2.4/root-overlay/`. Автозапуск ADSP/q6adm и регистрация карты проверены на работающей системе и повторным запуском службы без reboot. ALSA state восстанавливается штатной ALSA/udev интеграцией.
-
-## Ограничение постоянного запуска
-
-Автозапуск ADSP, регистрация карты и сохранение mixer-профиля работают. Для enumeration WCD9385 по SoundWire нужны питание, reset и пробуждение контроллеров. OEM `AUDD`/Windows-данные связывают power profile с `LDO15_A` (1,8 V) и `BUCK_BOOST1_C`/Linux `BOB_C` (3,3 V); Windows reset-путь сопоставлен с GPIO58 и последовательностью low 5 ms → high 2 ms. Guarded GPIO58 pulse и APCC votes, а также runtime-PM resume в сумме позволили получить attached slaves и слышимый тон в текущем boot. После штатного снятия тестовых leases оба SoundWire slave вернулись в `UNATTACHED`.
-
-Эти данные ещё не дают готовую постоянную Linux power topology: драйвер WCD запрашивает четыре supplies (`vdd-rxtx`, `vdd-io`, `vdd-buck`, `vdd-mic-bias`), тогда как в выбранном `AUDD` профиле явно заданы только два PMIC-ресурса. Нужны стандартные regulator consumers для подтверждённых rails, корректный GPIO58 consumer с безопасным владением зарезервированной линии, затем автоматическая SoundWire re-enumeration и проверка всех supply ссылок. Ограниченные тестовые leases в boot не включены. До такой проверки статус — **звук подтверждён в текущем сеансе; полный автоматический cold-boot audio не подтверждён**.
+The start/stop lifecycle was exercised by restarting the systemd unit without reboot: the service remained enabled and active afterward, the ALSA card registered, and RX/TX WCD9385 slaves reported `Attached` during startup. The tone was audible in the current session. This proves repeatable service startup in the running boot; a cold boot with this configuration has not yet been tested and still needs one reboot validation.
 
 ## Capture
 
-Физический микрофон и его routing пока не подтверждены. Временная проверка Q6ASM capture не получила ожидаемый акустический сигнал, поэтому микрофон нельзя считать работающим. Нужны проверенные OEM analog/DMIC port mapping и повторная запись с измеримым тестовым сигналом.
+Physical microphone capture and routing are not confirmed. Existing Q6ASM capture experiments did not produce a validated acoustic recording.

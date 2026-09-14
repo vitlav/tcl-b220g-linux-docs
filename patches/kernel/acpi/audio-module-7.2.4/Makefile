@@ -5,6 +5,8 @@ CROSS_COMPILE ?= aarch64-linux-gnu-
 
 ifneq ($(KERNELRELEASE),)
 obj-m += tcl_acpi_card.o
+obj-m += tcl_acpi_audio_power_hold.o
+obj-m += tcl_acpi_codec_reset_hold.o
 ccflags-y += -I$(KERNEL_SRC)/sound/soc/qcom
 else
 .PHONY: all clean

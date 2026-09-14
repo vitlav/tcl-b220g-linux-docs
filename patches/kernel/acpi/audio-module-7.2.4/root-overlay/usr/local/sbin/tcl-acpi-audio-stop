@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+for status in /proc/asound/card*/pcm*/sub*/status; do
+	[ -r "$status" ] || continue
+	if grep -q '^state: RUNNING$' "$status"; then
+		echo "Audio PCM is still running; keeping codec power votes active" >&2
+		exit 1
+	fi
+done
+
+modprobe -r tcl_acpi_card
+modprobe -r tcl_acpi_wcd
+
+for control in \
+	/sys/bus/platform/devices/tcl-swr-rx/power/control \
+	/sys/bus/platform/devices/tcl-swr-tx/power/control; do
+	[ -w "$control" ] && echo auto > "$control"
+done
+
+modprobe -r tcl_acpi_codec_reset_hold
+modprobe -r tcl_acpi_audio_power_hold

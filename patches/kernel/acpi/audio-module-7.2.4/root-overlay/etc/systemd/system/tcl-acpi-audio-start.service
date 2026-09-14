@@ -6,6 +6,7 @@ After=tcl-acpi-audio-prepare.service
 [Service]
 Type=oneshot
 ExecStart=/usr/local/sbin/tcl-acpi-audio-start
+ExecStop=/usr/local/sbin/tcl-acpi-audio-stop
 RemainAfterExit=yes
 
 [Install]

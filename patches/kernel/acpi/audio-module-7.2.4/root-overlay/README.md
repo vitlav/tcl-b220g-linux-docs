@@ -1,5 +1,9 @@
-# Audio startup overlay
+# ACPI audio startup overlay
 
-Copy the files into the matching Ubuntu root filesystem preserving their paths. Enable the two units with `systemctl enable tcl-acpi-audio-prepare.service tcl-acpi-audio-start.service` after installing the matching `tcl_acpi_card.ko` and running `depmod -a`.
+Install these files into the matching Ubuntu root filesystem, preserving their paths. Build/install all three matching kernel modules first, run `depmod -a`, then enable both units:
 
-The start unit launches ADSP, waits for APR `q6adm`, then loads the playback card. It does not claim or configure WCD9385 power/reset rails; automatic codec attachment remains an open integration item.
+```sh
+systemctl enable tcl-acpi-audio-prepare.service tcl-acpi-audio-start.service
+```
+
+The prepare unit loads Qualcomm audio transport/providers. The start unit starts ADSP, waits for APR `q6adm`, loads the board-guarded RPMh rail and GPIO58 reset owners, nudges RX/TX SoundWire runtime-PM if required, waits for both WCD9385 slaves to attach, then registers the WCD aggregate/playback card and restores ALSA state. `ExecStop` checks that no PCM is running before releasing audio resources. The service lifecycle has been verified by a successful stop/start without reboot; verify cold-boot behavior after the next planned reboot.
