@@ -8,7 +8,7 @@
 |---|---|---|
 | [Аудио](hardware/audio.md) · [ACPI](hardware/audio-acpi.md) | Слышимый playback на DT и ACPI проверен; ACPI требует ручных power/mixer/PA настроек | Повторяемый старт после холодной загрузки, штатные regulator/GPIO/ASoC owners и сохранение профиля |
 | Аудио: повторный запуск | Проверен отдельный Q6ASM переход, остаются прочие пути | Последовательные start/stop/seek/XRUN recovery без потери звука и новых ошибок DSP |
-| [Динамики](hardware/audio-acpi.md#план-завершения-acpi-audio) | Слышимость подтверждена; пользователь слышал треск при остановке фильма | Проверить mute/fade → PCM close → PA off → reset/rail release и повторить stop без треска |
+| [Динамики](hardware/audio-acpi.md#план-завершения-acpi-audio) | Fade/PA/PCM порядок подтверждён технически; акустическое отсутствие щелчка после этого теста не подтверждено | Проверить mute/fade → PA off пока PCM открыт → PCM close → reset/rail release и повторить stop фильма без треска на слух |
 | [Дисплей](hardware/display.md) | Зависимость LT8911EXB от UEFI handoff | Самостоятельные reset/power/PLL/link training, корректное изображение без готовой настройки моста |
 | Дисплей: питание | Подсветка, DPMS, suspend/resume | Стандартное управление яркостью и повторное восстановление изображения без ручного вмешательства |
 | [Venus](hardware/video.md) | Corrupt/incomplete decode и mpv stop/artifacts | Полное число и проверенное содержимое кадров, корректные seek/drain/stop; одинаковые сцены в CPU-сравнении |
