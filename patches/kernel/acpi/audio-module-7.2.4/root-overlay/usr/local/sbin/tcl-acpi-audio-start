@@ -96,7 +96,7 @@ if ! grep -Fq 'TCL B220G ACPI Audio' /proc/asound/cards; then
 	exit 1
 fi
 
-/usr/sbin/alsactl restore 0
+/usr/sbin/alsactl --no-ucm restore 0
 amixer -c 0 cget name='HPHL Volume' | grep -q 'values=20'
 amixer -c 0 cget name='RX_RX0 Digital Volume' | grep -q 'values=78'
 amixer -c 0 cget name='HPHL Switch' | grep -q 'values=on'
