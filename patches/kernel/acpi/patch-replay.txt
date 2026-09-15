@@ -1,7 +1,7 @@
 Base: 5015d0d945b3d3f2b038d2667880d5762f7d9437
-Patches: 58
-Method: git read-tree base; sequential git apply --cached --check and git apply --cached in a temporary index
-Expected tree: 187314ae5214642ccf465aef87b5115c3ae205fb
+Patches: 36
+Method: sequential git apply --cached --check and git apply --cached in a fresh base index
 Replayed tree: 187314ae5214642ccf465aef87b5115c3ae205fb
+Expected tree: 187314ae5214642ccf465aef87b5115c3ae205fb
 Result: PASS
-No full checkout created. Compilation and hardware qualification of this exact snapshot remain pending.
+Source is unchanged by series curation. This is not an intermediate-commit build test or hardware validation.

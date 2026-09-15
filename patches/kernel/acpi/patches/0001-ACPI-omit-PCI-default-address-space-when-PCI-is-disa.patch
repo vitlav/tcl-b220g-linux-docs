@@ -1,0 +1,50 @@
+From 75173bfe20d32903c10dba234767dd49befdd8a9 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:41 +0300
+Subject: [PATCH 01/36] ACPI: omit PCI default address space when PCI is
+ disabled
+
+ACPICA includes the PCI configuration address space in its default
+handler list even when the kernel is built without PCI. That
+configuration cannot supply the corresponding PCI handler.
+
+Guard the PCI entry with ACPI_PCI_CONFIGURED and reduce
+ACPI_NUM_DEFAULT_SPACES to three when PCI is absent. Keep the count and
+initializer in agreement so the remaining default address spaces can be
+installed during ACPI startup. PCI-enabled builds retain the existing
+four-space list.
+---
+ drivers/acpi/acpica/evhandler.c | 2 ++
+ include/acpi/acconfig.h         | 4 ++++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/acpi/acpica/evhandler.c b/drivers/acpi/acpica/evhandler.c
+index d9a3b1ca5b9ccf4f85052b778e0027634f023ed1..11020d7399d59f29bae66cc64725efea3c285b19 100644
+--- a/drivers/acpi/acpica/evhandler.c
++++ b/drivers/acpi/acpica/evhandler.c
+@@ -26,7 +26,9 @@ acpi_ev_install_handler(acpi_handle obj_handle,
+ u8 acpi_gbl_default_address_spaces[ACPI_NUM_DEFAULT_SPACES] = {
+ 	ACPI_ADR_SPACE_SYSTEM_MEMORY,
+ 	ACPI_ADR_SPACE_SYSTEM_IO,
++#ifdef ACPI_PCI_CONFIGURED
+ 	ACPI_ADR_SPACE_PCI_CONFIG,
++#endif
+ 	ACPI_ADR_SPACE_DATA_TABLE
+ };
+ 
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 6bce050f042106f6b75238fc90a2b9869d4a5f0a..3d29bc1478be4b20d9ad3c37005d86e1d5732e0d 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -161,7 +161,11 @@
+ /* Maximum space_ids for Operation Regions */
+ 
+ #define ACPI_MAX_ADDRESS_SPACE          255
++#ifdef ACPI_PCI_CONFIGURED
+ #define ACPI_NUM_DEFAULT_SPACES         4
++#else
++#define ACPI_NUM_DEFAULT_SPACES         3
++#endif
+ 
+ /* Array sizes.  Used for range checking also */
+ 

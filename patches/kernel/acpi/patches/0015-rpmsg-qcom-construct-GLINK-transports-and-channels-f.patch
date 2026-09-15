@@ -1,0 +1,250 @@
+From 9365c023edb09686756c45374139bcd86d5e2cea Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:42 +0300
+Subject: [PATCH 15/36] rpmsg: qcom: construct GLINK transports and channels
+ from firmware nodes
+
+The supplemental modem and ADSP need both GLINK edge resources and
+channel descriptions without OF nodes. Supporting only the transport
+leaves named child services undiscoverable.
+
+Add explicit firmware-node/resource registration for SMEM GLINK edges
+and use firmware-node properties to match channel devices. Keep
+references with the devices and release them in their destruction paths.
+Preserve the OF-facing transport entry point and upstream
+channel-removal protocol. Board owners must retain the IRQ, signaling
+and supplier resources throughout transport lifetime.
+---
+ drivers/rpmsg/qcom_glink_native.c | 27 ++++++++++---------
+ drivers/rpmsg/qcom_glink_smem.c   | 45 +++++++++++++++++++++++++------
+ include/linux/rpmsg/qcom_glink.h  | 12 +++++++++
+ 3 files changed, 64 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/rpmsg/qcom_glink_native.c b/drivers/rpmsg/qcom_glink_native.c
+index d9d4468e4cbdfda0b235a3246b07bfe78b1a3d1c..ee5d5fe461288207ef6b5c76c01a6ef5bde9c195 100644
+--- a/drivers/rpmsg/qcom_glink_native.c
++++ b/drivers/rpmsg/qcom_glink_native.c
+@@ -10,7 +10,9 @@
+ #include <linux/mfd/syscon.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/property.h>
+ #include <linux/of_address.h>
++#include <linux/property.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/rpmsg.h>
+@@ -1585,19 +1587,19 @@ static int qcom_glink_trysendto(struct rpmsg_endpoint *ept, const void *data,
+ }
+ 
+ /*
+- * Finds the device_node for the glink child interested in this channel.
++ * Finds the firmware node for the GLINK child interested in this channel.
+  */
+-static struct device_node *qcom_glink_match_channel(struct device_node *node,
++static struct fwnode_handle *qcom_glink_match_channel(struct fwnode_handle *node,
+ 						    const char *channel)
+ {
+-	struct device_node *child;
++	struct fwnode_handle *child;
+ 	const char *name;
+ 	const char *key;
+ 	int ret;
+ 
+-	for_each_available_child_of_node(node, child) {
++	fwnode_for_each_available_child_node(node, child) {
+ 		key = "qcom,glink-channels";
+-		ret = of_property_read_string(child, key, &name);
++		ret = fwnode_property_read_string(child, key, &name);
+ 		if (ret)
+ 			continue;
+ 
+@@ -1626,6 +1628,7 @@ static void qcom_glink_rpdev_release(struct device *dev)
+ {
+ 	struct rpmsg_device *rpdev = to_rpmsg_device(dev);
+ 
++	fwnode_handle_put(dev_fwnode(dev));
+ 	kfree(rpdev);
+ }
+ 
+@@ -1635,7 +1638,7 @@ static int qcom_glink_rx_open(struct qcom_glink *glink, unsigned int rcid,
+ 	struct glink_channel *channel;
+ 	struct rpmsg_device *rpdev;
+ 	bool create_device = false;
+-	struct device_node *node;
++	struct fwnode_handle *node;
+ 	int lcid;
+ 	int ret;
+ 	unsigned long flags;
+@@ -1683,8 +1686,8 @@ static int qcom_glink_rx_open(struct qcom_glink *glink, unsigned int rcid,
+ 		rpdev->dst = RPMSG_ADDR_ANY;
+ 		rpdev->ops = &glink_device_ops;
+ 
+-		node = qcom_glink_match_channel(glink->dev->of_node, name);
+-		rpdev->dev.of_node = node;
++		node = qcom_glink_match_channel(dev_fwnode(glink->dev), name);
++		device_set_node(&rpdev->dev, node);
+ 		rpdev->dev.parent = glink->dev;
+ 		rpdev->dev.release = qcom_glink_rpdev_release;
+ 
+@@ -1840,9 +1843,9 @@ static ssize_t rpmsg_name_show(struct device *dev,
+ 	int ret = 0;
+ 	const char *name;
+ 
+-	ret = of_property_read_string(dev->of_node, "label", &name);
++	ret = device_property_read_string(dev, "label", &name);
+ 	if (ret < 0)
+-		name = dev->of_node->name;
++		name = dev->of_node ? dev->of_node->name : dev_name(dev);
+ 
+ 	return sysfs_emit(buf, "%s\n", name);
+ }
+@@ -1918,9 +1921,9 @@ struct qcom_glink *qcom_glink_native_probe(struct device *dev,
+ 	idr_init(&glink->lcids);
+ 	idr_init(&glink->rcids);
+ 
+-	ret = of_property_read_string(dev->of_node, "label", &glink->label);
++	ret = device_property_read_string(dev, "label", &glink->label);
+ 	if (ret < 0)
+-		glink->label = dev->of_node->name;
++		glink->label = dev->of_node ? dev->of_node->name : dev_name(dev);
+ 
+ 	glink->dev->groups = qcom_glink_groups;
+ 
+diff --git a/drivers/rpmsg/qcom_glink_smem.c b/drivers/rpmsg/qcom_glink_smem.c
+index 35bb03e67ae8a15dfc7c8c183df2f76b2fb0bb99..36cf48c8ad0cf82fd53912ca66be5edff04bf318 100644
+--- a/drivers/rpmsg/qcom_glink_smem.c
++++ b/drivers/rpmsg/qcom_glink_smem.c
+@@ -6,6 +6,7 @@
+ #include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/property.h>
+ #include <linux/of_address.h>
+ #include <linux/of_irq.h>
+ #include <linux/interrupt.h>
+@@ -221,11 +222,21 @@ static void qcom_glink_smem_release(struct device *dev)
+ {
+ 	struct qcom_glink_smem *smem = container_of(dev, struct qcom_glink_smem, dev);
+ 
++	fwnode_handle_put(dev_fwnode(dev));
+ 	kfree(smem);
+ }
+ 
+-struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
+-						 struct device_node *node)
++/**
++ * qcom_glink_smem_register_fwnode() - register an SMEM edge
++ * @parent: remote processor device
++ * @fwnode: edge properties and mailbox reference (a reference is retained)
++ * @irq: Linux IRQ, mapped and kept valid by the caller until unregistration
++ *
++ * This function does not map or dispose the interrupt controller mapping.
++ */
++struct qcom_glink_smem *
++qcom_glink_smem_register_fwnode(struct device *parent,
++			      struct fwnode_handle *fwnode, int irq)
+ {
+ 	struct glink_smem_pipe *rx_pipe;
+ 	struct glink_smem_pipe *tx_pipe;
+@@ -237,6 +248,11 @@ struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
+ 	size_t size;
+ 	int ret;
+ 
++	if (!parent || !parent->parent || !fwnode)
++		return ERR_PTR(-EINVAL);
++	if (irq <= 0)
++		return ERR_PTR(irq ? irq : -EINVAL);
++
+ 	smem = kzalloc_obj(*smem);
+ 	if (!smem)
+ 		return ERR_PTR(-ENOMEM);
+@@ -244,18 +260,20 @@ struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
+ 	dev = &smem->dev;
+ 
+ 	dev->parent = parent;
+-	dev->of_node = node;
++	device_set_node(dev, fwnode_handle_get(fwnode));
+ 	dev->release = qcom_glink_smem_release;
+-	dev_set_name(dev, "%s:%pOFn", dev_name(parent->parent), node);
+-	ret = device_register(dev);
++	device_initialize(dev);
++	ret = dev_set_name(dev, "%s:%s", dev_name(parent->parent),
++			   fwnode_get_name(fwnode));
++	if (!ret)
++		ret = device_add(dev);
+ 	if (ret) {
+ 		pr_err("failed to register glink edge\n");
+ 		put_device(dev);
+ 		return ERR_PTR(ret);
+ 	}
+ 
+-	ret = of_property_read_u32(dev->of_node, "qcom,remote-pid",
+-				   &remote_pid);
++	ret = device_property_read_u32(dev, "qcom,remote-pid", &remote_pid);
+ 	if (ret) {
+ 		dev_err(dev, "failed to parse qcom,remote-pid\n");
+ 		goto err_put_dev;
+@@ -311,7 +329,7 @@ struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
+ 		goto err_put_dev;
+ 	}
+ 
+-	smem->irq = of_irq_get(smem->dev.of_node, 0);
++	smem->irq = irq;
+ 	ret = devm_request_irq(&smem->dev, smem->irq, qcom_glink_smem_intr,
+ 			       IRQF_NO_SUSPEND | IRQF_NO_AUTOEN,
+ 			       "glink-smem", smem);
+@@ -365,6 +383,17 @@ struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
+ 
+ 	return ERR_PTR(ret);
+ }
++EXPORT_SYMBOL_GPL(qcom_glink_smem_register_fwnode);
++
++struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
++					     struct device_node *node)
++{
++	if (!node)
++		return ERR_PTR(-EINVAL);
++
++	return qcom_glink_smem_register_fwnode(parent, of_fwnode_handle(node),
++					     of_irq_get(node, 0));
++}
+ EXPORT_SYMBOL_GPL(qcom_glink_smem_register);
+ 
+ void qcom_glink_smem_unregister(struct qcom_glink_smem *smem)
+diff --git a/include/linux/rpmsg/qcom_glink.h b/include/linux/rpmsg/qcom_glink.h
+index bfbd48f435fa56db6de04f753e782453eea6b11d..16d0b919b489f53c6e613fd32122cd1d37741a92 100644
+--- a/include/linux/rpmsg/qcom_glink.h
++++ b/include/linux/rpmsg/qcom_glink.h
+@@ -6,6 +6,7 @@
+ #include <linux/device.h>
+ 
+ struct qcom_glink_smem;
++struct fwnode_handle;
+ 
+ #if IS_ENABLED(CONFIG_RPMSG_QCOM_GLINK)
+ void qcom_glink_ssr_notify(const char *ssr_name);
+@@ -15,12 +16,23 @@ static inline void qcom_glink_ssr_notify(const char *ssr_name) {}
+ 
+ #if IS_ENABLED(CONFIG_RPMSG_QCOM_GLINK_SMEM)
+ 
++struct qcom_glink_smem *
++qcom_glink_smem_register_fwnode(struct device *parent,
++			      struct fwnode_handle *fwnode, int irq);
++
+ struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
+ 						 struct device_node *node);
+ void qcom_glink_smem_unregister(struct qcom_glink_smem *glink);
+ 
+ #else
+ 
++static inline struct qcom_glink_smem *
++qcom_glink_smem_register_fwnode(struct device *parent,
++			      struct fwnode_handle *fwnode, int irq)
++{
++	return NULL;
++}
++
+ static inline struct qcom_glink_smem *
+ qcom_glink_smem_register(struct device *parent,
+ 			 struct device_node *node)

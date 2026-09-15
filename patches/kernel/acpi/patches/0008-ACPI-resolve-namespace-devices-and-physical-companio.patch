@@ -1,0 +1,74 @@
+From 5bb045730d020316b3b27eb763248ea97f43e9af Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:42 +0300
+Subject: [PATCH 08/36] ACPI: resolve namespace devices and physical companions
+ uniformly
+
+Supplemental devices can be parented by a raw ACPI namespace device or
+by a physical device with an ACPI companion. Companion-only lookup does
+not identify both forms.
+
+Add acpi_companion_or_self() to resolve either representation, together
+with the disabled-ACPI stub. This lets board resource checks and IORT
+ancestry lookup use the actual firmware identity without inventing
+companions. Consumer resource validation and stream selection are
+implemented separately.
+---
+ drivers/acpi/bus.c   | 18 ++++++++++++++++++
+ include/linux/acpi.h |  7 +++++++
+ 2 files changed, 25 insertions(+)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index a30a904f6535f4025790a83457aff92d8f0c60be..13e58a1724ac6029f1384f64e31e4578b73bdad2 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1042,6 +1042,24 @@ static bool __acpi_match_device(const struct acpi_device *device,
+ 	return true;
+ }
+ 
++/**
++ * acpi_companion_or_self - Find the ACPI object represented by a device
++ * @dev: Firmware device or physical device, or NULL.
++ *
++ * Return the device itself for an ACPI bus object, otherwise its companion.
++ * The returned pointer is borrowed; callers must keep @dev alive. This does
++ * not perform the primary-physical-device check used for driver matching.
++ */
++struct acpi_device *acpi_companion_or_self(struct device *dev)
++{
++	if (!dev)
++		return NULL;
++	if (dev->bus == &acpi_bus_type)
++		return to_acpi_device(dev);
++	return ACPI_COMPANION(dev);
++}
++EXPORT_SYMBOL_GPL(acpi_companion_or_self);
++
+ /**
+  * acpi_match_acpi_device - Match an ACPI device against a given list of ACPI IDs
+  * @ids: Array of struct acpi_device_id objects to match against.
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 60ab50cb8930c45c5b629e6d0d0f59b2c498d9e6..eb381f7b5b19cdf7bb35bc9dc7399ead14bad1b9 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -741,6 +741,8 @@ extern int acpi_nvs_register(__u64 start, __u64 size);
+ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+ 				    void *data);
+ 
++struct acpi_device *acpi_companion_or_self(struct device *dev);
++
+ const struct acpi_device_id *acpi_match_acpi_device(const struct acpi_device_id *ids,
+ 						    const struct acpi_device *adev);
+ 
+@@ -980,6 +982,11 @@ static inline int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+ 
+ struct acpi_device_id;
+ 
++static inline struct acpi_device *acpi_companion_or_self(struct device *dev)
++{
++	return NULL;
++}
++
+ static inline const struct acpi_device_id *acpi_match_acpi_device(
+ 	const struct acpi_device_id *ids, const struct acpi_device *adev)
+ {

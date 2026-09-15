@@ -1,0 +1,247 @@
+From af3d9c2172977f5865482acfbbd26a934d6070e4 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:43 +0300
+Subject: [PATCH 22/36] interconnect: qcom: support firmware-described TCL
+ fabric suppliers
+
+The ACPI display fabrics need BCM voters and SC7180 interconnect
+providers without OF phandles. A voter lookup must not accidentally
+match two devices merely because both lack an OF node.
+
+Add firmware-node voter lookup, preserve the OF entry point, and require
+a bound matching supplier. Register the guarded non-OF SC7180 fabric
+instances and clean their voter-list membership on removal. The board
+must retain supplier lifetimes and establish device links. These changes
+enable provider discovery; the coordinator still has to create all
+fabrics and request the actual display paths.
+---
+ drivers/interconnect/qcom/bcm-voter.c | 67 +++++++++++++++++++++++++--
+ drivers/interconnect/qcom/bcm-voter.h |  1 +
+ drivers/interconnect/qcom/icc-rpmh.c  |  6 ++-
+ drivers/interconnect/qcom/sc7180.c    | 39 +++++++++++++++-
+ 4 files changed, 106 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/interconnect/qcom/bcm-voter.c b/drivers/interconnect/qcom/bcm-voter.c
+index a2d437a05a11fa7325f944865c81a3ac7dbb203e..720f4eeae1769a611ec76e068710b39c5384f90b 100644
+--- a/drivers/interconnect/qcom/bcm-voter.c
++++ b/drivers/interconnect/qcom/bcm-voter.c
+@@ -4,6 +4,9 @@
+  */
+ 
+ #include <asm/div64.h>
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/property.h>
+ #include <linux/interconnect-provider.h>
+ #include <linux/list_sort.h>
+ #include <linux/module.h>
+@@ -228,7 +231,7 @@ struct bcm_voter *of_bcm_voter_get(struct device *dev, const char *name)
+ 
+ 	mutex_lock(&bcm_voter_lock);
+ 	list_for_each_entry(temp, &bcm_voters, voter_node) {
+-		if (temp->np == node) {
++		if (temp->np && temp->np == node) {
+ 			voter = temp;
+ 			break;
+ 		}
+@@ -240,6 +243,41 @@ struct bcm_voter *of_bcm_voter_get(struct device *dev, const char *name)
+ }
+ EXPORT_SYMBOL_GPL(of_bcm_voter_get);
+ 
++/* Firmware-node reference lookup for explicit non-OF consumers.
++ * The board must establish a supplier link and retain the voter lifetime.
++ */
++struct bcm_voter *qcom_bcm_voter_get(struct device *dev, const char *name)
++{
++	struct bcm_voter *voter = ERR_PTR(-EPROBE_DEFER), *candidate;
++	struct fwnode_handle *node;
++	int idx = 0;
++
++	if (!dev)
++		return ERR_PTR(-EINVAL);
++	if (dev->of_node)
++		return of_bcm_voter_get(dev, name);
++	if (name) {
++		idx = device_property_match_string(dev, "qcom,bcm-voter-names", name);
++		if (idx < 0)
++			return ERR_PTR(idx);
++	}
++	node = fwnode_find_reference(dev_fwnode(dev), "qcom,bcm-voters", idx);
++	if (IS_ERR(node))
++		return ERR_CAST(node);
++	mutex_lock(&bcm_voter_lock);
++	list_for_each_entry(candidate, &bcm_voters, voter_node) {
++		if (dev_fwnode(candidate->dev) == node &&
++		    device_is_bound(candidate->dev)) {
++			voter = candidate;
++			break;
++		}
++	}
++	mutex_unlock(&bcm_voter_lock);
++	fwnode_handle_put(node);
++	return voter;
++}
++EXPORT_SYMBOL_GPL(qcom_bcm_voter_get);
++
+ /**
+  * qcom_icc_bcm_voter_add - queues up the bcm nodes that require updates
+  * @voter: voter that the bcms are being added to
+@@ -367,11 +405,28 @@ int qcom_icc_bcm_voter_commit(struct bcm_voter *voter)
+ }
+ EXPORT_SYMBOL_GPL(qcom_icc_bcm_voter_commit);
+ 
++static void qcom_bcm_voter_unlist(void *data)
++{
++	struct bcm_voter *voter = data;
++
++	mutex_lock(&bcm_voter_lock);
++	list_del(&voter->voter_node);
++	mutex_unlock(&bcm_voter_lock);
++}
++
+ static int qcom_icc_bcm_voter_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+ 	struct bcm_voter *voter;
+ 
++	if (!np && (acpi_disabled || !pdev->dev.parent ||
++	    !dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    !dev_name(pdev->dev.parent) ||
++	    strcmp(dev_name(pdev->dev.parent), "rpmh") ||
++	    !device_property_read_bool(&pdev->dev, "qcom,tcl-acpi-display")))
++		return -ENODEV;
++
+ 	voter = devm_kzalloc(&pdev->dev, sizeof(*voter), GFP_KERNEL);
+ 	if (!voter)
+ 		return -ENOMEM;
+@@ -379,7 +434,7 @@ static int qcom_icc_bcm_voter_probe(struct platform_device *pdev)
+ 	voter->dev = &pdev->dev;
+ 	voter->np = np;
+ 
+-	if (of_property_read_u32(np, "qcom,tcs-wait", &voter->tcs_wait))
++	if (device_property_read_u32(&pdev->dev, "qcom,tcs-wait", &voter->tcs_wait))
+ 		voter->tcs_wait = QCOM_ICC_TAG_ACTIVE_ONLY;
+ 
+ 	mutex_init(&voter->lock);
+@@ -390,7 +445,7 @@ static int qcom_icc_bcm_voter_probe(struct platform_device *pdev)
+ 	list_add_tail(&voter->voter_node, &bcm_voters);
+ 	mutex_unlock(&bcm_voter_lock);
+ 
+-	return 0;
++	return devm_add_action_or_reset(&pdev->dev, qcom_bcm_voter_unlist, voter);
+ }
+ 
+ static const struct of_device_id bcm_voter_of_match[] = {
+@@ -399,7 +454,13 @@ static const struct of_device_id bcm_voter_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, bcm_voter_of_match);
+ 
++static const struct platform_device_id tcl_bcm_voter_ids[] = {
++	{ "tcl-bcm-voter" }, { }
++};
++MODULE_DEVICE_TABLE(platform, tcl_bcm_voter_ids);
++
+ static struct platform_driver qcom_icc_bcm_voter_driver = {
++	.id_table = tcl_bcm_voter_ids,
+ 	.probe = qcom_icc_bcm_voter_probe,
+ 	.driver = {
+ 		.name		= "bcm_voter",
+diff --git a/drivers/interconnect/qcom/bcm-voter.h b/drivers/interconnect/qcom/bcm-voter.h
+index b4d36e349f3c0dcedc26c83b015589e6c7753609..ced736bf07004f1ceb148da45551378cafecaf83 100644
+--- a/drivers/interconnect/qcom/bcm-voter.h
++++ b/drivers/interconnect/qcom/bcm-voter.h
+@@ -12,6 +12,7 @@
+ 
+ #include "icc-rpmh.h"
+ 
++struct bcm_voter *qcom_bcm_voter_get(struct device *dev, const char *name);
+ struct bcm_voter *of_bcm_voter_get(struct device *dev, const char *name);
+ void qcom_icc_bcm_voter_add(struct bcm_voter *voter, struct qcom_icc_bcm *bcm);
+ int qcom_icc_bcm_voter_commit(struct bcm_voter *voter);
+diff --git a/drivers/interconnect/qcom/icc-rpmh.c b/drivers/interconnect/qcom/icc-rpmh.c
+index 3b4c5abb9fab72c93b9889e331dd01b27d35175b..9c0494126e4690bc5afaf4d47941fc8030bc28d4 100644
+--- a/drivers/interconnect/qcom/icc-rpmh.c
++++ b/drivers/interconnect/qcom/icc-rpmh.c
+@@ -246,7 +246,9 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
+ 	size_t num_nodes, i, j;
+ 	int ret;
+ 
+-	desc = of_device_get_match_data(dev);
++	desc = device_get_match_data(dev);
++	if (!desc && !dev->of_node && platform_get_device_id(pdev))
++		desc = (const void *)platform_get_device_id(pdev)->driver_data;
+ 	if (!desc)
+ 		return -EINVAL;
+ 
+@@ -278,7 +280,7 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
+ 	qp->num_bcms = desc->num_bcms;
+ 	qp->num_nodes = desc->num_nodes;
+ 
+-	qp->voter = of_bcm_voter_get(qp->dev, NULL);
++	qp->voter = qcom_bcm_voter_get(qp->dev, NULL);
+ 	if (IS_ERR(qp->voter))
+ 		return PTR_ERR(qp->voter);
+ 
+diff --git a/drivers/interconnect/qcom/sc7180.c b/drivers/interconnect/qcom/sc7180.c
+index a2f5445c19541e5999052ef83c4ef33731645a0e..93035d2eb4fa22c0a2840412e718356c7a720481 100644
+--- a/drivers/interconnect/qcom/sc7180.c
++++ b/drivers/interconnect/qcom/sc7180.c
+@@ -5,6 +5,9 @@
+  */
+ 
+ #include <linux/device.h>
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/property.h>
+ #include <linux/interconnect.h>
+ #include <linux/interconnect-provider.h>
+ #include <linux/module.h>
+@@ -1790,13 +1793,45 @@ static const struct of_device_id qnoc_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, qnoc_of_match);
+ 
++static const struct platform_device_id tcl_qnoc_ids[] = {
++	{ "tcl-sc7180-mnoc", (kernel_ulong_t)&sc7180_mmss_noc },
++	{ "tcl-sc7180-gnoc", (kernel_ulong_t)&sc7180_gem_noc },
++	{ "tcl-sc7180-mc", (kernel_ulong_t)&sc7180_mc_virt },
++	{ "tcl-sc7180-snoc", (kernel_ulong_t)&sc7180_system_noc },
++	{ "tcl-sc7180-cnoc", (kernel_ulong_t)&sc7180_config_noc },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, tcl_qnoc_ids);
++
++static int sc7180_noc_probe(struct platform_device *pdev)
++{
++	if (!pdev->dev.of_node && (acpi_disabled || !pdev->dev.parent ||
++	    !dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    !dev_name(pdev->dev.parent) ||
++	    strcmp(dev_name(pdev->dev.parent), "rpmh") ||
++	    !device_property_read_bool(&pdev->dev, "qcom,tcl-acpi-display")))
++		return -ENODEV;
++	return qcom_icc_rpmh_probe(pdev);
++}
++
++static void sc7180_noc_sync_state(struct device *dev)
++{
++	/* Non-OF enumeration is incomplete: keep the ICC bootstrap floor.
++	 * This is not firmware bandwidth readback or final power management.
++	 */
++	if (dev->of_node)
++		icc_sync_state(dev);
++}
++
+ static struct platform_driver qnoc_driver = {
+-	.probe = qcom_icc_rpmh_probe,
++	.probe = sc7180_noc_probe,
++	.id_table = tcl_qnoc_ids,
+ 	.remove = qcom_icc_rpmh_remove,
+ 	.driver = {
+ 		.name = "qnoc-sc7180",
+ 		.of_match_table = qnoc_of_match,
+-		.sync_state = icc_sync_state,
++		.sync_state = sc7180_noc_sync_state,
+ 	},
+ };
+ module_platform_driver(qnoc_driver);

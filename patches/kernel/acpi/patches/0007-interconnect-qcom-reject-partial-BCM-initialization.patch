@@ -1,0 +1,87 @@
+From 029962f0f341de1b496378ccfc8c636723cac24a Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:42 +0300
+Subject: [PATCH 07/36] interconnect: qcom: reject partial BCM initialization
+
+BCM initialization can leave a nonzero address marking an incompletely
+initialized object, and the RPMh interconnect probe previously ignored
+initialization failures. Later consumers could therefore use partial
+command-database state.
+
+Validate the command database address, auxiliary data length and node
+BCM capacity before publishing shared state. Set bcm->addr only after
+validation and propagate each BCM initialization error from provider
+probe. This makes missing or malformed supplier data fail explicitly
+instead of treating the provider as ready.
+---
+ drivers/interconnect/qcom/icc-rpmh.c | 26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/interconnect/qcom/icc-rpmh.c b/drivers/interconnect/qcom/icc-rpmh.c
+index 3b445acefece7f1b3620ad921617694d2105e37f..3b4c5abb9fab72c93b9889e331dd01b27d35175b 100644
+--- a/drivers/interconnect/qcom/icc-rpmh.c
++++ b/drivers/interconnect/qcom/icc-rpmh.c
+@@ -148,14 +148,15 @@ int qcom_icc_bcm_init(struct qcom_icc_bcm *bcm, struct device *dev)
+ 	struct qcom_icc_node *qn;
+ 	const struct bcm_db *data;
+ 	size_t data_count;
+-	int i;
++	size_t i;
++	u32 addr;
+ 
+ 	/* BCM is already initialised*/
+ 	if (bcm->addr)
+ 		return 0;
+ 
+-	bcm->addr = cmd_db_read_addr(bcm->name);
+-	if (!bcm->addr) {
++	addr = cmd_db_read_addr(bcm->name);
++	if (!addr) {
+ 		dev_err(dev, "%s could not find RPMh address\n",
+ 			bcm->name);
+ 		return -EINVAL;
+@@ -167,12 +168,19 @@ int qcom_icc_bcm_init(struct qcom_icc_bcm *bcm, struct device *dev)
+ 			bcm->name, PTR_ERR(data));
+ 		return PTR_ERR(data);
+ 	}
+-	if (!data_count) {
++	if (data_count < sizeof(*data)) {
+ 		dev_err(dev, "%s command db missing or partial aux data\n",
+ 			bcm->name);
+ 		return -EINVAL;
+ 	}
+ 
++	/* Validate all links before changing shared BCM/node state. */
++	for (i = 0; i < bcm->num_nodes; i++) {
++		qn = bcm->nodes[i];
++		if (qn->num_bcms >= ARRAY_SIZE(qn->bcms))
++			return -ENOSPC;
++	}
++
+ 	bcm->aux_data.unit = le32_to_cpu(data->unit);
+ 	bcm->aux_data.width = le16_to_cpu(data->width);
+ 	bcm->aux_data.vcd = data->vcd;
+@@ -190,6 +198,8 @@ int qcom_icc_bcm_init(struct qcom_icc_bcm *bcm, struct device *dev)
+ 		qn->num_bcms++;
+ 	}
+ 
++	/* A nonzero address denotes a fully initialized BCM. */
++	bcm->addr = addr;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(qcom_icc_bcm_init);
+@@ -272,8 +282,12 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
+ 	if (IS_ERR(qp->voter))
+ 		return PTR_ERR(qp->voter);
+ 
+-	for (i = 0; i < qp->num_bcms; i++)
+-		qcom_icc_bcm_init(qp->bcms[i], dev);
++	for (i = 0; i < qp->num_bcms; i++) {
++		ret = qcom_icc_bcm_init(qp->bcms[i], dev);
++		if (ret)
++			return dev_err_probe(dev, ret, "Failed to initialize BCM %s\n",
++					     qp->bcms[i]->name);
++	}
+ 
+ 	for (i = 0; i < num_nodes; i++) {
+ 		qn = qnodes[i];

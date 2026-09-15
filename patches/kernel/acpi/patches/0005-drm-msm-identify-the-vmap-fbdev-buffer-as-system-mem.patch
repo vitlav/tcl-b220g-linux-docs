@@ -1,0 +1,31 @@
+From fea982d7f5dc2c9c4513872ff63bed7b3cc41401 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:42 +0300
+Subject: [PATCH 05/36] drm/msm: identify the vmap fbdev buffer as system
+ memory
+
+MSM fbdev obtains its framebuffer address by mapping GEM-backed
+system-memory pages with msm_gem_get_vaddr(). The framebuffer flags must
+describe that mapping consistently to the system-memory fbops.
+
+Set FBINFO_VIRTFB on the allocated fb_info before it is used by the
+framebuffer helpers. This identifies the vmap buffer as system memory
+rather than an MMIO framebuffer. It does not change the physical scanout
+allocation, panel mode or DMA mapping.
+---
+ drivers/gpu/drm/msm/msm_fbdev.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/drm/msm/msm_fbdev.c b/drivers/gpu/drm/msm/msm_fbdev.c
+index fd19995b12b585ed9aaf907513703f024a08c7cc..7c159fb8f1955ebd7cae011e0eca320dfaa5b2cd 100644
+--- a/drivers/gpu/drm/msm/msm_fbdev.c
++++ b/drivers/gpu/drm/msm/msm_fbdev.c
+@@ -140,6 +140,8 @@ int msm_fbdev_driver_fbdev_probe(struct drm_fb_helper *helper,
+ 		ret = PTR_ERR(fbi->screen_buffer);
+ 		goto fail;
+ 	}
++	/* msm_gem_get_vaddr maps system-memory pages for the sysmem fbops. */
++	fbi->flags |= FBINFO_VIRTFB;
+ 	fbi->screen_size = bo->size;
+ 	fbi->fix.smem_start = paddr;
+ 	fbi->fix.smem_len = bo->size;

@@ -15,7 +15,7 @@
 | [Перечень устройств](docs/hardware/device-summary.md) | Назначение блоков, MMIO, IRQ, GPIO, питание, драйверы |
 | [Полный DT](docs/hardware/full-inventory.md) | 738 узлов, включая pinctrl, OPP и регуляторы |
 | [Загрузка и восстановление доступа](docs/boot.md) | UEFI, GRUB, состав загрузочного комплекта и диагностика |
-| [ACPI на Linux 7.2.4](patches/kernel/acpi/README.md) | Полная серия из 58 патчей; применение проверено, пересборка снимка предстоит |
+| [ACPI на Linux 7.2.4](patches/kernel/acpi/README.md) | Полная серия из 36 патчей; применение проверено, пересборка снимка предстоит |
 | [Патчи DT](patches/kernel/dt/README.md) / [ACPI](patches/kernel/acpi/README.md) | Раздельные комплекты ядра и внешних модулей |
 | [Система DT](system/dt/README.md) / [ACPI](system/acpi/README.md) | Системные настройки и службы |
 | [Происхождение qc7](research/qc7-provenance/README.md) | Исходные коммиты и патчи до изменений TCL |

@@ -1,0 +1,57 @@
+From 949bade2d7df9255b1fb4fe8ce4fe8e4b20fa47a Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:42 +0300
+Subject: [PATCH 12/36] soc: qcom: define board-owned ACPI PAS and regulator
+ resources
+
+Board-created ACPI devices need to pass references that cannot be
+represented by the existing OF-only consumer setup. Define the shared
+platform-data structures before adding their producers and consumers.
+
+The PAS contract carries two proxy power-domain devices plus the GLINK
+firmware node and interrupt. The regulator contract carries the PMIC
+identity, an array of regulator descriptions, initialization data and
+the firmware-supply flag. Resource ownership remains with the board
+provider, which must keep those objects alive while the consumer uses
+them. This header does not register any hardware by itself.
+---
+ include/linux/platform_data/qcom-tcl-acpi.h | 30 +++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+ create mode 100644 include/linux/platform_data/qcom-tcl-acpi.h
+
+diff --git a/include/linux/platform_data/qcom-tcl-acpi.h b/include/linux/platform_data/qcom-tcl-acpi.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..13dc3f9a012062dd8fde0ea4d175bb3f79cf207b
+--- /dev/null
++++ b/include/linux/platform_data/qcom-tcl-acpi.h
+@@ -0,0 +1,30 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++#ifndef _QCOM_TCL_ACPI_PLATFORM_DATA_H
++#define _QCOM_TCL_ACPI_PLATFORM_DATA_H
++
++#include <linux/types.h>
++
++struct device;
++struct fwnode_handle;
++struct regulator_init_data;
++
++/* Board-owned resources must outlive the PAS consumer. */
++struct qcom_tcl_pas_data {
++	struct device *proxy_pds[2];
++	struct fwnode_handle *glink_node;
++	int glink_irq;
++};
++
++struct qcom_tcl_regulator {
++	const char *name;
++	struct regulator_init_data *init_data;
++	bool firmware_supply;
++};
++
++struct qcom_tcl_regulator_data {
++	const char *pmic_id;
++	const struct qcom_tcl_regulator *regulators;
++	unsigned int count;
++};
++
++#endif

@@ -1,0 +1,81 @@
+From 1e64f12b027b34a450aa49da23a546827e79e4c1 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:42 +0300
+Subject: [PATCH 06/36] interconnect: expose validated named path lookup to
+ consumers
+
+Non-OF platform consumers need to request an interconnect path by its
+provider-qualified endpoint names. The core lookup already exists, but
+is not exported for these consumers.
+
+Export icc_get() under GPL and declare it in the public interconnect
+header, including the disabled-configuration stub. Reject missing or
+empty source/destination names before lookup. Callers still own the
+returned path and must release it with icc_put(); this API does not
+supply bandwidth votes or guarantee that the requested providers are
+registered.
+---
+ drivers/interconnect/core.c     | 4 ++++
+ drivers/interconnect/internal.h | 1 -
+ include/linux/interconnect.h    | 7 +++++++
+ 3 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/interconnect/core.c b/drivers/interconnect/core.c
+index 4aa991a54101832c6126155196c0541edb0eb870..5d7c7de457c03094ff8fc76f00f3ef0c12cc8e6e 100644
+--- a/drivers/interconnect/core.c
++++ b/drivers/interconnect/core.c
+@@ -624,6 +624,9 @@ struct icc_path *icc_get(struct device *dev, const char *src, const char *dst)
+ 	struct icc_node *src_node, *dst_node;
+ 	struct icc_path *path = ERR_PTR(-EPROBE_DEFER);
+ 
++	if (!src || !*src || !dst || !*dst)
++		return ERR_PTR(-EINVAL);
++
+ 	mutex_lock(&icc_lock);
+ 
+ 	src_node = node_find_by_name(src);
+@@ -654,6 +657,7 @@ struct icc_path *icc_get(struct device *dev, const char *src, const char *dst)
+ 	mutex_unlock(&icc_lock);
+ 	return path;
+ }
++EXPORT_SYMBOL_GPL(icc_get);
+ 
+ /**
+  * icc_set_tag() - set an optional tag on a path
+diff --git a/drivers/interconnect/internal.h b/drivers/interconnect/internal.h
+index 3b9d50589c01a799ebf11446ce6122257c1f72ea..a28e73225fedbb80051de580e04ba9839d7607a2 100644
+--- a/drivers/interconnect/internal.h
++++ b/drivers/interconnect/internal.h
+@@ -41,7 +41,6 @@ struct icc_path {
+ 	struct icc_req reqs[] __counted_by(num_nodes);
+ };
+ 
+-struct icc_path *icc_get(struct device *dev, const char *src, const char *dst);
+ int icc_debugfs_client_init(struct dentry *icc_dir);
+ 
+ #endif
+diff --git a/include/linux/interconnect.h b/include/linux/interconnect.h
+index 75a32ad0482e2368de6bceef4ef795a7da775bc8..8d2526967d2afe0ec684bf35710a43ee9caeac13 100644
+--- a/include/linux/interconnect.h
++++ b/include/linux/interconnect.h
+@@ -43,6 +43,7 @@ struct icc_bulk_data {
+ 
+ #if IS_ENABLED(CONFIG_INTERCONNECT)
+ 
++struct icc_path *icc_get(struct device *dev, const char *src, const char *dst);
+ struct icc_path *of_icc_get(struct device *dev, const char *name);
+ struct icc_path *devm_of_icc_get(struct device *dev, const char *name);
+ int devm_of_icc_bulk_get(struct device *dev, int num_paths, struct icc_bulk_data *paths);
+@@ -63,6 +64,12 @@ void icc_bulk_disable(int num_paths, const struct icc_bulk_data *paths);
+ 
+ #else
+ 
++static inline struct icc_path *icc_get(struct device *dev, const char *src,
++				       const char *dst)
++{
++	return NULL;
++}
++
+ static inline struct icc_path *of_icc_get(struct device *dev,
+ 					  const char *name)
+ {

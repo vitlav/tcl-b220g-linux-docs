@@ -1,0 +1,61 @@
+From 6fb31467e9ce275409956e6f6ddcdc97808078a5 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:42 +0300
+Subject: [PATCH 04/36] drm/msm: initialize pagetable ownership before fallible
+ allocation
+
+Pagetable allocation and cleanup may invoke TLB callbacks before
+construction completes. Initialize the parent and TLB pointers before
+alloc_io_pgtable_ops() can enter an error path.
+
+Treat both zero and negative pm_runtime_get_if_in_use() results as
+failure to acquire a live controller, and skip TLB register access in
+that case. This preserves cleanup invariants independently of the TCL
+board glue. It does not add power-domain ownership or establish complete
+GPU recovery coverage.
+---
+ drivers/gpu/drm/msm/msm_iommu.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpu/drm/msm/msm_iommu.c b/drivers/gpu/drm/msm/msm_iommu.c
+index 897e42c8d5c847031197088796aa2af890749678..b01ef287083262bc1c0ee28e805107498d74b06a 100644
+--- a/drivers/gpu/drm/msm/msm_iommu.c
++++ b/drivers/gpu/drm/msm/msm_iommu.c
+@@ -453,7 +453,7 @@ static void msm_iommu_tlb_flush_all(void *cookie)
+ 	struct msm_iommu_pagetable *pagetable = cookie;
+ 	struct adreno_smmu_priv *adreno_smmu;
+ 
+-	if (!pm_runtime_get_if_in_use(pagetable->iommu_dev))
++	if (pm_runtime_get_if_in_use(pagetable->iommu_dev) <= 0)
+ 		return;
+ 
+ 	adreno_smmu = dev_get_drvdata(pagetable->parent->dev);
+@@ -469,7 +469,7 @@ static void msm_iommu_tlb_flush_walk(unsigned long iova, size_t size,
+ 	struct msm_iommu_pagetable *pagetable = cookie;
+ 	struct adreno_smmu_priv *adreno_smmu;
+ 
+-	if (!pm_runtime_get_if_in_use(pagetable->iommu_dev))
++	if (pm_runtime_get_if_in_use(pagetable->iommu_dev) <= 0)
+ 		return;
+ 
+ 	adreno_smmu = dev_get_drvdata(pagetable->parent->dev);
+@@ -567,6 +567,9 @@ struct msm_mmu *msm_iommu_pagetable_create(struct msm_mmu *parent, bool kernel_m
+ 		ttbr0_cfg.pgsize_bitmap = PAGE_SIZE;
+ 	}
+ 
++	/* alloc/free_io_pgtable_ops can invoke TLB callbacks on error paths. */
++	pagetable->parent = parent;
++	pagetable->tlb = ttbr1_cfg->tlb;
+ 	pagetable->iommu_dev = ttbr1_cfg->iommu_dev;
+ 	pagetable->pgtbl_ops = alloc_io_pgtable_ops(ARM_64_LPAE_S1,
+ 		&ttbr0_cfg, pagetable);
+@@ -612,9 +615,6 @@ struct msm_mmu *msm_iommu_pagetable_create(struct msm_mmu *parent, bool kernel_m
+ 	}
+ 	mutex_unlock(&iommu->init_lock);
+ 
+-	/* Needed later for TLB flush */
+-	pagetable->parent = parent;
+-	pagetable->tlb = ttbr1_cfg->tlb;
+ 	pagetable->pgsize_bitmap = ttbr0_cfg.pgsize_bitmap;
+ 	pagetable->ttbr = ttbr0_cfg.arm_lpae_s1_cfg.ttbr;
+ 

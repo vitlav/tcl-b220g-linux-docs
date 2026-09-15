@@ -1,0 +1,472 @@
+From 05b3333cb504c2f97b815d22acacf3633bb70c49 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:41:43 +0300
+Subject: [PATCH 29/36] ASoC: qdsp6: populate firmware-described TCL audio
+ services
+
+Q6ADM, Q6AFE and Q6ASM expose their child DAIs and clocks through OF
+population. On the ACPI path those services exist under software nodes
+and need explicit child construction and resource checks.
+
+Populate recognized Q6AFE children and the opted-in Q6ASM DAI with
+managed cleanup, parse DAI data through firmware properties, and require
+usable translated DMA for the PCM consumer. Add clock platform matches,
+validate non-OF clock attributes and publish explicit Q6AFE aliases.
+Preserve the OF path and reject incomplete child descriptions. These
+changes register DSP services and their clocks; a machine card and mixer
+routes are still required for audible playback.
+---
+ sound/soc/qcom/qdsp6/q6adm.c              |  3 +-
+ sound/soc/qcom/qdsp6/q6afe-clocks.c       |  7 +++
+ sound/soc/qcom/qdsp6/q6afe.c              | 75 ++++++++++++++++++++++-
+ sound/soc/qcom/qdsp6/q6asm-dai.c          | 62 +++++++++++++------
+ sound/soc/qcom/qdsp6/q6asm.c              | 38 +++++++++++-
+ sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c | 75 +++++++++++++++++++++--
+ 6 files changed, 235 insertions(+), 25 deletions(-)
+
+diff --git a/sound/soc/qcom/qdsp6/q6adm.c b/sound/soc/qcom/qdsp6/q6adm.c
+index db0ae71f29831fbbd04d68cdf0551523d4ea231d..fda64156da010c3148104430dc3e98b3c654b92d 100644
+--- a/sound/soc/qcom/qdsp6/q6adm.c
++++ b/sound/soc/qcom/qdsp6/q6adm.c
+@@ -584,7 +584,8 @@ static int q6adm_probe(struct apr_device *adev)
+ 	INIT_LIST_HEAD(&adm->copps_list);
+ 	spin_lock_init(&adm->copps_list_lock);
+ 
+-	return devm_of_platform_populate(dev);
++	/* ACPI board wiring registers the DAI/clock children separately. */
++	return dev->of_node ? devm_of_platform_populate(dev) : 0;
+ }
+ 
+ #ifdef CONFIG_OF
+diff --git a/sound/soc/qcom/qdsp6/q6afe-clocks.c b/sound/soc/qcom/qdsp6/q6afe-clocks.c
+index 84b9018c36bab39d214a7392cfee0900db07a820..7095d41eeae10b5600a166b084546d44971147a1 100644
+--- a/sound/soc/qcom/qdsp6/q6afe-clocks.c
++++ b/sound/soc/qcom/qdsp6/q6afe-clocks.c
+@@ -107,7 +107,14 @@ static const struct of_device_id q6afe_clock_device_id[] = {
+ MODULE_DEVICE_TABLE(of, q6afe_clock_device_id);
+ #endif
+ 
++static const struct platform_device_id q6afe_clock_platform_ids[] = {
++	{ "q6afe-clock", (kernel_ulong_t)&q6dsp_clk_q6afe },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, q6afe_clock_platform_ids);
++
+ static struct platform_driver q6afe_clock_platform_driver = {
++	.id_table = q6afe_clock_platform_ids,
+ 	.driver = {
+ 		.name = "q6afe-clock",
+ 		.of_match_table = of_match_ptr(q6afe_clock_device_id),
+diff --git a/sound/soc/qcom/qdsp6/q6afe.c b/sound/soc/qcom/qdsp6/q6afe.c
+index 40237267fda051b07043ff2a9437ab33aba18361..d28ffeede9dc3969791b2893ec5847f34dfb155d 100644
+--- a/sound/soc/qcom/qdsp6/q6afe.c
++++ b/sound/soc/qcom/qdsp6/q6afe.c
+@@ -13,6 +13,7 @@
+ #include <linux/kref.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
++#include <linux/property.h>
+ #include <linux/spinlock.h>
+ #include <linux/delay.h>
+ #include <linux/soc/qcom/apr.h>
+@@ -1904,6 +1905,76 @@ int q6afe_vote_lpass_core_hw(struct device *dev, uint32_t hw_block_id,
+ }
+ EXPORT_SYMBOL(q6afe_vote_lpass_core_hw);
+ 
++static void q6afe_unregister_child(void *data)
++{
++	platform_device_unregister(data);
++}
++
++static int q6afe_populate_software_children(struct device *dev)
++{
++	int ret;
++
++	device_for_each_child_node_scoped(dev, node) {
++		struct platform_device_info info = {
++			.id = PLATFORM_DEVID_AUTO,
++			.parent = dev,
++			.fwnode = node,
++		};
++		struct resource res[2];
++		u64 base, size;
++		struct platform_device *child;
++
++		if (!is_software_node(node))
++			continue;
++		if (fwnode_property_match_string(node, "compatible", "qcom,q6afe-clocks") >= 0)
++			info.name = "q6afe-clock";
++		else if (fwnode_property_match_string(node, "compatible", "qcom,q6afe-dais") >= 0)
++			info.name = "q6afe-dai";
++		else if (fwnode_property_match_string(node, "compatible",
++							      "qcom,sc7280-lpass-va-macro") >= 0)
++			info.name = "tcl-sc7280-va";
++		else if (fwnode_property_match_string(node, "compatible",
++							      "qcom,sc7280-lpass-rx-macro") >= 0)
++			info.name = "tcl-sc7280-rx";
++		else if (fwnode_property_match_string(node, "compatible",
++							      "qcom,sc7280-lpass-tx-macro") >= 0)
++			info.name = "tcl-sc7280-tx";
++		else if (fwnode_property_match_string(node, "compatible",
++							      "qcom,soundwire-v1.5.1") >= 0)
++			info.name = fwnode_property_match_string(node, "label", "RX") >= 0 ?
++				"tcl-swr-rx" : "tcl-swr-tx";
++		else
++			continue;
++
++		if (info.name[0] == 't') {
++			if (fwnode_property_read_u64(node, "reg-base", &base) ||
++			    fwnode_property_read_u64(node, "reg-size", &size) ||
++			    !size || base > U64_MAX - size)
++				return -EINVAL;
++			res[0] = DEFINE_RES_MEM(base, size);
++			info.id = PLATFORM_DEVID_NONE;
++			info.res = res;
++			info.num_res = 1;
++		}
++		if (!strncmp(info.name, "tcl-swr-", 8)) {
++			u32 irq;
++
++			if (fwnode_property_read_u32(node, "irq", &irq))
++				return -EINVAL;
++			res[1] = DEFINE_RES_IRQ(irq);
++			info.num_res = 2;
++		}
++
++		child = platform_device_register_full(&info);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++		ret = devm_add_action_or_reset(dev, q6afe_unregister_child, child);
++		if (ret)
++			return ret;
++	}
++	return 0;
++}
++
+ static int q6afe_probe(struct apr_device *adev)
+ {
+ 	struct q6afe *afe;
+@@ -1923,7 +1994,9 @@ static int q6afe_probe(struct apr_device *adev)
+ 
+ 	dev_set_drvdata(dev, afe);
+ 
+-	return devm_of_platform_populate(dev);
++	/* Keep Q6AFE as the parent required by DSP clock and port commands. */
++	return dev->of_node ? devm_of_platform_populate(dev) :
++		q6afe_populate_software_children(dev);
+ }
+ 
+ #ifdef CONFIG_OF
+diff --git a/sound/soc/qcom/qdsp6/q6asm-dai.c b/sound/soc/qcom/qdsp6/q6asm-dai.c
+index 4f09fdd409058475589a0fa9a7629d3fef029e0b..51bf0968ab3e9e211e1faacbd66e5b0ba5c72a83 100644
+--- a/sound/soc/qcom/qdsp6/q6asm-dai.c
++++ b/sound/soc/qcom/qdsp6/q6asm-dai.c
+@@ -7,6 +7,8 @@
+ #include <linux/err.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/property.h>
++#include <linux/iommu.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <sound/soc.h>
+@@ -1248,18 +1250,19 @@ static const struct snd_soc_dai_ops q6asm_dai_ops = {
+ 	.compress_new = snd_soc_new_compress,
+ };
+ 
+-static int of_q6asm_parse_dai_data(struct device *dev,
++static int q6asm_parse_dai_data(struct device *dev,
+ 				    struct q6asm_dai_data *pdata)
+ {
+ 	struct snd_soc_dai_driver *dai_drv;
+ 	struct snd_soc_pcm_stream empty_stream;
+-	struct device_node *node;
+-	int ret, id, dir, idx = 0;
++	DECLARE_BITMAP(seen, MAX_SESSIONS) = { 0 };
++	u32 id, dir;
++	int ret, idx = 0;
+ 
+ 
+-	pdata->num_dais = of_get_child_count(dev->of_node);
++	pdata->num_dais = device_get_child_node_count(dev);
+ 	if (!pdata->num_dais) {
+-		dev_err(dev, "No dais found in DT\n");
++		dev_err(dev, "No DAIs found in firmware properties\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1270,17 +1273,19 @@ static int of_q6asm_parse_dai_data(struct device *dev,
+ 
+ 	memset(&empty_stream, 0, sizeof(empty_stream));
+ 
+-	for_each_child_of_node(dev->of_node, node) {
+-		ret = of_property_read_u32(node, "reg", &id);
+-		if (ret || id >= MAX_SESSIONS || id < 0) {
+-			dev_err(dev, "valid dai id not found:%d\n", ret);
+-			continue;
++	device_for_each_child_node_scoped(dev, node) {
++		ret = fwnode_property_read_u32(node, "reg", &id);
++		if (ret || id >= MAX_SESSIONS) {
++			return dev_err_probe(dev, ret ? ret : -EINVAL, "Invalid DAI ID\n");
+ 		}
+ 
++		if (test_and_set_bit(id, seen))
++			return dev_err_probe(dev, -EINVAL, "Duplicate DAI ID %u\n", id);
++
+ 		dai_drv = &pdata->dais[idx++];
+ 		*dai_drv = q6asm_fe_dais_template[id];
+ 
+-		ret = of_property_read_u32(node, "direction", &dir);
++		ret = fwnode_property_read_u32(node, "direction", &dir);
+ 		if (ret)
+ 			continue;
+ 
+@@ -1289,7 +1294,7 @@ static int of_q6asm_parse_dai_data(struct device *dev,
+ 		else if (dir == Q6ASM_DAI_TX)
+ 			dai_drv->playback = empty_stream;
+ 
+-		if (of_property_read_bool(node, "is-compress-dai"))
++		if (fwnode_property_read_bool(node, "is-compress-dai"))
+ 			dai_drv->ops = &q6asm_dai_ops;
+ 	}
+ 
+@@ -1308,15 +1313,29 @@ static int q6asm_dai_probe(struct platform_device *pdev)
+ 	if (!pdata)
+ 		return -ENOMEM;
+ 
+-	rc = of_parse_phandle_with_fixed_args(node, "iommus", 1, 0, &args);
+-	if (rc < 0)
+-		pdata->sid = -1;
+-	else
+-		pdata->sid = args.args[0] & SID_MASK_DEFAULT;
++	if (node) {
++		rc = of_parse_phandle_with_fixed_args(node, "iommus", 1, 0, &args);
++		if (rc < 0) {
++			pdata->sid = -1;
++		} else {
++			pdata->sid = args.args[0] & SID_MASK_DEFAULT;
++			of_node_put(args.np);
++		}
++	} else {
++		struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
++		struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
++
++		/* Board wiring must attach the audio DMA stream before probing. */
++		if (!fwspec || !domain)
++			return dev_err_probe(dev, -EPROBE_DEFER, "Audio IOMMU not attached\n");
++		if (fwspec->num_ids != 1 || !(domain->type & __IOMMU_DOMAIN_PAGING))
++			return dev_err_probe(dev, -EINVAL, "Invalid audio IOMMU configuration\n");
++		pdata->sid = fwspec->ids[0] & SID_MASK_DEFAULT;
++	}
+ 
+ 	dev_set_drvdata(dev, pdata);
+ 
+-	rc = of_q6asm_parse_dai_data(dev, pdata);
++	rc = q6asm_parse_dai_data(dev, pdata);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -1332,7 +1351,14 @@ static const struct of_device_id q6asm_dai_device_id[] = {
+ MODULE_DEVICE_TABLE(of, q6asm_dai_device_id);
+ #endif
+ 
++static const struct platform_device_id q6asm_dai_platform_ids[] = {
++	{ "tcl-q6asm-dai" },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, q6asm_dai_platform_ids);
++
+ static struct platform_driver q6asm_dai_platform_driver = {
++	.id_table = q6asm_dai_platform_ids,
+ 	.driver = {
+ 		.name = "q6asm-dai",
+ 		.of_match_table = of_match_ptr(q6asm_dai_device_id),
+diff --git a/sound/soc/qcom/qdsp6/q6asm.c b/sound/soc/qcom/qdsp6/q6asm.c
+index de0bd8fd08eeb84777e0127f2fe0ba7c5729782d..13ee91767588eb05d83a29f605a74c8282ff5b18 100644
+--- a/sound/soc/qcom/qdsp6/q6asm.c
++++ b/sound/soc/qcom/qdsp6/q6asm.c
+@@ -10,6 +10,9 @@
+ #include <linux/soc/qcom/apr.h>
+ #include <linux/device.h>
+ #include <linux/of_platform.h>
++#include <linux/platform_device.h>
++#include <linux/property.h>
++#include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
+ #include <linux/kref.h>
+ #include <linux/of.h>
+@@ -1645,6 +1648,38 @@ int q6asm_cmd_nowait(struct audio_client *ac, uint32_t stream_id, int cmd)
+ }
+ EXPORT_SYMBOL_GPL(q6asm_cmd_nowait);
+ 
++static void q6asm_unregister_child(void *data)
++{
++	platform_device_unregister(data);
++}
++
++static int q6asm_populate_software_dai(struct device *dev)
++{
++	struct fwnode_handle *node;
++	struct platform_device *child;
++	struct platform_device_info info = {
++		.name = "tcl-q6asm-dai", .id = PLATFORM_DEVID_NONE,
++		.parent = dev,
++		/* q6asm_dai packs the SID into bits 35:32 of this address. */
++		.dma_mask = DMA_BIT_MASK(32),
++	};
++
++	node = device_get_named_child_node(dev, "dais");
++	if (!node)
++		return 0;
++	if (!is_software_node(node) ||
++	    !fwnode_property_read_bool(node, "qcom,tcl-acpi-audio")) {
++		fwnode_handle_put(node);
++		return -EINVAL;
++	}
++	info.fwnode = node;
++	child = platform_device_register_full(&info);
++	fwnode_handle_put(node);
++	if (IS_ERR(child))
++		return PTR_ERR(child);
++	return devm_add_action_or_reset(dev, q6asm_unregister_child, child);
++}
++
+ static int q6asm_probe(struct apr_device *adev)
+ {
+ 	struct device *dev = &adev->dev;
+@@ -1662,7 +1697,8 @@ static int q6asm_probe(struct apr_device *adev)
+ 	spin_lock_init(&q6asm->slock);
+ 	dev_set_drvdata(dev, q6asm);
+ 
+-	return devm_of_platform_populate(dev);
++	return dev->of_node ? devm_of_platform_populate(dev) :
++		q6asm_populate_software_dai(dev);
+ }
+ 
+ #ifdef CONFIG_OF
+diff --git a/sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c b/sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c
+index 03838582aeade389d9a2d90cf9f03fad835f0733..f826596bf2aec2875748e862e43e95a473e35ad0 100644
+--- a/sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c
++++ b/sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c
+@@ -4,9 +4,13 @@
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/clk-provider.h>
++#include <linux/clkdev.h>
++#include <linux/property.h>
+ #include <linux/module.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
++#include <linux/property.h>
++#include <linux/string.h>
+ #include <linux/of.h>
+ #include <linux/slab.h>
+ #include <dt-bindings/sound/qcom,q6dsp-lpass-ports.h>
+@@ -132,16 +136,28 @@ int q6dsp_clock_dev_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	const struct q6dsp_clk_init *q6dsp_clks;
+ 	const struct q6dsp_clk_desc *desc;
++	u32 attributes = LPASS_CLK_ATTRIBUTE_COUPLE_NO;
+ 	int i, ret;
+ 
+ 	cc = devm_kzalloc(dev, sizeof(*cc), GFP_KERNEL);
+ 	if (!cc)
+ 		return -ENOMEM;
+ 
+-	desc = of_device_get_match_data(&pdev->dev);
++	desc = device_get_match_data(dev);
++	if (!desc && platform_get_device_id(pdev))
++		desc = (const void *)platform_get_device_id(pdev)->driver_data;
+ 	if (!desc)
+ 		return -EINVAL;
+ 
++	if (!dev->of_node && device_property_present(dev, "qcom,clock-attribute")) {
++		ret = device_property_read_u32(dev, "qcom,clock-attribute", &attributes);
++		if (ret)
++			return ret;
++		if (attributes < LPASS_CLK_ATTRIBUTE_COUPLE_NO ||
++		    attributes > LPASS_CLK_ATTRIBUTE_COUPLE_DIVISOR)
++			return -EINVAL;
++	}
++
+ 	cc->desc = desc;
+ 	cc->dev = dev;
+ 	q6dsp_clks = desc->clks;
+@@ -153,11 +169,16 @@ int q6dsp_clock_dev_probe(struct platform_device *pdev)
+ 		};
+ 		struct q6dsp_clk *clk;
+ 
++		if (id >= Q6DSP_MAX_CLK_ID || cc->clks[id])
++			return -EINVAL;
++
+ 		clk = devm_kzalloc(dev, sizeof(*clk), GFP_KERNEL);
+ 		if (!clk)
+ 			return -ENOMEM;
+ 
+ 		clk->dev = dev;
++		if (!dev->of_node)
++			clk->attributes = attributes;
+ 		clk->q6dsp_clk_id = q6dsp_clks[i].q6dsp_clk_id;
+ 		clk->rate = q6dsp_clks[i].rate;
+ 		clk->hw.init = &init;
+@@ -172,11 +193,57 @@ int q6dsp_clock_dev_probe(struct platform_device *pdev)
+ 		ret = devm_clk_hw_register(dev, &clk->hw);
+ 		if (ret)
+ 			return ret;
++		/* clkdev stores connection IDs in a 16-byte field.  Long Q6AFE
++		 * clock names cannot be looked up by this mechanism; software-node
++		 * consumers use the explicit short aliases below instead.
++		 */
++		if (!dev->of_node && strlen(q6dsp_clks[i].name) < 16) {
++			ret = devm_clk_hw_register_clkdev(dev, &clk->hw,
++						 q6dsp_clks[i].name, dev_name(dev));
++			if (ret)
++				return ret;
++		}
+ 	}
+ 
+-	ret = devm_of_clk_add_hw_provider(dev, q6dsp_of_clk_hw_get, cc);
+-	if (ret)
+-		return ret;
++	/* Software-node users cannot express a DT clock phandle.  Allow the
++	 * provider node to declare explicit clkdev aliases as triples
++	 * (provider-clock-name, consumer-device-name, consumer-clock-name).
++	 * This keeps aliases attached to the APR/Q6AFE provider and avoids
++	 * guessing a platform-device number from outside the APR bus. */
++	if (!dev->of_node) {
++		int n = device_property_read_string_array(dev, "qcom,clock-aliases",
++								NULL, 0);
++		const char *aliases[48];
++
++		if (n < 0 && n != -EINVAL)
++			return n;
++		if (n % 3 || n > ARRAY_SIZE(aliases))
++			return -EINVAL;
++		if (n && device_property_read_string_array(dev, "qcom,clock-aliases",
++								aliases, n) != n)
++			return -EINVAL;
++		for (i = 0; i < n; i += 3) {
++			int j;
++			struct q6dsp_clk *match = NULL;
++			for (j = 0; j < desc->num_clks; j++)
++				if (!strcmp(desc->clks[j].name, aliases[i])) {
++					match = cc->clks[desc->clks[j].clk_id];
++					break;
++				}
++			if (!match)
++				return -ENOENT;
++			ret = devm_clk_hw_register_clkdev(dev, &match->hw,
++							  aliases[i + 2], aliases[i + 1]);
++			if (ret)
++				return ret;
++		}
++	}
++
++	if (dev->of_node) {
++		ret = devm_of_clk_add_hw_provider(dev, q6dsp_of_clk_hw_get, cc);
++		if (ret)
++			return ret;
++	}
+ 
+ 	dev_set_drvdata(dev, cc);
+ 
