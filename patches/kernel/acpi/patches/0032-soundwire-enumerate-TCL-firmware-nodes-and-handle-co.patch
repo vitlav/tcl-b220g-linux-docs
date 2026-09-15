@@ -1,7 +1,7 @@
-From c10368649a65bcd432b2345ca486484e9b600f4f Mon Sep 17 00:00:00 2001
+From 65745ca21cd9422d85b60992c56a78a9d7f4b54c Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 31/36] soundwire: enumerate TCL firmware nodes and handle
+Subject: [PATCH 32/37] soundwire: enumerate TCL firmware nodes and handle
  controller rebinding
 
 The supplemental SoundWire masters describe port configuration and codec

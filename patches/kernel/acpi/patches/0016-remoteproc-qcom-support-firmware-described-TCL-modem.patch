@@ -1,7 +1,7 @@
-From b2e40eaa2ff540e1ada8b8fbc7ba75ad6dbfb990 Mon Sep 17 00:00:00 2001
+From ac2c1f7d6aabdc7140feeb2540afd0fd5c7cde71 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 16/36] remoteproc: qcom: support firmware-described TCL modem
+Subject: [PATCH 16/37] remoteproc: qcom: support firmware-described TCL modem
  and ADSP
 
 The modem and ADSP supplemental PAS devices need named memory, proxy

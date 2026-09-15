@@ -1,7 +1,7 @@
-From 42f2cc726664a48a5d7b5be7ed4b20452b0348f1 Mon Sep 17 00:00:00 2001
+From f8c7009045bb8912ee9d160feafa0136fe9da095 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 36/36] arm64: record TCL ACPI diagnostic and display
+Subject: [PATCH 37/37] arm64: record TCL ACPI diagnostic and display
  configurations
 
 Record the diagnostic and display ARM64 configurations used with the TCL

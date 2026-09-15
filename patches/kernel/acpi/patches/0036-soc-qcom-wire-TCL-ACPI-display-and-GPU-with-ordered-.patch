@@ -1,7 +1,7 @@
-From f79f557ad900d1ac840bd89ac3cec4f8fa07373e Mon Sep 17 00:00:00 2001
+From b4900668dec9369cc4fae62bd32152668f2afabb Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 35/36] soc: qcom: wire TCL ACPI display and GPU with ordered
+Subject: [PATCH 36/37] soc: qcom: wire TCL ACPI display and GPU with ordered
  firmware handoff
 
 Generic driver adaptations do not instantiate the supplemental Linux

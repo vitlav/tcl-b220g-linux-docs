@@ -1,7 +1,7 @@
-From 9e1cabd53c0ded66d9f99aa62d7af8eead31957c Mon Sep 17 00:00:00 2001
+From 594f79dc3fba7d54deb3f780d62a3c2e5f839578 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 19/36] pinctrl: qcom: describe bounded TCL ACPI input and
+Subject: [PATCH 19/37] pinctrl: qcom: describe bounded TCL ACPI input and
  speaker GPIOs
 
 ACPI GIO0 exposes one TLMM window for three tiles, while Linux normally

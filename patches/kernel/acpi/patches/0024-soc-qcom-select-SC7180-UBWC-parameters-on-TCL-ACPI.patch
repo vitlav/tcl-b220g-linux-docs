@@ -1,7 +1,7 @@
-From 75ad194ac178eb5169c39493ba3f4683d43fef98 Mon Sep 17 00:00:00 2001
+From 97fde6f0125b34c9528d5657e29d9bfd014b12b1 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 23/36] soc: qcom: select SC7180 UBWC parameters on TCL ACPI
+Subject: [PATCH 24/37] soc: qcom: select SC7180 UBWC parameters on TCL ACPI
 
 UBWC configuration selection normally uses the DT root compatible. An
 ACPI boot has no OF root, although the TCL display and GPU still require

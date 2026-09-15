@@ -1,7 +1,7 @@
-From 974dc2d1e6385fd5dedbc2672323a4fa9423f618 Mon Sep 17 00:00:00 2001
+From af291499a718fa98913a55f8e5ad2a8057c32819 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 24/36] drm: discover bridges and DSI devices through firmware
+Subject: [PATCH 25/37] drm: discover bridges and DSI devices through firmware
  nodes
 
 Software-node display graphs need to identify DRM bridges and MIPI DSI

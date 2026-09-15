@@ -1,7 +1,7 @@
-From 4cebfb4f9308499befa3f6b7909604a75aa63c78 Mon Sep 17 00:00:00 2001
+From e36a3033e473b19401a110324a0e7079064adcee Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 21/36] clk: qcom: provide bounded TCL display and GPU clock
+Subject: [PATCH 21/37] clk: qcom: provide bounded TCL display and GPU clock
  trees
 
 The ACPI display/GPU devices need explicit GCC, DISPCC, GPUCC and GDSC
@@ -18,13 +18,13 @@ replacement for the SoC DT clock topology.
 ---
  drivers/clk/qcom/common.c                     |  31 ++-
  drivers/clk/qcom/common.h                     |   2 +
- drivers/clk/qcom/dispcc-sc7180.c              |  82 +++++++-
+ drivers/clk/qcom/dispcc-sc7180.c              |  73 ++++++-
  drivers/clk/qcom/gcc-sc7180.c                 | 197 ++++++++++++++++++
  drivers/clk/qcom/gdsc.c                       |  25 +++
  drivers/clk/qcom/gdsc.h                       |   1 +
  drivers/clk/qcom/gpucc-sc7180.c               |  73 ++++++-
  include/linux/platform_data/qcom-tcl-clkdev.h |  66 ++++++
- 8 files changed, 468 insertions(+), 9 deletions(-)
+ 8 files changed, 459 insertions(+), 9 deletions(-)
  create mode 100644 include/linux/platform_data/qcom-tcl-clkdev.h
 
 diff --git a/drivers/clk/qcom/common.c b/drivers/clk/qcom/common.c
@@ -123,7 +123,7 @@ index 6f2406f8839e8f432ef34ce32c930cf045f6ae7a..59065eceaddea7c5ba0b0443b21be494
  };
  
 diff --git a/drivers/clk/qcom/dispcc-sc7180.c b/drivers/clk/qcom/dispcc-sc7180.c
-index ae98fe4dcfb2b777e016cfe0de1149a02df9d9bc..850cfcf0b58b0dd0a4a2e29ebba5063c22c223c1 100644
+index ae98fe4dcfb2b777e016cfe0de1149a02df9d9bc..2dd1227f583af0591f1cd4d198c8d3107dc00abd 100644
 --- a/drivers/clk/qcom/dispcc-sc7180.c
 +++ b/drivers/clk/qcom/dispcc-sc7180.c
 @@ -3,6 +3,10 @@
@@ -157,7 +157,7 @@ index ae98fe4dcfb2b777e016cfe0de1149a02df9d9bc..850cfcf0b58b0dd0a4a2e29ebba5063c
  };
  
  static const struct freq_tbl ftbl_disp_cc_mdss_ahb_clk_src[] = {
-@@ -704,15 +710,76 @@ static const struct of_device_id disp_cc_sc7180_match_table[] = {
+@@ -704,10 +710,62 @@ static const struct of_device_id disp_cc_sc7180_match_table[] = {
  };
  MODULE_DEVICE_TABLE(of, disp_cc_sc7180_match_table);
  
@@ -220,21 +220,7 @@ index ae98fe4dcfb2b777e016cfe0de1149a02df9d9bc..850cfcf0b58b0dd0a4a2e29ebba5063c
  
  	regmap = qcom_cc_map(pdev, &disp_cc_sc7180_desc);
  	if (IS_ERR(regmap))
- 		return PTR_ERR(regmap);
- 
-+	/* Firmware may leave ROT running; stop it before MDSS power cycling. */
-+	if (!pdev->dev.of_node) {
-+		ret = regmap_update_bits(regmap,
-+					disp_cc_mdss_rot_clk.clkr.enable_reg,
-+					disp_cc_mdss_rot_clk.clkr.enable_mask, 0);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	/* 1380MHz configuration */
- 	disp_cc_pll_config.l = 0x47;
- 	disp_cc_pll_config.alpha = 0xe000;
-@@ -721,11 +788,20 @@ static int disp_cc_sc7180_probe(struct platform_device *pdev)
+@@ -721,11 +779,20 @@ static int disp_cc_sc7180_probe(struct platform_device *pdev)
  
  	clk_fabia_pll_configure(&disp_cc_pll0, regmap, &disp_cc_pll_config);
  

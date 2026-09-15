@@ -1,7 +1,7 @@
-From e7ad290c398b1f805db81e8b53fe9fcceb49491d Mon Sep 17 00:00:00 2001
+From a274b4901128db6a2979a1729cfdaa70ce614298 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 13/36] soc: qcom: describe SMEM locks mailboxes and SMP2P with
+Subject: [PATCH 13/37] soc: qcom: describe SMEM locks mailboxes and SMP2P with
  firmware nodes
 
 SMEM, hardware locks, APCS mailboxes and SMP2P must be usable from the

@@ -1,7 +1,7 @@
-From 75173bfe20d32903c10dba234767dd49befdd8a9 Mon Sep 17 00:00:00 2001
+From 30ca50654d6a2a6898fe874c3d67ea16aa9a4b8b Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:41 +0300
-Subject: [PATCH 01/36] ACPI: omit PCI default address space when PCI is
+Subject: [PATCH 01/37] ACPI: omit PCI default address space when PCI is
  disabled
 
 ACPICA includes the PCI configuration address space in its default

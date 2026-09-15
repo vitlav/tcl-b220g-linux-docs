@@ -1,0 +1,48 @@
+From d0ea9ffc6342a3b7a4f1aea299c279c41feb1f7e Mon Sep 17 00:00:00 2001
+From: Stephen Boyd <swboyd@chromium.org>
+Date: Wed, 27 Mar 2024 13:27:37 -0700
+Subject: [PATCH 22/37] clk: qcom: dispcc-sc7180: stop firmware rotator clock
+ for TCL ACPI
+
+The SC7180 firmware can leave disp_cc_mdss_rot_clk running from
+disp_cc_pll0. Power-cycling the MDSS clock tree while that branch
+remains enabled can leave the rotator clock stuck.
+
+Disable the rotator branch before DISPCC PLL setup on the non-OF path.
+This adapts Stephen Boyd's force-off-at-probe change carried by qc7. The
+TCL adaptation restricts the operation to the ACPI path and propagates a
+regmap update failure; the original change applied the operation
+unconditionally and did not check that return value.
+
+Original-author: Stephen Boyd <swboyd@chromium.org>
+Original-commit: d7fe3796aae4b020c05e02024a03e69bc4c288e0
+Link: https://github.com/TravMurav/linux/commit/d7fe3796aae4b020c05e02024a03e69bc4c288e0
+TCL adaptation: Vitaly Lipatov <lav@etersoft.ru>
+
+The original commit is preserved in the qc7 provenance archive.
+Attribution here does not assert review or approval of the TCL
+adaptation by the original author.
+---
+ drivers/clk/qcom/dispcc-sc7180.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/clk/qcom/dispcc-sc7180.c b/drivers/clk/qcom/dispcc-sc7180.c
+index 2dd1227f583af0591f1cd4d198c8d3107dc00abd..850cfcf0b58b0dd0a4a2e29ebba5063c22c223c1 100644
+--- a/drivers/clk/qcom/dispcc-sc7180.c
++++ b/drivers/clk/qcom/dispcc-sc7180.c
+@@ -771,6 +771,15 @@ static int disp_cc_sc7180_probe(struct platform_device *pdev)
+ 	if (IS_ERR(regmap))
+ 		return PTR_ERR(regmap);
+ 
++	/* Firmware may leave ROT running; stop it before MDSS power cycling. */
++	if (!pdev->dev.of_node) {
++		ret = regmap_update_bits(regmap,
++					disp_cc_mdss_rot_clk.clkr.enable_reg,
++					disp_cc_mdss_rot_clk.clkr.enable_mask, 0);
++		if (ret)
++			return ret;
++	}
++
+ 	/* 1380MHz configuration */
+ 	disp_cc_pll_config.l = 0x47;
+ 	disp_cc_pll_config.alpha = 0xe000;

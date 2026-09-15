@@ -7,7 +7,7 @@
 | [dt/base-patches/](dt/base-patches/README.md) | Сторонние изменения qc7 до наших TCL-адаптаций |
 | `dt/patches/` | Сохранённые DT-патчи по подсистемам; полной последовательной серии пока нет |
 | `dt/modules/` | Указатель на сохранённые исходники DT-модулей |
-| `acpi/patches/` | 36 патчей и `series` для Linux 7.2.4 |
+| `acpi/patches/` | 37 патчей и `series` для Linux 7.2.4 |
 | `acpi/modules/` | Шесть отдельно собираемых аудиомодулей |
 | [system/dt](../../system/dt/README.md) | Системные настройки DT: указатели на существующие материалы |
 | [system/acpi](../../system/acpi/README.md) | Системные файлы ACPI, включая службы аудио |

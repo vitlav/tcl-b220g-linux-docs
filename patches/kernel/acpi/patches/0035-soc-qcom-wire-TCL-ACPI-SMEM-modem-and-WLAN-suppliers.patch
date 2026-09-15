@@ -1,7 +1,7 @@
-From 330d0737989e7dcbcd33450dddf2569e4536f605 Mon Sep 17 00:00:00 2001
+From 772aa3e9d56c2665e744268206ded975650ce5c5 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 34/36] soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers
+Subject: [PATCH 35/37] soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers
 
 The Qualcomm driver adaptations require concrete board devices for the
 OEM SMEM and modem/WLAN resources.

@@ -1,7 +1,7 @@
-From e952b3c603fac0ab59e855149fa6200dfd768e1f Mon Sep 17 00:00:00 2001
+From 6b3d77db555395a13e59e71b7a4ac78496934b89 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 17/36] soc: qcom: enumerate APR services from firmware nodes
+Subject: [PATCH 17/37] soc: qcom: enumerate APR services from firmware nodes
 
 ADSP GLINK channels described by software nodes cannot populate APR
 service children through OF-only parsing. Failed child creation must

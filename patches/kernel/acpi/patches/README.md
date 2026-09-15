@@ -1,6 +1,6 @@
 # Состав ACPI-серии
 
-Порядок применения задан в [series](series). База, конфигурация и границы проверки — в [описании комплекта](../README.md). В каждом файле есть подробное описание изменения.
+[series](series) задаёт порядок; [README комплекта](../README.md) — базу и ограничения. [Авторство и сопоставление qc7](../../../../research/qc7-provenance/acpi-attribution.md).
 
 | № | Изменение |
 |---|---|
@@ -25,18 +25,19 @@
 | 19 | [pinctrl: qcom: describe bounded TCL ACPI input and speaker GPIOs](0019-pinctrl-qcom-describe-bounded-TCL-ACPI-input-and-spe.patch) |
 | 20 | [i2c: qcom-geni: support the TCL keyboard and bridge without a QUP wrapper](0020-i2c-qcom-geni-support-the-TCL-keyboard-and-bridge-wi.patch) |
 | 21 | [clk: qcom: provide bounded TCL display and GPU clock trees](0021-clk-qcom-provide-bounded-TCL-display-and-GPU-clock-t.patch) |
-| 22 | [interconnect: qcom: support firmware-described TCL fabric suppliers](0022-interconnect-qcom-support-firmware-described-TCL-fab.patch) |
-| 23 | [soc: qcom: select SC7180 UBWC parameters on TCL ACPI](0023-soc-qcom-select-SC7180-UBWC-parameters-on-TCL-ACPI.patch) |
-| 24 | [drm: discover bridges and DSI devices through firmware nodes](0024-drm-discover-bridges-and-DSI-devices-through-firmwar.patch) |
-| 25 | [drm/msm: bind ACPI display components with explicit resources and OPPs](0025-drm-msm-bind-ACPI-display-components-with-explicit-r.patch) |
-| 26 | [drm/msm/dsi: support the TCL firmware-described host and PHY](0026-drm-msm-dsi-support-the-TCL-firmware-described-host-.patch) |
-| 27 | [drm: bridge: support the existing TCL LT8911 ACPI handoff device](0027-drm-bridge-support-the-existing-TCL-LT8911-ACPI-hand.patch) |
-| 28 | [drm/msm/adreno: consume validated TCL ACPI GPU and GMU resources](0028-drm-msm-adreno-consume-validated-TCL-ACPI-GPU-and-GM.patch) |
-| 29 | [ASoC: qdsp6: populate firmware-described TCL audio services](0029-ASoC-qdsp6-populate-firmware-described-TCL-audio-ser.patch) |
-| 30 | [ASoC: qcom: support firmware-described LPASS macros and SoundWire pins](0030-ASoC-qcom-support-firmware-described-LPASS-macros-an.patch) |
-| 31 | [soundwire: enumerate TCL firmware nodes and handle controller rebinding](0031-soundwire-enumerate-TCL-firmware-nodes-and-handle-co.patch) |
-| 32 | [ASoC: wcd938x: bind TCL firmware nodes and clean aggregate IRQ state](0032-ASoC-wcd938x-bind-TCL-firmware-nodes-and-clean-aggre.patch) |
-| 33 | [usb: dwc3: add the guarded TCL ACPI host handoff driver](0033-usb-dwc3-add-the-guarded-TCL-ACPI-host-handoff-drive.patch) |
-| 34 | [soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers](0034-soc-qcom-wire-TCL-ACPI-SMEM-modem-and-WLAN-suppliers.patch) |
-| 35 | [soc: qcom: wire TCL ACPI display and GPU with ordered firmware handoff](0035-soc-qcom-wire-TCL-ACPI-display-and-GPU-with-ordered-.patch) |
-| 36 | [arm64: record TCL ACPI diagnostic and display configurations](0036-arm64-record-TCL-ACPI-diagnostic-and-display-configu.patch) |
+| 22 | [clk: qcom: dispcc-sc7180: stop firmware rotator clock for TCL ACPI](0022-clk-qcom-dispcc-sc7180-stop-firmware-rotator-clock-f.patch) |
+| 23 | [interconnect: qcom: support firmware-described TCL fabric suppliers](0023-interconnect-qcom-support-firmware-described-TCL-fab.patch) |
+| 24 | [soc: qcom: select SC7180 UBWC parameters on TCL ACPI](0024-soc-qcom-select-SC7180-UBWC-parameters-on-TCL-ACPI.patch) |
+| 25 | [drm: discover bridges and DSI devices through firmware nodes](0025-drm-discover-bridges-and-DSI-devices-through-firmwar.patch) |
+| 26 | [drm/msm: bind ACPI display components with explicit resources and OPPs](0026-drm-msm-bind-ACPI-display-components-with-explicit-r.patch) |
+| 27 | [drm/msm/dsi: support the TCL firmware-described host and PHY](0027-drm-msm-dsi-support-the-TCL-firmware-described-host-.patch) |
+| 28 | [drm: bridge: support the existing TCL LT8911 ACPI handoff device](0028-drm-bridge-support-the-existing-TCL-LT8911-ACPI-hand.patch) |
+| 29 | [drm/msm/adreno: consume validated TCL ACPI GPU and GMU resources](0029-drm-msm-adreno-consume-validated-TCL-ACPI-GPU-and-GM.patch) |
+| 30 | [ASoC: qdsp6: populate firmware-described TCL audio services](0030-ASoC-qdsp6-populate-firmware-described-TCL-audio-ser.patch) |
+| 31 | [ASoC: qcom: support firmware-described LPASS macros and SoundWire pins](0031-ASoC-qcom-support-firmware-described-LPASS-macros-an.patch) |
+| 32 | [soundwire: enumerate TCL firmware nodes and handle controller rebinding](0032-soundwire-enumerate-TCL-firmware-nodes-and-handle-co.patch) |
+| 33 | [ASoC: wcd938x: bind TCL firmware nodes and clean aggregate IRQ state](0033-ASoC-wcd938x-bind-TCL-firmware-nodes-and-clean-aggre.patch) |
+| 34 | [usb: dwc3: add the guarded TCL ACPI host handoff driver](0034-usb-dwc3-add-the-guarded-TCL-ACPI-host-handoff-drive.patch) |
+| 35 | [soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers](0035-soc-qcom-wire-TCL-ACPI-SMEM-modem-and-WLAN-suppliers.patch) |
+| 36 | [soc: qcom: wire TCL ACPI display and GPU with ordered firmware handoff](0036-soc-qcom-wire-TCL-ACPI-display-and-GPU-with-ordered-.patch) |
+| 37 | [arm64: record TCL ACPI diagnostic and display configurations](0037-arm64-record-TCL-ACPI-diagnostic-and-display-configu.patch) |

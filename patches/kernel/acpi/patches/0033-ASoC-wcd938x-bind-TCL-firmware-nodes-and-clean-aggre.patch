@@ -1,7 +1,7 @@
-From 30ab16852b0637a100d134d30e14a950e7996b5d Mon Sep 17 00:00:00 2001
+From 0fc4420f819262bea744c063f1ddba655b85ede7 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 32/36] ASoC: wcd938x: bind TCL firmware nodes and clean
+Subject: [PATCH 33/37] ASoC: wcd938x: bind TCL firmware nodes and clean
  aggregate IRQ state
 
 The WCD9385 aggregate and its RX/TX SoundWire devices are supplied by

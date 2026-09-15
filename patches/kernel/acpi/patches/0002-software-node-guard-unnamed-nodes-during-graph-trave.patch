@@ -1,7 +1,7 @@
-From 5d057306248cb8592bf6e8fd8abab48937b8c1a7 Mon Sep 17 00:00:00 2001
+From fd5dadf53220128f14a3e190a2c9dd2c5cfd5cdc Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:41 +0300
-Subject: [PATCH 02/36] software node: guard unnamed nodes during graph
+Subject: [PATCH 02/37] software node: guard unnamed nodes during graph
  traversal
 
 Software-node graph traversal assumes port and endpoint nodes always
