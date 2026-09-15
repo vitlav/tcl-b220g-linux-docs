@@ -26,3 +26,7 @@ The start/stop lifecycle was exercised by restarting the systemd unit without re
 ## Capture
 
 Physical microphone capture and routing are not confirmed. Existing Q6ASM capture experiments did not produce a validated acoustic recording.
+
+## ACPI property boundary
+
+The live codec platform device is backed by the software-node `tcl-acpi-wcd9385-test`; no separate ACPI or DT node is exported in sysfs. Upstream `wcd938x` still initializes through `wcd938x_populate_dt_data()` and resolves `qcom,rx-device`/`qcom,tx-device` as OF phandles. The TCL ACPI path therefore depends on board-specific software-node glue. The missing MBHC button thresholds should be added only through that glue after headset hardware validation; values from another SC7280 board must not be copied blindly. This is not currently an explanation for the observed TX SoundWire `Alert` transition.
