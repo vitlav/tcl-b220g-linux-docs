@@ -14,6 +14,8 @@ The persisted moderate ALSA profile is HPH 20/24 and RX digital 78/124, with hea
 
 The external modules and build instructions are in [`patches/kernel/acpi/audio-module-7.2.4/`](../../patches/kernel/acpi/audio-module-7.2.4/). They are built for the exact kernel above and are not upstream patches:
 
+- `tcl_acpi_audio.ko` supplies ADSP/GLINK/APR and LPASS platform wiring.
+- `tcl_acpi_wcd.ko` registers the WCD9385 software-node aggregate.
 - `tcl_acpi_card.ko` registers the ASoC card and manages speaker PA through DAPM.
 - `tcl_acpi_audio_power_hold.ko` checks the TCL B220G DMI identity and CMD DB addresses, then holds the OEM RPMh votes LDO15_A 1.8 V/HPM7 and BOB_C 3.3 V/AUTO6 for its module lifetime.
 - `tcl_acpi_codec_reset_hold.ko` checks the initial GPIO58 state, applies the OEM reset pulse (low 5 ms, then high), keeps reset deasserted, and restores the initial input state on unload.
@@ -21,7 +23,9 @@ The external modules and build instructions are in [`patches/kernel/acpi/audio-m
 
 The enabled `tcl-acpi-audio-prepare.service` loads the Qualcomm audio transport and the SC7280 LPI driver. `tcl-acpi-audio-start.service` starts ADSP, waits for APR `q6adm` and the Q6AFE clock aliases, then loads the board LPI provider and verifies pinmux setup. It next loads the guarded rail/reset owners, resumes RX/TX SoundWire runtime-PM when needed, waits for both WCD9385 slaves to attach, registers the WCD aggregate and playback card, then restores and checks the mixer profile with alsactl --no-ucm. No matching TCL B220G UCM profile is present, so this bypasses an unnecessary UCM lookup while preserving raw mixer-state restore. Its stop script refuses to release resources while a PCM is running; otherwise it unloads the card/aggregate, returns SoundWire runtime-PM to `auto`, and releases reset and rail votes.
 
-The start/stop lifecycle was exercised by restarting the systemd unit without reboot: the service remained enabled and active afterward, the ALSA card registered, and RX/TX WCD9385 slaves reported `Attached` during startup. The user heard the test tone in the current session. The prepare unit loads the SC7280 LPI pinctrl driver; audio-start loads and verifies the board LPI provider only after ADSP/q6adm creates the required Q6AFE clock aliases. Cold-boot validation passed on 2026-09-15 (boot ID 63536663-9696-4529-a9b0-4b30e79d5d11): both units enabled and successful, LPI pinmux configured, and the TCL ACPI ALSA card registered. An 880 Hz stereo speaker-test completed at read-back maximum HPH 24/24 and RX digital 124/124; the saved moderate profile HPH 20/24 and RX 78/124 was restored and stored afterward. The UCM-free restore was deployed and the service was restarted without reboot; mixer readback remained correct and the UCM warning disappeared. After each of two audible PCM tests, RX was Attached and TX showed Alert. Restarting the audio service re-enumerated both as Attached; both remained Attached at a two-minute idle check. A temporary dynamic-debug filter on the SoundWire alert handler showed no implementation-defined interrupt log or bus/parity/alert-handling errors. Linux defines SDW_SLAVE_ALERT as an alert condition, but the specific TX cause remains unconfirmed; do not label this normal or a playback failure. The WCD probe also reports that qcom,mbhc-buttons-vthreshold-microvolt is absent. Mainline SC7280 WCD9385 board data supplies MBHC thresholds ([example](https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sc7280-idp.dtsi)); the TCL ACPI node has not been given copied values because they have not been validated for this laptop. Headset-button behavior remains untested. Only non-fatal writes to read-only HPH impedance/type controls remain during ALSA restore.
+Service restart and audible playback have been demonstrated during development. The persisted mixer state must be read back after every restore: a successful command or registered PCM alone is not proof of audible output. RX/TX initially attach; TX Alert has also been observed after playback and remains under investigation. A repeatable cold-boot and playback-cycle qualification of the complete published source snapshot is still required.
+
+The WCD node lacks validated `qcom,mbhc-buttons-vthreshold-microvolt` values. Headset-button behavior is untested; values from another board must not be copied without hardware validation.
 
 ## Capture
 
@@ -31,69 +35,22 @@ Physical microphone capture and routing are not confirmed. Existing Q6ASM captur
 
 The live codec platform device is backed by the software-node `tcl-acpi-wcd9385-test`; no separate ACPI or DT node is exported in sysfs. Upstream `wcd938x` still initializes through `wcd938x_populate_dt_data()` and resolves `qcom,rx-device`/`qcom,tx-device` as OF phandles. The TCL ACPI path therefore depends on board-specific software-node glue. The missing MBHC button thresholds should be added only through that glue after headset hardware validation; values from another SC7280 board must not be copied blindly. This is not currently an explanation for the observed TX SoundWire `Alert` transition.
 
-## Current TX status observation
+## SoundWire status and remaining validation
 
-After an idle period with no PCM open, RX remained `Attached` while TX was
-`Alert`. Restarting `tcl-acpi-audio-start.service` without reboot re-enumerated
-both slaves and returned them to `Attached` within four seconds; the ALSA card
-remained registered. The transition is therefore reproducible after PCM use and
-cleared by the existing service lifecycle. Its interrupt source is still not
-identified, so no SoundWire or MBHC workaround is being asserted.
+RX and TX are on separate SoundWire buses. On the checked system both report
+`device_number=1`. The final `:4` and `:3` components in their sysfs names are
+hardware unique IDs, not indexes into the controller's device-status array.
+The current Linux 7.2.4 controller code already begins decoding slave status
+at device number 1.
 
-### Targeted TX SCP check
+A TX `Alert` has been observed after playback. Its source is still unresolved;
+it is not evidence of an off-by-one bug. A filtered full debugfs register dump
+cannot establish which registers were read or whether reading changed status.
+A short filtered function trace does not establish absence of an IRQ storm.
+Future diagnosis must correlate the actual device number, pre-read status,
+controller interrupts and PCM lifecycle without changing unrelated tracing.
 
-After a short maximum-level playback, a targeted SoundWire debugfs read of the
-TX SCP section found `INT1 (0x40)=0`, `INTSTAT2 (0x42)=0`, and
-`INTSTAT3 (0x43)=0`; `INTMASK1 (0x41)=0x07`. No parity, bus-clash, or
-implementation-defined interrupt bit remained. Both slaves were `Attached`
-after the read and the moderate ALSA profile was restored. The `Alert` is
-therefore transient or already serviced before inspection, rather than a
-pending WCD interrupt. The generating event still needs tracing at the moment
-of the transition.
-
-The user confirmed that audio was audible during this targeted SCP diagnostic run.
-
-### Status IRQ trace
-
-A one-shot function trace around `sdw_handle_slave_status` during playback
-recorded exactly one call from `qcom_swrm_irq_handler`; tracing was restored to
-`tracer=nop` afterward. There was no IRQ storm. The subsequent state was PCM
-closed, RX `Attached`, TX `Alert`, with the moderate mixer profile unchanged.
-The current ftrace output does not expose the status-array argument, so a
-kernel tracepoint or debug patch is needed to identify the exact status code.
-
-### Input status-array observation
-
-A temporary kprobe on `sdw_handle_slave_status` read the status-array entries
-for TX index 3 and RX index 4. Several calls during service restart and playback
-reported raw zero values, while sysfs subsequently showed `Attached` or `Alert`.
-The probe was removed immediately. This is recorded as a timing/index diagnostic
-observation only; it suggests checking `SWRM_MCP_SLV_STATUS` at the qcom driver
-boundary before drawing a hardware conclusion.
-
-### Raw Qualcomm slave-status registers
-
-Read-only Qualcomm SoundWire debugfs reported `SWRM_MCP_SLV_STATUS (0x1090)` as
-`0x00` on RX master and `0x04` on TX master while sysfs reported RX `Attached`
-and TX `Alert`. The published slave state therefore does not match the raw
-master register at that instant. This may be stale enumeration state or a
-status-array/device-ID indexing mismatch between `qcom_swrm_get_device_status()`
-and `sdw_handle_slave_status()`; the mapping must be audited before hardware
-threshold changes.
-
-### Root cause found in qcom SoundWire status mapping
-
-The TCL kernel's `qcom_swrm_get_device_status()` loop starts at `i = 0`, while
-SoundWire auto-enumeration reserves device ID 0 and the core processes slave
-IDs from 1. This misaligns the two-bit `SWRM_MCP_SLV_STATUS` fields with the
-core's slave array, matching the observed zero status-array entries and the
-raw-register/sysfs mismatch. Upstream already fixed this exact issue by
-starting at `i = 1` ([patch discussion](https://patchew.org/linux/20220915124215.13703-1-srinivas.kandagatla%40linaro.org/)).
-The candidate patch is stored at
-[`patches/kernel/audio/0006-soundwire-qcom-status-from-device-1.patch`](../../patches/kernel/audio/0006-soundwire-qcom-status-from-device-1.patch).
-It has been published but not yet installed into the running kernel; validation
-requires a rebuilt kernel and reboot.
-
-The patch was checked against the actual TCL kernel checkout and now applies
-cleanly (`git apply --check`); its context was adjusted for the older loop form
-used by this branch. It remains uninstalled and unvalidated at runtime.
+The current source series reproduces the committed source tree. A full rebuild,
+source-to-installed-module identity check, repeated service/PCM cycles, capture,
+headset operation and acoustic stop-pop validation remain necessary before
+claiming a reproducible complete audio solution. See the [support plan](../roadmap.md).
