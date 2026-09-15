@@ -61,3 +61,12 @@ recorded exactly one call from `qcom_swrm_irq_handler`; tracing was restored to
 closed, RX `Attached`, TX `Alert`, with the moderate mixer profile unchanged.
 The current ftrace output does not expose the status-array argument, so a
 kernel tracepoint or debug patch is needed to identify the exact status code.
+
+### Input status-array observation
+
+A temporary kprobe on `sdw_handle_slave_status` read the status-array entries
+for TX index 3 and RX index 4. Several calls during service restart and playback
+reported raw zero values, while sysfs subsequently showed `Attached` or `Alert`.
+The probe was removed immediately. This is recorded as a timing/index diagnostic
+observation only; it suggests checking `SWRM_MCP_SLV_STATUS` at the qcom driver
+boundary before drawing a hardware conclusion.
