@@ -50,3 +50,5 @@ after the read and the moderate ALSA profile was restored. The `Alert` is
 therefore transient or already serviced before inspection, rather than a
 pending WCD interrupt. The generating event still needs tracing at the moment
 of the transition.
+
+The user confirmed that audio was audible during this targeted SCP diagnostic run.
