@@ -3,27 +3,23 @@
   "base_tree": "187314ae5214642ccf465aef87b5115c3ae205fb",
   "head_commit": "46d886cb48beca4ef8dd077b2f8c5e740624634c",
   "result_tree": "d24661189360756cf476ea6efc9a33acc8ec9471",
-  "status": "optional; replay and W=1 build passed; Q6AFE and LPI host fault-injection checks passed; not deployed or hardware qualified",
+  "status": "optional; LPI hardware-qualified; Q6AFE first boot exposed compact APR vote response and was rolled back; fix 0004 built and host-tested but not yet hardware-qualified",
   "patches": [
     {
       "file": "0001-lpass-va-macro-disable-clocks-in-suspend.patch",
-      "commit": "f2970ff2481cfefe38542ace312edf531adf68d9",
-      "sha256": "c924512473619d0bff15e5d70b1ad27c81b00d014c3cd3181e96e14596cdb162",
-      "author": "Nikita Travkin <nikita@trvn.ru>",
-      "original_commit": "283c8d3f8579db2d3698b1e2c668a62e04a7090a"
+      "sha256": "c924512473619d0bff15e5d70b1ad27c81b00d014c3cd3181e96e14596cdb162"
     },
     {
       "file": "0002-q6afe-track-dsp-vote-handle.patch",
-      "commit": "1e4248348bb5191468081bcb2d0dbc4b4d54ddca",
-      "sha256": "bf51ee103b58eb51cc031002afea83414f228612a9275d816df68b651034e144",
-      "author": "Nikita Travkin <nikita@trvn.ru>",
-      "original_commit": "2637dc2cbba04da60fce3156902ba0611a4b30a8"
+      "sha256": "d08afc8fe5c2ce8f487dbd8adc9bc2564c8717f5a4d3e936c1cfe9a55ae9a57e"
     },
     {
       "file": "0003-lpi-acpi-runtime-clock-management.patch",
-      "commit": "46d886cb48beca4ef8dd077b2f8c5e740624634c",
-      "sha256": "533d49b7a5a9f4b18089a3c7dfea33ba2492a66f02c2278d43051c6290b94d0c",
-      "adaptation_reference": "dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff"
+      "sha256": "cd9c3980e83c34848a92426b752ef094b92b5e1739080c603a15d34446b6ed30"
+    },
+    {
+      "file": "0004-q6afe-compact-vote-response.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
   "required_module_override": {
@@ -34,5 +30,6 @@
     "283c8d3f8579db2d3698b1e2c668a62e04a7090a",
     "2637dc2cbba04da60fce3156902ba0611a4b30a8",
     "dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff"
-  ]
+  ],
+  "q6afe_hardware_regression": "First candidate boot failed SoundWire attachment because compact 32-bit vote response was rejected; installed module was restored to the pre-candidate build. Fix 0004 accepts handle-sized response."
 }
