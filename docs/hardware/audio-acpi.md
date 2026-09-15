@@ -80,3 +80,16 @@ master register at that instant. This may be stale enumeration state or a
 status-array/device-ID indexing mismatch between `qcom_swrm_get_device_status()`
 and `sdw_handle_slave_status()`; the mapping must be audited before hardware
 threshold changes.
+
+### Root cause found in qcom SoundWire status mapping
+
+The TCL kernel's `qcom_swrm_get_device_status()` loop starts at `i = 0`, while
+SoundWire auto-enumeration reserves device ID 0 and the core processes slave
+IDs from 1. This misaligns the two-bit `SWRM_MCP_SLV_STATUS` fields with the
+core's slave array, matching the observed zero status-array entries and the
+raw-register/sysfs mismatch. Upstream already fixed this exact issue by
+starting at `i = 1` ([patch discussion](https://patchew.org/linux/20220915124215.13703-1-srinivas.kandagatla%40linaro.org/)).
+The candidate patch is stored at
+[`patches/kernel/audio/0006-soundwire-qcom-status-from-device-1.patch`](../../patches/kernel/audio/0006-soundwire-qcom-status-from-device-1.patch).
+It has been published but not yet installed into the running kernel; validation
+requires a rebuilt kernel and reboot.
