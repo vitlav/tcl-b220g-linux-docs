@@ -52,3 +52,12 @@ pending WCD interrupt. The generating event still needs tracing at the moment
 of the transition.
 
 The user confirmed that audio was audible during this targeted SCP diagnostic run.
+
+### Status IRQ trace
+
+A one-shot function trace around `sdw_handle_slave_status` during playback
+recorded exactly one call from `qcom_swrm_irq_handler`; tracing was restored to
+`tracer=nop` afterward. There was no IRQ storm. The subsequent state was PCM
+closed, RX `Attached`, TX `Alert`, with the moderate mixer profile unchanged.
+The current ftrace output does not expose the status-array argument, so a
+kernel tracepoint or debug patch is needed to identify the exact status code.
