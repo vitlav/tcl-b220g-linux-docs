@@ -59,5 +59,5 @@ Prepared q6afe-active-mask.patch for19478, not yet installed/tested. Next kernel
 
 ## Файлы патчей
 
-- [adsp1-pcm-trace.patch](../../../../patches/kernel/audio/adsp1-pcm-trace.patch) — Q6ASM: ранняя трассировка PCM. Историческая диагностика ADSP1.
-- [adsp1-q6afe-active-mask.patch](../../../../patches/kernel/audio/adsp1-q6afe-active-mask.patch) — Ранняя версия передачи явной маски каналов Q6AFE. Исторический вариант; сравнить с AUDIO2 0002, не применять оба.
+- [adsp1-pcm-trace.patch](../../../../patches/kernel/dt/patches/audio/adsp1-pcm-trace.patch) — Q6ASM: ранняя трассировка PCM. Историческая диагностика ADSP1.
+- [adsp1-q6afe-active-mask.patch](../../../../patches/kernel/dt/patches/audio/adsp1-q6afe-active-mask.patch) — Ранняя версия передачи явной маски каналов Q6AFE. Исторический вариант; сравнить с AUDIO2 0002, не применять оба.

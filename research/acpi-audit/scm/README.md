@@ -4,7 +4,7 @@
 
 OEM SCM0 не содержит _CCA и _CRS. При ACPI_CCA_REQUIRED отсутствие _CCA блокирует DMA support; успешный probe без реальной allocation недостаточен. Безусловный devm_of_icc_get также не применим к устройству без OF-node.
 
-[scm-acpi-draft-v2.patch](../../../patches/kernel/acpi/scm-acpi-draft-v2.patch) добавляет match QCOM080B, условный OF ICC, DMA guard, initial ACPI TZMEM pool PAGE_SIZE и acpi_dev_clear_dependencies после успеха. Предыдущий [v1](../../../patches/kernel/acpi/scm-acpi-draft.patch) заменён v2; вместе не применяются.
+[scm-acpi-draft-v2.patch](../legacy-patches/scm-acpi-draft-v2.patch) добавляет match QCOM080B, условный OF ICC, DMA guard, initial ACPI TZMEM pool PAGE_SIZE и acpi_dev_clear_dependencies после успеха. Предыдущий [v1](../legacy-patches/scm-acpi-draft.patch) заменён v2; вместе не применяются.
 
 [SSDT SCM0._CCA=0 и early CPIO](early-ssdt/README.md) проверены компиляцией, AML evaluation и kernel parser. _CCA требуется до создания ACPI platform device; позднее добавление свойства не пересоздаёт его DMA mask автоматически.
 

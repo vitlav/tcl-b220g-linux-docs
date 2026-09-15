@@ -8,9 +8,9 @@
 
 | Изменение | Назначение |
 |---|---|
-| [ACPICA при PCI=n](../../../patches/kernel/acpi/acpica-default-spaces-without-pci.patch) | Условная регистрация обработчика PCI_CONFIG |
-| [SCM ACPI v2](../../../patches/kernel/acpi/scm-acpi-draft-v2.patch) | QCOM080B, проверка DMA и ACPI-зависимости |
-| [SC7180 SMMU](../../../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) | Раздельный выбор Apps и Adreno implementation |
+| [ACPICA при PCI=n](../../acpi-audit/legacy-patches/acpica-default-spaces-without-pci.patch) | Условная регистрация обработчика PCI_CONFIG |
+| [SCM ACPI v2](../../acpi-audit/legacy-patches/scm-acpi-draft-v2.patch) | QCOM080B, проверка DMA и ACPI-зависимости |
+| [SC7180 SMMU](../../acpi-audit/legacy-patches/sc7180-acpi-smmu-selection.patch) | Раздельный выбор Apps и Adreno implementation |
 
 Конфигурация: [kernel.config](kernel.config). Включены ACPI, ACPI_TABLE_UPGRADE, ACPI_CCA_REQUIRED, QCOM_SCM, QCOM_TZMEM_MODE_GENERIC и ARM_SMMU_QCOM. UFS host отключён в этой диагностической конфигурации. Release: `6.18.34-tcl-acpi2`.
 

@@ -6,18 +6,18 @@
 
 ## Воспроизведение
 
-[series](series) задаёт порядок, [commits.txt](commits.txt) содержит настоящие SHA коммитов, [manifest.json](manifest.json) — базу, итоговое дерево, SHA256 патчей и конфигурации. Последовательное применение всей серии к чистому индексу базового коммита воспроизводит исходное дерево побайтно: [результат](patch-replay.txt).
+[series](patches/series) задаёт порядок, [commits.txt](commits.txt) содержит настоящие SHA коммитов, [manifest.json](manifest.json) — базу, итоговое дерево, SHA256 патчей и конфигурации. Последовательное применение всей серии к чистому индексу базового коммита воспроизводит исходное дерево побайтно: [результат](patch-replay.txt).
 
 В чистом checkout указанной базы:
 
 ```sh
-patch_dir=/path/to/tcl-b220g-linux-docs/patches/kernel/acpi/linux-7.2.4
+patch_dir=/path/to/tcl-b220g-linux-docs/patches/kernel/acpi
 (
     set -eu
     git switch -c tcl-acpi
     while IFS= read -r patch_name; do
-        git am "$patch_dir/$patch_name"
-    done < "$patch_dir/series"
+        git am "$patch_dir/patches/$patch_name"
+    done < "$patch_dir/patches/series"
     cp "$patch_dir/kernel.config" .config
     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j16 Image modules
@@ -28,8 +28,8 @@ patch_dir=/path/to/tcl-b220g-linux-docs/patches/kernel/acpi/linux-7.2.4
 
 ## Системные зависимости
 
-Аудио дополнительно требует [внешних модулей и служб](../audio-module-7.2.4/), OEM firmware, корректных mixer state, питания и pinctrl. Для доступа нужны firmware/службы Qualcomm, Wi-Fi, DHCP и SSH. Серия ядра сама по себе не является готовым установочным образом. Приватные ключи и Wi-Fi-пароли в репозиторий не входят.
+Аудио дополнительно требует [внешних модулей](modules/README.md) и [системных служб](../../../system/acpi/README.md), OEM firmware, корректных mixer state, питания и pinctrl. Для доступа нужны firmware/службы Qualcomm, Wi-Fi, DHCP и SSH. Серия ядра сама по себе не является готовым установочным образом. Приватные ключи и Wi-Fi-пароли в репозиторий не входят.
 
 ## Ограничения
 
-Нативный дисплей ещё зависит от UEFI handoff. Аудио использует отдельные board-specific providers, штатная интеграция питания и жизненного цикла не закончена. Повторяемые cold boot, suspend/resume, unload/reload и корректность аппаратного видеодекодирования должны пройти [план проверки](../../../../docs/roadmap.md). Состояние звука описано [отдельно](../../../../docs/hardware/audio-acpi.md).
+Нативный дисплей ещё зависит от UEFI handoff. Аудио использует отдельные board-specific providers, штатная интеграция питания и жизненного цикла не закончена. Повторяемые cold boot, suspend/resume, unload/reload и корректность аппаратного видеодекодирования должны пройти [план проверки](../../../docs/roadmap.md). Состояние звука описано [отдельно](../../../docs/hardware/audio-acpi.md).

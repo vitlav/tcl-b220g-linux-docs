@@ -30,4 +30,4 @@ https://marc.info/?l=linux-acpi&m=161481714525432&w=2
 
 ## Файлы патчей
 
-- [acpica-default-spaces-without-pci.patch](../../../patches/kernel/acpi/acpica-default-spaces-without-pci.patch) — Исключить PCI_CONFIG из default address spaces при PCI=n. Собран в ACPI1; вся ACPI-загрузка ещё не работает.
+- [acpica-default-spaces-without-pci.patch](../../acpi-audit/legacy-patches/acpica-default-spaces-without-pci.patch) — Исключить PCI_CONFIG из default address spaces при PCI=n. Собран в ACPI1; вся ACPI-загрузка ещё не работает.

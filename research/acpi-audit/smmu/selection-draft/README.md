@@ -65,4 +65,4 @@ python3 check-selection.py --kernel /path/to/configured-kernel \
 
 ## Файлы патчей
 
-- [sc7180-acpi-smmu-selection.patch](../../../../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) — Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам. Полный ACPI2 build, object-build ACPI=y/n и host-матрица; аппаратно не проверен.
+- [sc7180-acpi-smmu-selection.patch](../../legacy-patches/sc7180-acpi-smmu-selection.patch) — Раздельный выбор Apps MMU500 и Adreno SMMUv2 по IORT/ресурсам. Полный ACPI2 build, object-build ACPI=y/n и host-матрица; аппаратно не проверен.

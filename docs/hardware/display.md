@@ -146,6 +146,6 @@ Wayland vkcube завершился успешно на Turnip. Полный glm
 
 ## Исправления и ограничения
 
-[DPU assignment diagnostic patch](../../patches/kernel/graphics/dpu-assignment-diagnostic.patch) добавляет fallback на назначенный CRTC при неудаче legacy lookup. На оборудовании fallback действительно сработал, полный 33-сценный тест завершился. Это локальное диагностическое исправление; точное чередование writer/callback не установлено, upstream review не выполнен.
+[DPU assignment diagnostic patch](../../patches/kernel/dt/patches/graphics/dpu-assignment-diagnostic.patch) добавляет fallback на назначенный CRTC при неудаче legacy lookup. На оборудовании fallback действительно сработал, полный 33-сценный тест завершился. Это локальное диагностическое исправление; точное чередование writer/callback не установлено, upstream review не выполнен.
 
 В другом полном запуске получен score347 при отличавшихся частотах CPU/GPU. Сравнение этих двух результатов не доказывает регрессию или её отсутствие. В тестах сохранялись сообщения dummy vdd/vddcx и sync_state pending GMU; полное управление питанием и длительная устойчивость ещё не подтверждены.

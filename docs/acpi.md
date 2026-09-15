@@ -1,6 +1,6 @@
 # ACPI: firmware-интерфейсы и требования Linux
 
-Рабочая Ubuntu использует Device Tree. На Linux 7.2.4 с [проверенной ACPI-серией](../patches/kernel/acpi/linux-7.2.4/README.md) подтверждены диагностическая загрузка без DT, SCM/SMMU, USB с проверенной записью логов, Wi-Fi 5 ГГц и SSH; HID-клавиатура зарегистрирована. Полноценная Ubuntu и нативная графика через ACPI ещё не подтверждены.
+Рабочая Ubuntu использует Device Tree. На Linux 7.2.4 с [проверенной ACPI-серией](../patches/kernel/acpi/README.md) подтверждены диагностическая загрузка без DT, SCM/SMMU, USB с проверенной записью логов, Wi-Fi 5 ГГц и SSH; HID-клавиатура зарегистрирована. Полноценная Ubuntu и нативная графика через ACPI ещё не подтверждены.
 
 [Дисплей через ACPI](hardware/display-acpi.md): ресурсы GPU0, полные пути к памяти и регистрам, clock/power/OPP зависимости и статус реализации.
 
@@ -41,7 +41,7 @@ OEM `SCM0` имеет HID QCOM080B, но не содержит _CRS/_CCA; _CCA �
 
 Рабочий DT SCM использует noncoherent DMA, mask/coherent mask 0xffffffff. Аппаратная проба успешно выделила и освободила 4096 байт, проверив CPU pattern; SMC не выполнялся. Это подтверждение DMA-настройки Linux, а не передачи буфера TrustZone.
 
-[SCM v2](../patches/kernel/acpi/scm-acpi-draft-v2.patch) добавляет ACPI match, условный OF interconnect, проверку _CCA, начальную ACPI TZMEM allocation PAGE_SIZE и снятие ACPI dependencies после успешного probe. Используется GENERIC TZMEM. [Детали SCM](../research/acpi-audit/scm/README.md).
+[SCM v2](../research/acpi-audit/legacy-patches/scm-acpi-draft-v2.patch) добавляет ACPI match, условный OF interconnect, проверку _CCA, начальную ACPI TZMEM allocation PAGE_SIZE и снятие ACPI dependencies после успешного probe. Используется GENERIC TZMEM. [Детали SCM](../research/acpi-audit/scm/README.md).
 
 _CCA должна присутствовать до создания устройства. [Ранняя SSDT](../research/acpi-audit/scm/early-ssdt/README.md) добавляет только SCM0._CCA=0, не заменяя DSDT. AML и размещение в несжатом CPIO перед основным initramfs проверены ACPICA и настоящим kernel earlycpio parser. На оборудовании SCM probe с ранней `_CCA=0` завершён успешно. Дополнительно требуется выполнять `of_reserved_mem_device_init()` только при наличии OF-node: с NULL эта функция возвращает -EINVAL.
 
@@ -54,7 +54,7 @@ SCM probe может выполнять secure-world вызовы, включа�
 | SMMUv2, ARM_MMU500, 0x15000000/0x100000 | qcom_smmu_500_impl0_data |
 | SMMUv2, GENERIC_SMMU, 0x5040000/0x10000 | qcom_adreno_smmu_v2_impl |
 
-[Патч выбора SMMU](../patches/kernel/acpi/sc7180-acpi-smmu-selection.patch) ограничен OEM revision 0x7180 и проверкой модели/размеров. Проверены object-build ACPI=y/n, host-матрица из двух положительных и шести отрицательных случаев и полная сборка ACPI2. В ACPI6 оба SMMU завершили probe, а USB-контроллер выполнил передачу данных через свой DMA domain. Это не проверка всех SMMU-клиентов и режимов.
+[Патч выбора SMMU](../research/acpi-audit/legacy-patches/sc7180-acpi-smmu-selection.patch) ограничен OEM revision 0x7180 и проверкой модели/размеров. Проверены object-build ACPI=y/n, host-матрица из двух положительных и шести отрицательных случаев и полная сборка ACPI2. В ACPI6 оба SMMU завершили probe, а USB-контроллер выполнил передачу данных через свой DMA domain. Это не проверка всех SMMU-клиентов и режимов.
 
 Политика доменов клиентов и ACTLR содержит отдельные OF-зависимости. Выбор правильной реализации SMMU не решает их автоматически. Потеря изображения из-за generic reset остаётся гипотезой, не установленной причиной. [Анализ клиентов](../research/acpi-audit/smmu/client-policy.md), задача [19515](https://bugs.etersoft.ru/19515).
 
@@ -84,7 +84,7 @@ USB-адаптация уже проверена на оборудовании: 
 
 | Проблема | Факт / ограничение |
 |---|---|
-| PCI=n | [Условный PCI_CONFIG handler](../patches/kernel/acpi/acpica-default-spaces-without-pci.patch); исправление не делает всю ACPI-загрузку рабочей |
+| PCI=n | [Условный PCI_CONFIG handler](../research/acpi-audit/legacy-patches/acpica-default-spaces-without-pci.patch); исправление не делает всю ACPI-загрузку рабочей |
 | GPU0.AVS0 | Ссылка есть в TZ7._TZD и IORT, определения в прочитанных таблицах нет; причина чёрного экрана этим не доказана |
 | Батарея | Нужны I²C/GenericSerialBus handler и зависимости EC; ошибка отдельного AML-вызова в симуляторе не доказывает ошибку порядка Linux |
 | Графика и питание | OEM описание не заменяет Qualcomm/bridge драйверы и их power sequencing |

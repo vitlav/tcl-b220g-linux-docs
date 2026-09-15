@@ -1,6 +1,6 @@
 # ACPI audio startup overlay
 
-Install these files into the matching Ubuntu root filesystem, preserving their paths. Build/install all four matching kernel modules first, run `depmod -a`, then enable both units:
+Install these files into the matching Ubuntu root filesystem, preserving their paths. Build/install all six matching kernel modules first, run `depmod -a`, then enable both units:
 
 ```sh
 systemctl enable tcl-acpi-audio-prepare.service tcl-acpi-audio-start.service

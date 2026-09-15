@@ -74,12 +74,12 @@ OEM software запрашивает reset low → 5 ms → high → 2 ms. Это
 
 | Изменение | Назначение | Степень проверки |
 |---|---|---|
-| [GLINK backport](../../patches/kernel/audio/0001-glink-destroy-backport.patch) | Исправление GLINK teardown, upstream 5a5a48e788e02 | Включён в AUDIO2 |
-| [Q6AFE active mask](../../patches/kernel/audio/0002-q6afe-active-mask.patch) | Передача явной active_channels_mask | Mask3 проходит hw_params; прежняя ошибка AFE не повторилась в проверке |
-| [WCD IRQ lifetime](../../patches/kernel/audio/wcd938x-irq-lifetime.patch) | Cleanup IRQ mapping/domain и защита callback при снятой ссылке | Сборка/анализ; полное покрытие гонок и fault injection отсутствует |
-| [Q6ASM repeated prepare](../../patches/kernel/audio/q6asm-prepare-stopped.patch) | Cleanup существующей session и после STOPPED | На чистой загрузке три write/drop/prepare цикла на одном PCM handle прошли |
+| [GLINK backport](../../patches/kernel/dt/patches/audio/0001-glink-destroy-backport.patch) | Исправление GLINK teardown, upstream 5a5a48e788e02 | Включён в AUDIO2 |
+| [Q6AFE active mask](../../patches/kernel/dt/patches/audio/0002-q6afe-active-mask.patch) | Передача явной active_channels_mask | Mask3 проходит hw_params; прежняя ошибка AFE не повторилась в проверке |
+| [WCD IRQ lifetime](../../patches/kernel/dt/patches/audio/wcd938x-irq-lifetime.patch) | Cleanup IRQ mapping/domain и защита callback при снятой ссылке | Сборка/анализ; полное покрытие гонок и fault injection отсутствует |
+| [Q6ASM repeated prepare](../../patches/kernel/dt/patches/audio/q6asm-prepare-stopped.patch) | Cleanup существующей session и после STOPPED | На чистой загрузке три write/drop/prepare цикла на одном PCM handle прошли |
 
-WCD IRQ patch меняет aggregate и SoundWire codec совместно: NULL guard и синхронизация ссылки необходимы вместе с cleanup. Временный [runtime path fallback](../../patches/kernel/audio/runtime-path-fallback.patch) для поиска overlay-узлов — отдельное диагностическое изменение.
+WCD IRQ patch меняет aggregate и SoundWire codec совместно: NULL guard и синхронизация ссылки необходимы вместе с cleanup. Временный [runtime path fallback](../../patches/kernel/dt/patches/audio/runtime-path-fallback.patch) для поиска overlay-узлов — отдельное диагностическое изменение.
 
 Q6ASM STOP отправляет EOS без CLOSE; прежняя проверка состояния пропускала cleanup при повторном prepare после STOPPED. Проверенный переход не покрывает все error paths, асинхронный EOS, capture и compress. Полной проверенной серии для чистого upstream-ядра пока нет.
 

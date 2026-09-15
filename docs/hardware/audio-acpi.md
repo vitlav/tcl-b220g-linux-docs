@@ -12,7 +12,7 @@ The persisted moderate ALSA profile is HPH 20/24 and RX digital 78/124, with hea
 
 ## Modules and service lifecycle
 
-The external modules and build instructions are in [`patches/kernel/acpi/audio-module-7.2.4/`](../../patches/kernel/acpi/audio-module-7.2.4/). They are built for the exact kernel above and are not upstream patches:
+The external modules and build instructions are in [`patches/kernel/acpi/modules/`](../../patches/kernel/acpi/modules). They are built for the exact kernel above and are not upstream patches:
 
 - `tcl_acpi_audio.ko` supplies ADSP/GLINK/APR and LPASS platform wiring.
 - `tcl_acpi_wcd.ko` registers the WCD9385 software-node aggregate.

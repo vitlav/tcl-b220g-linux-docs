@@ -22,4 +22,4 @@ Saved results/ includes CSV, telemetry, before/after dmesg, DRM state, desktop l
 
 ## Файлы патчей
 
-- [dpu-assignment-diagnostic.patch](../../../../../../patches/kernel/graphics/dpu-assignment-diagnostic.patch) — DPU: fallback на назначенный CRTC при потере legacy lookup. Аппаратно сработал fallback; 33 сцены glmark2 завершились; локальная диагностика, не upstream.
+- [dpu-assignment-diagnostic.patch](../../../../../../patches/kernel/dt/patches/graphics/dpu-assignment-diagnostic.patch) — DPU: fallback на назначенный CRTC при потере legacy lookup. Аппаратно сработал fallback; 33 сцены glmark2 завершились; локальная диагностика, не upstream.

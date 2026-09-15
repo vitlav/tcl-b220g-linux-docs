@@ -31,9 +31,9 @@ MEMDIAG отличается отключением CONFIG_STRICT_DEVMEM и пр
 
 Основные точки входа:
 
-- [GLINK backport](../patches/kernel/audio/0001-glink-destroy-backport.patch) и [Q6AFE channel mask](../patches/kernel/audio/0002-q6afe-active-mask.patch).
-- [WCD938x IRQ lifetime](../patches/kernel/audio/wcd938x-irq-lifetime.patch) и [Q6ASM повторный prepare](../patches/kernel/audio/q6asm-prepare-stopped.patch).
-- [DPU encoder assignment diagnostic](../patches/kernel/graphics/dpu-assignment-diagnostic.patch).
+- [GLINK backport](../patches/kernel/dt/patches/audio/0001-glink-destroy-backport.patch) и [Q6AFE channel mask](../patches/kernel/dt/patches/audio/0002-q6afe-active-mask.patch).
+- [WCD938x IRQ lifetime](../patches/kernel/dt/patches/audio/wcd938x-irq-lifetime.patch) и [Q6ASM повторный prepare](../patches/kernel/dt/patches/audio/q6asm-prepare-stopped.patch).
+- [DPU encoder assignment diagnostic](../patches/kernel/dt/patches/graphics/dpu-assignment-diagnostic.patch).
 - [ACPI-патчи и ограничения](acpi.md#прямые-ссылки-на-изменения-ядра).
 
 Для применимости и порядка проверять статус в каталоге и первичный отчёт; эти ссылки не обозначают единую последовательную серию.

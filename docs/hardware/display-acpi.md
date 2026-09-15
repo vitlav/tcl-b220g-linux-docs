@@ -1,6 +1,6 @@
 # Дисплей через ACPI: ресурсы и зависимости Linux
 
-**Текущее подтверждение:** Ubuntu 26.04.1 LTS на ACPI с ядром `7.2.4-tcl-acpi-display1+`, нативный framebuffer `msm-kmsdrmfb`, Weston/Wayland и Adreno. Исходники включены в [ACPI-серию](../../patches/kernel/acpi/linux-7.2.4/README.md); полная пересборка её текущего снимка ещё предстоит. Аппаратное декодирование видео оценивается отдельно от GPU-вывода.
+**Текущее подтверждение:** Ubuntu 26.04.1 LTS на ACPI с ядром `7.2.4-tcl-acpi-display1+`, нативный framebuffer `msm-kmsdrmfb`, Weston/Wayland и Adreno. Исходники включены в [ACPI-серию](../../patches/kernel/acpi/README.md); полная пересборка её текущего снимка ещё предстоит. Аппаратное декодирование видео оценивается отдельно от GPU-вывода.
 
 ## Вывод изображения
 

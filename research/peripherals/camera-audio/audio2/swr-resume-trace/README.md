@@ -53,5 +53,5 @@ Next investigate safe access to codec reset GPIO58 and remaining physical-link p
 
 ## Файлы патчей
 
-- [empty-bus-resume-candidate.patch](../../../../../patches/kernel/audio/empty-bus-resume-candidate.patch) — SoundWire: reset/re-enumeration для пустой шины после ENODATA. Гипотеза; не считать доказанным исправлением причины.
-- [experimental-resume-and-pm.patch](../../../../../patches/kernel/audio/experimental-resume-and-pm.patch) — SoundWire: эксперимент с resume и PM. Альтернативный runtime-эксперимент; не складывать с empty-bus вариантом.
+- [empty-bus-resume-candidate.patch](../../../../../patches/kernel/dt/patches/audio/empty-bus-resume-candidate.patch) — SoundWire: reset/re-enumeration для пустой шины после ENODATA. Гипотеза; не считать доказанным исправлением причины.
+- [experimental-resume-and-pm.patch](../../../../../patches/kernel/dt/patches/audio/experimental-resume-and-pm.patch) — SoundWire: эксперимент с resume и PM. Альтернативный runtime-эксперимент; не складывать с empty-bus вариантом.
