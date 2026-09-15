@@ -1,0 +1,141 @@
+From 46d886cb48beca4ef8dd077b2f8c5e740624634c Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 13:12:08 +0300
+Subject: [PATCH] pinctrl: qcom: manage TCL ACPI LPI clocks through runtime PM
+
+The software-node path skips of_pm_clk_add_clks(), leaving an empty PM
+clock list even though runtime_status reports successful transitions.
+The external provider previously enabled RX MCLK/NPL only around device
+registration; later GPIO and pinmux accesses had no clock ownership.
+
+Acquire the named core/audio clocks for the board-specific ACPI path and
+balance them in standard runtime-PM callbacks. clk_bulk_prepare_enable()
+propagates failure and rolls back earlier clocks, so the existing
+pm_runtime_resume_and_get() guards prevent unpowered register access.
+Release active clock references on probe failure or driver removal after
+managed runtime PM has stopped. Keep the existing OF pm_clk path intact.
+
+Requires the matching external TCL LPI provider with complete clkdev
+aliases; the legacy registration-only clock hold must be removed there.
+This adapts the power-management intent of Nikita Travkin's qc7 LPI patch
+(dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff), not its obsolete bulk-clock
+fields and callbacks. System suspend/resume ordering is not enabled or
+claimed: this change addresses runtime PM only.
+---
+ drivers/pinctrl/qcom/pinctrl-lpass-lpi.c      | 49 +++++++++++++++++++
+ drivers/pinctrl/qcom/pinctrl-lpass-lpi.h      |  4 ++
+ .../pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c   |  2 +-
+ 3 files changed, 54 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/pinctrl/qcom/pinctrl-lpass-lpi.c b/drivers/pinctrl/qcom/pinctrl-lpass-lpi.c
+index c21bde463..96afb8d26 100644
+--- a/drivers/pinctrl/qcom/pinctrl-lpass-lpi.c
++++ b/drivers/pinctrl/qcom/pinctrl-lpass-lpi.c
+@@ -28,6 +28,8 @@
+ 
+ struct lpi_pinctrl {
+ 	struct device *dev;
++	struct clk_bulk_data acpi_clks[2];
++	bool acpi_pm;
+ 	struct pinctrl_dev *ctrl;
+ 	struct gpio_chip chip;
+ 	struct pinctrl_desc desc;
+@@ -39,6 +41,39 @@ struct lpi_pinctrl {
+ 	const struct lpi_pinctrl_variant_data *data;
+ };
+ 
++int lpi_pinctrl_runtime_suspend(struct device *dev)
++{
++	struct lpi_pinctrl *pctrl = dev_get_drvdata(dev);
++
++	if (!pctrl->acpi_pm)
++		return pm_clk_suspend(dev);
++
++	clk_bulk_disable_unprepare(ARRAY_SIZE(pctrl->acpi_clks), pctrl->acpi_clks);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(lpi_pinctrl_runtime_suspend);
++
++int lpi_pinctrl_runtime_resume(struct device *dev)
++{
++	struct lpi_pinctrl *pctrl = dev_get_drvdata(dev);
++
++	if (!pctrl->acpi_pm)
++		return pm_clk_resume(dev);
++
++	return clk_bulk_prepare_enable(ARRAY_SIZE(pctrl->acpi_clks),
++				       pctrl->acpi_clks);
++}
++EXPORT_SYMBOL_GPL(lpi_pinctrl_runtime_resume);
++
++static void lpi_pinctrl_pm_cleanup(void *data)
++{
++	struct device *dev = data;
++
++	/* Registered before devm_pm_runtime_enable: PM is disabled first. */
++	if (!pm_runtime_status_suspended(dev))
++		lpi_pinctrl_runtime_suspend(dev);
++}
++
+ static void __iomem *lpi_gpio_reg(struct lpi_pinctrl *state,
+ 				  unsigned int pin, unsigned int addr)
+ {
+@@ -554,6 +589,20 @@ int lpi_pinctrl_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	if (!dev->of_node &&
++	    device_property_read_bool(dev, "qcom,tcl-acpi-lpi-soundwire")) {
++		pctrl->acpi_clks[0].id = "core";
++		pctrl->acpi_clks[1].id = "audio";
++		ret = devm_clk_bulk_get(dev, ARRAY_SIZE(pctrl->acpi_clks),
++					pctrl->acpi_clks);
++		if (ret)
++			return dev_err_probe(dev, ret, "LPI clocks unavailable\n");
++		pctrl->acpi_pm = true;
++		ret = devm_add_action_or_reset(dev, lpi_pinctrl_pm_cleanup, dev);
++		if (ret)
++			return ret;
++	}
++
+ 	pm_runtime_set_autosuspend_delay(dev, 100);
+ 	pm_runtime_use_autosuspend(dev);
+ 	ret = devm_pm_runtime_enable(dev);
+diff --git a/drivers/pinctrl/qcom/pinctrl-lpass-lpi.h b/drivers/pinctrl/qcom/pinctrl-lpass-lpi.h
+index 6ba0c4eba..65545a311 100644
+--- a/drivers/pinctrl/qcom/pinctrl-lpass-lpi.h
++++ b/drivers/pinctrl/qcom/pinctrl-lpass-lpi.h
+@@ -12,6 +12,7 @@
+ #include "../core.h"
+ 
+ struct platform_device;
++struct device;
+ 
+ struct pinctrl_pin_desc;
+ 
+@@ -125,6 +126,9 @@ struct lpi_pinctrl_variant_data {
+ 	unsigned int flags;
+ };
+ 
++int lpi_pinctrl_runtime_suspend(struct device *dev);
++int lpi_pinctrl_runtime_resume(struct device *dev);
++
+ int lpi_pinctrl_probe(struct platform_device *pdev);
+ void lpi_pinctrl_remove(struct platform_device *pdev);
+ 
+diff --git a/drivers/pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c b/drivers/pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c
+index 54790cd3c..0d6f8c596 100644
+--- a/drivers/pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c
++++ b/drivers/pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c
+@@ -148,7 +148,7 @@ static const struct platform_device_id lpi_pinctrl_ids[] = {
+ MODULE_DEVICE_TABLE(platform, lpi_pinctrl_ids);
+ 
+ static const struct dev_pm_ops lpi_pinctrl_pm_ops = {
+-	RUNTIME_PM_OPS(pm_clk_suspend, pm_clk_resume, NULL)
++	RUNTIME_PM_OPS(lpi_pinctrl_runtime_suspend, lpi_pinctrl_runtime_resume, NULL)
+ };
+ 
+ static struct platform_driver lpi_pinctrl_driver = {
+-- 
+2.50.1
+

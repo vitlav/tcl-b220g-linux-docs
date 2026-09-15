@@ -54,3 +54,7 @@ The current source series reproduces the committed source tree. A full rebuild,
 source-to-installed-module identity check, repeated service/PCM cycles, capture,
 headset operation and acoustic stop-pop validation remain necessary before
 claiming a reproducible complete audio solution. See the [support plan](../roadmap.md).
+
+## Управление питанием LPASS
+
+[Дополнительный PM-набор](../../patches/kernel/acpi/optional-patches/lpass-pm/README.md) описывает Q6AFE vote handles, clocks LPI, стандартные runtime-PM интерфейсы и условия аппаратной приёмки. Для LPI `runtime_status=suspended` на основной серии ещё не подтверждает корректного управления clocks: ACPI-путь пропускает заполнение OF PM clock list. Подготовленная адаптация требует одновременно нового LPI driver и внешнего provider с aliases; она проверена сборкой и тестами кода, но ещё не аппаратно. Полноценный system suspend/resume и замена power-hold на regulator consumers/DAPM остаются отдельными требованиями.

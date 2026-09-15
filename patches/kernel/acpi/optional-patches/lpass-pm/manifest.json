@@ -1,17 +1,37 @@
 {
   "base_commit": "f8c7009045bb8912ee9d160feafa0136fe9da095",
   "base_tree": "187314ae5214642ccf465aef87b5115c3ae205fb",
-  "result_tree": "9d8fe5fe60c5506bd6b37baa61e734e306798448",
-  "status": "optional; applies unchanged; not built or hardware tested; not included in main series",
+  "head_commit": "46d886cb48beca4ef8dd077b2f8c5e740624634c",
+  "result_tree": "d24661189360756cf476ea6efc9a33acc8ec9471",
+  "status": "optional; replay and W=1 build passed; Q6AFE and LPI host fault-injection checks passed; not deployed or hardware qualified",
   "patches": [
     {
       "file": "0001-lpass-va-macro-disable-clocks-in-suspend.patch",
-      "original_commit": "283c8d3f8579db2d3698b1e2c668a62e04a7090a",
+      "commit": "f2970ff2481cfefe38542ace312edf531adf68d9",
+      "sha256": "c924512473619d0bff15e5d70b1ad27c81b00d014c3cd3181e96e14596cdb162",
       "author": "Nikita Travkin <nikita@trvn.ru>",
-      "sha256": "c924512473619d0bff15e5d70b1ad27c81b00d014c3cd3181e96e14596cdb162"
+      "original_commit": "283c8d3f8579db2d3698b1e2c668a62e04a7090a"
+    },
+    {
+      "file": "0002-q6afe-track-dsp-vote-handle.patch",
+      "commit": "1e4248348bb5191468081bcb2d0dbc4b4d54ddca",
+      "sha256": "bf51ee103b58eb51cc031002afea83414f228612a9275d816df68b651034e144",
+      "author": "Nikita Travkin <nikita@trvn.ru>",
+      "original_commit": "2637dc2cbba04da60fce3156902ba0611a4b30a8"
+    },
+    {
+      "file": "0003-lpi-acpi-runtime-clock-management.patch",
+      "commit": "46d886cb48beca4ef8dd077b2f8c5e740624634c",
+      "sha256": "533d49b7a5a9f4b18089a3c7dfea33ba2492a66f02c2278d43051c6290b94d0c",
+      "adaptation_reference": "dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff"
     }
   ],
-  "requires_adaptation": [
+  "required_module_override": {
+    "file": "modules/tcl_lpi_provider.c",
+    "sha256": "54be4f3966755e7d56a7fb78b8d26bf0dfd60800d7a0d4aba023c262d8f7f784"
+  },
+  "original_commits": [
+    "283c8d3f8579db2d3698b1e2c668a62e04a7090a",
     "2637dc2cbba04da60fce3156902ba0611a4b30a8",
     "dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff"
   ]
