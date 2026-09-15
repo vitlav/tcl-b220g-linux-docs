@@ -1,0 +1,44 @@
+From 283c8d3f8579db2d3698b1e2c668a62e04a7090a Mon Sep 17 00:00:00 2001
+From: Nikita Travkin <nikita@trvn.ru>
+Date: Thu, 11 Apr 2024 22:35:49 +0500
+Subject: [PATCH 14/16] ASoC: codecs: lpass-va-macro: Disable all clocks in
+ suspend
+
+Signed-off-by: Nikita Travkin <nikita@trvn.ru>
+---
+ sound/soc/codecs/lpass-va-macro.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/sound/soc/codecs/lpass-va-macro.c b/sound/soc/codecs/lpass-va-macro.c
+index c781da4762407e..74d29b985e91fc 100644
+--- a/sound/soc/codecs/lpass-va-macro.c
++++ b/sound/soc/codecs/lpass-va-macro.c
+@@ -1685,6 +1685,8 @@ static int __maybe_unused va_macro_runtime_suspend(struct device *dev)
+ 		clk_disable_unprepare(va->npl);
+ 
+ 	clk_disable_unprepare(va->mclk);
++	clk_disable_unprepare(va->dcodec);
++	clk_disable_unprepare(va->macro);
+ 
+ 	return 0;
+ }
+@@ -1694,6 +1696,18 @@ static int __maybe_unused va_macro_runtime_resume(struct device *dev)
+ 	struct va_macro *va = dev_get_drvdata(dev);
+ 	int ret;
+ 
++	ret = clk_prepare_enable(va->macro);
++	if (ret) {
++		dev_err(va->dev, "unable to prepare macro\n");
++		return ret;
++	}
++
++	ret = clk_prepare_enable(va->dcodec);
++	if (ret) {
++		dev_err(va->dev, "unable to prepare dcodec\n");
++		return ret;
++	}
++
+ 	ret = clk_prepare_enable(va->mclk);
+ 	if (ret) {
+ 		dev_err(va->dev, "unable to prepare mclk\n");
+

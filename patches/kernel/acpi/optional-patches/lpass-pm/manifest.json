@@ -1,0 +1,18 @@
+{
+  "base_commit": "f8c7009045bb8912ee9d160feafa0136fe9da095",
+  "base_tree": "187314ae5214642ccf465aef87b5115c3ae205fb",
+  "result_tree": "9d8fe5fe60c5506bd6b37baa61e734e306798448",
+  "status": "optional; applies unchanged; not built or hardware tested; not included in main series",
+  "patches": [
+    {
+      "file": "0001-lpass-va-macro-disable-clocks-in-suspend.patch",
+      "original_commit": "283c8d3f8579db2d3698b1e2c668a62e04a7090a",
+      "author": "Nikita Travkin <nikita@trvn.ru>",
+      "sha256": "c924512473619d0bff15e5d70b1ad27c81b00d014c3cd3181e96e14596cdb162"
+    }
+  ],
+  "requires_adaptation": [
+    "2637dc2cbba04da60fce3156902ba0611a4b30a8",
+    "dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff"
+  ]
+}
