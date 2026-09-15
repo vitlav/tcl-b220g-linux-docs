@@ -1,0 +1,108 @@
+{
+  "qc7_adaptation_commit": "3fbde69c6a0b31e7cba94b036301c003723c3c31",
+  "upstream_base": "adc218676eef25575469234709c2d87185ca223a",
+  "upstream_head": "1cc9339f8b132e9f95b95eeb92cc9c07d49e7bce",
+  "original_commits": [
+    {
+      "sha": "d7fe3796aae4b020c05e02024a03e69bc4c288e0",
+      "subject": "FROMLIST: clk: qcom: dispcc-sc7180: Force off rotator clk at probe",
+      "url": "https://github.com/TravMurav/linux/commit/d7fe3796aae4b020c05e02024a03e69bc4c288e0"
+    },
+    {
+      "sha": "fd0f5a756d15af59deeb29b0c18a1853615cfeea",
+      "subject": "HACK: drm/msm/dpu: Give each CRTC a dedicated cursor and primary",
+      "url": "https://github.com/TravMurav/linux/commit/fd0f5a756d15af59deeb29b0c18a1853615cfeea"
+    },
+    {
+      "sha": "e1e5e031d9b7685a49fac11e7d2b9bc033f06e71",
+      "subject": "HACK: thermal: gov_power_allocator: Suppress sustainable_power warning without trip_points",
+      "url": "https://github.com/TravMurav/linux/commit/e1e5e031d9b7685a49fac11e7d2b9bc033f06e71"
+    },
+    {
+      "sha": "43338c78638a5434cc9c34298e77d7fcc2c5f523",
+      "subject": "MSM8916: REVERTME: Add postmarketOS config fragment (v28)",
+      "url": "https://github.com/TravMurav/linux/commit/43338c78638a5434cc9c34298e77d7fcc2c5f523"
+    },
+    {
+      "sha": "543164bef528dd00e3f8ec3ce78ee3ceb4cb8536",
+      "subject": "REVERTME: Add sc7180 defconfig",
+      "url": "https://github.com/TravMurav/linux/commit/543164bef528dd00e3f8ec3ce78ee3ceb4cb8536"
+    },
+    {
+      "sha": "58733478566cb4d7859db97202dbf29ee62a287f",
+      "subject": "FIXME: platform: arm64: acer-aspire1-ec: Implement UCSI support",
+      "url": "https://github.com/TravMurav/linux/commit/58733478566cb4d7859db97202dbf29ee62a287f"
+    },
+    {
+      "sha": "bf69cdd2765e0ab95c017f20cfb47284ef8a3701",
+      "subject": "FIXME: firmware: qcom: uefisecapp: Add Aspire 1 to allowlist",
+      "url": "https://github.com/TravMurav/linux/commit/bf69cdd2765e0ab95c017f20cfb47284ef8a3701"
+    },
+    {
+      "sha": "bc37c945b9225c45f6bd35ba836be660ac9d86b5",
+      "subject": "ASoC: qcom: sc7180: Add support for VA macro on ADSP",
+      "url": "https://github.com/TravMurav/linux/commit/bc37c945b9225c45f6bd35ba836be660ac9d86b5"
+    },
+    {
+      "sha": "49117cdecfd59981eeb1244d21f7adf4f1a0765b",
+      "subject": "pinctrl: qcom: sc7280-lpi: Add compatible for sc7180",
+      "url": "https://github.com/TravMurav/linux/commit/49117cdecfd59981eeb1244d21f7adf4f1a0765b"
+    },
+    {
+      "sha": "4c438de77ce2a8cc7df5be1947865b601b2f9e51",
+      "subject": "arm64: dts: qcom: sc7180: Add lpass-lpi-pinctrl",
+      "url": "https://github.com/TravMurav/linux/commit/4c438de77ce2a8cc7df5be1947865b601b2f9e51"
+    },
+    {
+      "sha": "3dfc20a197524e92bb10c92172bd767725f11418",
+      "subject": "arm64: dts: qcom: sc7180: Add VA macro",
+      "url": "https://github.com/TravMurav/linux/commit/3dfc20a197524e92bb10c92172bd767725f11418"
+    },
+    {
+      "sha": "2637dc2cbba04da60fce3156902ba0611a4b30a8",
+      "subject": "FIXME: ASoC: q6dsp: q6afe: Tack on client_handle tracking",
+      "url": "https://github.com/TravMurav/linux/commit/2637dc2cbba04da60fce3156902ba0611a4b30a8"
+    },
+    {
+      "sha": "dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff",
+      "subject": "pinctrl: qcom: sc7280-lpi: Add power management",
+      "url": "https://github.com/TravMurav/linux/commit/dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff"
+    },
+    {
+      "sha": "283c8d3f8579db2d3698b1e2c668a62e04a7090a",
+      "subject": "ASoC: codecs: lpass-va-macro: Disable all clocks in suspend",
+      "url": "https://github.com/TravMurav/linux/commit/283c8d3f8579db2d3698b1e2c668a62e04a7090a"
+    },
+    {
+      "sha": "05af8778b3903d40e46c68194a80e01cebcd04fe",
+      "subject": "arm64: dts: qcom: acer-aspire1: Add lid microphone",
+      "url": "https://github.com/TravMurav/linux/commit/05af8778b3903d40e46c68194a80e01cebcd04fe"
+    },
+    {
+      "sha": "1cc9339f8b132e9f95b95eeb92cc9c07d49e7bce",
+      "subject": "Revert \"arm64: dts: qcom: acer-aspire1: Add lid microphone\"",
+      "url": "https://github.com/TravMurav/linux/commit/1cc9339f8b132e9f95b95eeb92cc9c07d49e7bce"
+    }
+  ],
+  "adapted_patches": [
+    {
+      "file": "add-gamma-lut-support.patch",
+      "sha256": "dde23ba719bfd5d0d4503b645c36ba39a251c4468722701210c94666670a05eb",
+      "git_blob": "a554b23cfa1358a469d3dcfb92787685395c636a",
+      "source": "https://github.com/hexdump0815/linux-mainline-qcom-kernel/blob/3fbde69c6a0b31e7cba94b036301c003723c3c31/misc.qc7/patches/v6.18/add-gamma-lut-support.patch"
+    },
+    {
+      "file": "add-new-dts-files-to-makefile.patch",
+      "sha256": "22b45e1a236d6552d8baa3733ea3400364f82bbf0f3de87ff53e82dfcd7e1d49",
+      "git_blob": "14900053b71ee4d9b048077757797f1e09f43ae5",
+      "source": "https://github.com/hexdump0815/linux-mainline-qcom-kernel/blob/3fbde69c6a0b31e7cba94b036301c003723c3c31/misc.qc7/patches/v6.18/add-new-dts-files-to-makefile.patch"
+    },
+    {
+      "file": "travmurav-changes-v6.12.patch",
+      "sha256": "958c7d95ddf21191fbca89aaa712a36124d20f7aaa99b14cdad4f1aac5596fd1",
+      "git_blob": "9415be92d28ab444792680a36cf0fef3e1f8484f",
+      "source": "https://github.com/hexdump0815/linux-mainline-qcom-kernel/blob/3fbde69c6a0b31e7cba94b036301c003723c3c31/misc.qc7/patches/v6.18/travmurav-changes-v6.12.patch"
+    }
+  ],
+  "mbox_sha256": "259f13f86329eafc911199febf590bef0ab255da3aae5b06f6d5ae93192a1c66"
+}
