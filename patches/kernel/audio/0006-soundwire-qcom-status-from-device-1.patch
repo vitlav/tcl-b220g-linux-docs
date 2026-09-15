@@ -8,6 +8,9 @@ reserved status slot to the SoundWire core. The TCL ACPI kernel currently
 starts this loop at zero, which leaves the status array misaligned with the
 slave device IDs and can make raw SWRM_MCP_SLV_STATUS disagree with sysfs.
 
+This context is adapted to the TCL 7.2.4 branch, whose loop uses '<' and
+has no slave_status assignment.
+
 Upstream fix: 8039b6f3e5c7 (soundwire: qcom: update status from device id 1)
 
 Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
@@ -16,15 +19,13 @@ Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/soundwire/qcom.c b/drivers/soundwire/qcom.c
-index e21a3306bf01..871e4d8b32c7 100644
 --- a/drivers/soundwire/qcom.c
 +++ b/drivers/soundwire/qcom.c
-@@ -445,7 +445,7 @@ static void qcom_swrm_get_device_status(struct qcom_swrm_ctrl *ctrl)
+@@ -232,7 +232,7 @@ static void qcom_swrm_get_device_status(struct qcom_swrm_ctrl *ctrl)
  	ctrl->reg_read(ctrl, SWRM_MCP_SLV_STATUS, &val);
- 	ctrl->slave_status = val;
  
--	for (i = 0; i <= SDW_MAX_DEVICES; i++) {
-+	for (i = 1; i <= SDW_MAX_DEVICES; i++) {
+-	for (i = 0; i < SDW_MAX_DEVICES; i++) {
++	for (i = 1; i < SDW_MAX_DEVICES; i++) {
  		u32 s;
  
  		s = (val >> (i * 2));
