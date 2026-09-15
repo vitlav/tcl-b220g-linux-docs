@@ -1,7 +1,7 @@
 From c556a5b777c5bb8a04346597d1ba898a56cad711 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:47:37 +0300
-Subject: [PATCH 15/16] arm64: add TCL ACPI diagnostic configuration for
+Subject: [PATCH 15/58] arm64: add TCL ACPI diagnostic configuration for
  vanilla 7.2.4
 
 ---
@@ -11,7 +11,7 @@ Subject: [PATCH 15/16] arm64: add TCL ACPI diagnostic configuration for
 
 diff --git a/arch/arm64/configs/tcl_acpi_defconfig b/arch/arm64/configs/tcl_acpi_defconfig
 new file mode 100644
-index 000000000..7bdb2fdc4
+index 0000000000000000000000000000000000000000..7bdb2fdc413d9184486933f79aae850c95594522
 --- /dev/null
 +++ b/arch/arm64/configs/tcl_acpi_defconfig
 @@ -0,0 +1,1232 @@

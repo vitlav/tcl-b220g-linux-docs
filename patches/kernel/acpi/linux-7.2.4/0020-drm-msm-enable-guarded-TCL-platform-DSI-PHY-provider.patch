@@ -1,0 +1,249 @@
+From e72e28ab38b250e7e3850477fd1553391dd09df8 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 13:22:06 +0300
+Subject: [PATCH 20/58] drm: msm: enable guarded TCL platform DSI PHY providers
+
+Development on top of the validated vanilla 7.2.4 ACPI baseline. Changed ARM64 objects compile with W=1; hardware activation is pending the provider and consumer wiring. Do not treat this as a validated display implementation.
+---
+ drivers/gpu/drm/msm/dsi/phy/dsi_phy.c      | 98 +++++++++++++++++++++-
+ drivers/gpu/drm/msm/dsi/phy/dsi_phy_10nm.c | 28 +++++--
+ 2 files changed, 118 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/gpu/drm/msm/dsi/phy/dsi_phy.c b/drivers/gpu/drm/msm/dsi/phy/dsi_phy.c
+index 1fb3899b88bf2638ff4075fffa867a3d33a0fac1..8476fdfb08191a05bd6cd65d70ac05ab2bc1d213 100644
+--- a/drivers/gpu/drm/msm/dsi/phy/dsi_phy.c
++++ b/drivers/gpu/drm/msm/dsi/phy/dsi_phy.c
+@@ -3,6 +3,10 @@
+  * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+  */
+ 
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/property.h>
++#include <linux/clkdev.h>
+ #include <linux/clk-provider.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_clock.h>
+@@ -610,6 +614,44 @@ static int dsi_phy_get_id(struct msm_dsi_phy *phy)
+ 	return -EINVAL;
+ }
+ 
++static int tcl_dsi_phy_check_resources(struct platform_device *pdev)
++{
++#ifdef CONFIG_ACPI
++	static const struct {
++		const char *name;
++		resource_size_t start, size;
++	} windows[] = {
++		{ "dsi_phy", 0xae94400, 0x200 },
++		{ "dsi_phy_lane", 0xae94600, 0x280 },
++		{ "dsi_pll", 0xae94a00, 0x1e0 },
++	};
++	struct device *dev = &pdev->dev;
++	acpi_handle gpu;
++	int i;
++
++	if (acpi_disabled || !dev->parent ||
++	    !dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    !device_property_read_bool(dev, "qcom,tcl-acpi-display") ||
++	    ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.GPU0", &gpu)) ||
++	    ACPI_HANDLE(dev->parent) != gpu ||
++	    !acpi_match_device((const struct acpi_device_id[]) {
++		{ "QCOM083A" }, { } }, dev->parent))
++		return -ENODEV;
++	for (i = 0; i < ARRAY_SIZE(windows); i++) {
++		struct resource *r = platform_get_resource_byname(pdev,
++			IORESOURCE_MEM, windows[i].name);
++
++		if (!r || r->start != windows[i].start ||
++		    resource_size(r) != windows[i].size)
++			return -EINVAL;
++	}
++	return 0;
++#else
++	return -ENODEV;
++#endif
++}
++
+ static int dsi_phy_driver_probe(struct platform_device *pdev)
+ {
+ 	struct msm_dsi_phy *phy;
+@@ -630,6 +672,16 @@ static int dsi_phy_driver_probe(struct platform_device *pdev)
+ 	phy->provided_clocks->num = NUM_PROVIDED_CLKS;
+ 
+ 	phy->cfg = of_device_get_match_data(&pdev->dev);
++	if (!dev->of_node) {
++		const struct platform_device_id *id = platform_get_device_id(pdev);
++
++		ret = tcl_dsi_phy_check_resources(pdev);
++		if (ret)
++			return ret;
++		if (!id)
++			return -ENODEV;
++		phy->cfg = (const void *)id->driver_data;
++	}
+ 	if (!phy->cfg)
+ 		return -ENODEV;
+ 
+@@ -640,9 +692,9 @@ static int dsi_phy_driver_probe(struct platform_device *pdev)
+ 		return dev_err_probe(dev, phy->id,
+ 				     "Couldn't identify PHY index\n");
+ 
+-	phy->regulator_ldo_mode = of_property_read_bool(dev->of_node,
++	phy->regulator_ldo_mode = device_property_read_bool(dev,
+ 				"qcom,dsi-phy-regulator-ldo-mode");
+-	if (!of_property_read_u32(dev->of_node, "phy-type", &phy_type))
++	if (!device_property_read_u32(dev, "phy-type", &phy_type))
+ 		phy->cphy_mode = (phy_type == PHY_TYPE_CPHY);
+ 
+ 	phy->base = msm_ioremap_size(pdev, "dsi_phy", &phy->base_size);
+@@ -681,6 +733,16 @@ static int dsi_phy_driver_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	if (!dev->of_node) {
++		struct clk *ref = devm_clk_get(dev, "ref");
++
++		if (IS_ERR(ref))
++			return PTR_ERR(ref);
++		if (clk_get_rate(ref) != 19200000 || phy->cfg->num_regulators != 1 ||
++		    regulator_get_voltage(phy->supplies[0].consumer) != 880000)
++			return -EINVAL;
++	}
++
+ 	platform_set_drvdata(pdev, phy);
+ 
+ 	ret = devm_pm_runtime_enable(dev);
+@@ -696,12 +758,35 @@ static int dsi_phy_driver_probe(struct platform_device *pdev)
+ 		return dev_err_probe(dev, ret, "Unable to get iface clk\n");
+ 
+ 	if (phy->cfg->ops.pll_init) {
++		/* PLL registration/save reads PHY registers; power iface first. */
++		if (!dev->of_node) {
++			ret = pm_runtime_resume_and_get(dev);
++			if (ret < 0)
++				return ret;
++		}
+ 		ret = phy->cfg->ops.pll_init(phy);
++		if (!dev->of_node)
++			pm_runtime_put_sync(dev);
+ 		if (ret)
+ 			return dev_err_probe(dev, ret,
+ 					     "PLL init failed; need separate clk driver\n");
+ 	}
+ 
++	if (!dev->of_node) {
++		int i;
++
++		for (i = 0; i < phy->provided_clocks->num; i++) {
++			struct clk_hw *hw = phy->provided_clocks->hws[i];
++
++			if (IS_ERR_OR_NULL(hw))
++				return hw ? PTR_ERR(hw) : -ENODEV;
++			ret = devm_clk_hw_register_clkdev(dev, hw,
++					clk_hw_get_name(hw), dev_name(dev));
++			if (ret)
++				return ret;
++		}
++		return 0;
++	}
+ 	ret = devm_of_clk_add_hw_provider(dev, of_clk_hw_onecell_get,
+ 				     phy->provided_clocks);
+ 	if (ret)
+@@ -715,8 +800,17 @@ static const struct dev_pm_ops dsi_phy_pm_ops = {
+ 	SET_RUNTIME_PM_OPS(pm_clk_suspend, pm_clk_resume, NULL)
+ };
+ 
++static const struct platform_device_id dsi_phy_platform_ids[] = {
++#ifdef CONFIG_DRM_MSM_DSI_10NM_PHY
++	{ "tcl-sc7180-dsi-phy", (kernel_ulong_t)&dsi_phy_10nm_cfgs },
++#endif
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, dsi_phy_platform_ids);
++
+ static struct platform_driver dsi_phy_platform_driver = {
+ 	.probe      = dsi_phy_driver_probe,
++	.id_table   = dsi_phy_platform_ids,
+ 	.driver     = {
+ 		.name   = "msm_dsi_phy",
+ 		.of_match_table = dsi_phy_dt_match,
+diff --git a/drivers/gpu/drm/msm/dsi/phy/dsi_phy_10nm.c b/drivers/gpu/drm/msm/dsi/phy/dsi_phy_10nm.c
+index ec486ff02c9b5156cdf0902d05464cf57dc9605b..77fbad50126957e401c2f9b10b96d07c55f564f1 100644
+--- a/drivers/gpu/drm/msm/dsi/phy/dsi_phy_10nm.c
++++ b/drivers/gpu/drm/msm/dsi/phy/dsi_phy_10nm.c
+@@ -7,6 +7,7 @@
+ #include <linux/clk.h>
+ #include <linux/clk-provider.h>
+ #include <linux/iopoll.h>
++#include <linux/property.h>
+ 
+ #include "dsi_phy.h"
+ #include "dsi.xml.h"
+@@ -673,6 +674,14 @@ static int pll_10nm_register(struct dsi_pll_10nm *pll_10nm, struct clk_hw **prov
+ 	return ret;
+ }
+ 
++static void dsi_pll_10nm_clear_slot(void *data)
++{
++	struct dsi_pll_10nm *pll = data;
++
++	if (pll_10nm_list[pll->phy->id] == pll)
++		pll_10nm_list[pll->phy->id] = NULL;
++}
++
+ static int dsi_pll_10nm_init(struct msm_dsi_phy *phy)
+ {
+ 	struct platform_device *pdev = phy->pdev;
+@@ -685,11 +694,15 @@ static int dsi_pll_10nm_init(struct msm_dsi_phy *phy)
+ 
+ 	DBG("DSI PLL%d", phy->id);
+ 
+-	pll_10nm_list[phy->id] = pll_10nm;
+ 
+ 	spin_lock_init(&pll_10nm->postdiv_lock);
+ 
+ 	pll_10nm->phy = phy;
++	ret = devm_add_action_or_reset(&pdev->dev, dsi_pll_10nm_clear_slot, pll_10nm);
++	if (ret)
++		return ret;
++	pll_10nm_list[phy->id] = pll_10nm;
++
+ 
+ 	ret = pll_10nm_register(pll_10nm, phy->provided_clocks->hws);
+ 	if (ret) {
+@@ -923,8 +936,9 @@ static int dsi_10nm_phy_parse_dt(struct msm_dsi_phy *phy)
+ 		return -ENOMEM;
+ 
+ 	/* Drive strength adjustment parameters */
+-	ret = of_property_read_u8_array(dev->of_node, "qcom,phy-rescode-offset-top",
+-					offset_top, DSI_LANE_MAX);
++	ret = device_property_present(dev, "qcom,phy-rescode-offset-top") ?
++		device_property_read_u8_array(dev, "qcom,phy-rescode-offset-top",
++					     (u8 *)offset_top, DSI_LANE_MAX) : -EINVAL;
+ 	if (ret && ret != -EINVAL) {
+ 		DRM_DEV_ERROR(dev, "failed to parse qcom,phy-rescode-offset-top, %d\n", ret);
+ 		return ret;
+@@ -940,8 +954,9 @@ static int dsi_10nm_phy_parse_dt(struct msm_dsi_phy *phy)
+ 		tuning_cfg->rescode_offset_top[i] = 0x3f & offset_top[i];
+ 	}
+ 
+-	ret = of_property_read_u8_array(dev->of_node, "qcom,phy-rescode-offset-bot",
+-					offset_bot, DSI_LANE_MAX);
++	ret = device_property_present(dev, "qcom,phy-rescode-offset-bot") ?
++		device_property_read_u8_array(dev, "qcom,phy-rescode-offset-bot",
++					     (u8 *)offset_bot, DSI_LANE_MAX) : -EINVAL;
+ 	if (ret && ret != -EINVAL) {
+ 		DRM_DEV_ERROR(dev, "failed to parse qcom,phy-rescode-offset-bot, %d\n", ret);
+ 		return ret;
+@@ -958,7 +973,8 @@ static int dsi_10nm_phy_parse_dt(struct msm_dsi_phy *phy)
+ 	}
+ 
+ 	/* Drive level/amplitude adjustment parameters */
+-	ret = of_property_read_u32(dev->of_node, "qcom,phy-drive-ldo-level", &ldo_level);
++	ret = device_property_present(dev, "qcom,phy-drive-ldo-level") ?
++		device_property_read_u32(dev, "qcom,phy-drive-ldo-level", &ldo_level) : -EINVAL;
+ 	if (ret && ret != -EINVAL) {
+ 		DRM_DEV_ERROR(dev, "failed to parse qcom,phy-drive-ldo-level, %d\n", ret);
+ 		return ret;

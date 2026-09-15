@@ -1,7 +1,7 @@
 From 7f1aa265b7e7c4ef64fb106de067813dac99cd49 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:41:38 +0300
-Subject: [PATCH 04/16] iommu: arm-smmu: select TCL ACPI Qualcomm
+Subject: [PATCH 04/58] iommu: arm-smmu: select TCL ACPI Qualcomm
  implementations
 
 Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
@@ -10,7 +10,7 @@ Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new 
  1 file changed, 30 insertions(+)
 
 diff --git a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c b/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
-index e2c914fcc..4ba940559 100644
+index e2c914fccd6fcac770b414de7b9ae3e8532f8711..4ba940559a806d1893343f9d34d823bc7ebc4c1c 100644
 --- a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
 +++ b/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
 @@ -769,6 +769,33 @@ static const struct of_device_id __maybe_unused qcom_smmu_impl_of_match[] = {

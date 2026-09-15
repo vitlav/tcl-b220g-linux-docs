@@ -1,0 +1,117 @@
+From f8eba694ba22954ba8bbb58cd7035f0611233c13 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 18:49:19 +0300
+Subject: [PATCH 44/58] drm: tcl: reuse the ACPI EDP1 bridge client and its
+ secondary graph
+
+---
+ drivers/gpu/drm/bridge/tcl-lt8911-handoff.c | 22 +++++++++++++--
+ drivers/soc/qcom/tcl_acpi_display.c         | 31 +++++++++++++++------
+ 2 files changed, 41 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/gpu/drm/bridge/tcl-lt8911-handoff.c b/drivers/gpu/drm/bridge/tcl-lt8911-handoff.c
+index caad26c63bc5eca66902b325eca86674c54f8052..78a2a11f9b3400158d7e2a052367e315bc09ef3f 100644
+--- a/drivers/gpu/drm/bridge/tcl-lt8911-handoff.c
++++ b/drivers/gpu/drm/bridge/tcl-lt8911-handoff.c
+@@ -3,6 +3,7 @@
+  * ONLY register writes are bank selection (0xff), finishing at bank 0x81.
+  * MSM still restarts DSI/PHY: successful probe does not prove visible output.
+  */
++#include <linux/acpi.h>
+ #include <linux/dmi.h>
+ #include <linux/property.h>
+ #include <linux/i2c.h>
+@@ -117,7 +118,7 @@ static int tcl_probe(struct i2c_client *client)
+ {
+ 	const struct mipi_dsi_device_info info = { .type = "tcl-lt8911-handoff", .channel = 0 };
+ 	struct device *dev = &client->dev;
+-	struct fwnode_handle *host_node, *ep;
++	struct fwnode_handle *host_node, *ep, *bridge_node;
+ 	struct mipi_dsi_host *host;
+ 	struct mipi_dsi_device *dsi;
+ 	struct tcl_handoff *ctx;
+@@ -150,7 +151,16 @@ static int tcl_probe(struct i2c_client *client)
+ 	if (IS_ERR(ctx))
+ 		return PTR_ERR(ctx);
+ 	ctx->bridge.of_node = dev->of_node;
+-	ctx->bridge.fwnode = dev_fwnode(dev);
++	/* The ACPI client retains its primary node. The graph lives in its
++	 * secondary software node, which must match the DSI remote endpoint.
++	 */
++	bridge_node = dev_fwnode(dev);
++	if (!dev->of_node) {
++		bridge_node = bridge_node ? bridge_node->secondary : NULL;
++		if (!is_software_node(bridge_node))
++			return -EINVAL;
++	}
++	ctx->bridge.fwnode = bridge_node;
+ 	ctx->bridge.type = DRM_MODE_CONNECTOR_eDP;
+ 	ctx->bridge.ops = DRM_BRIDGE_OP_MODES;
+ 	ret = devm_drm_bridge_add(dev, &ctx->bridge);
+@@ -181,9 +191,15 @@ static const struct i2c_device_id tcl_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, tcl_ids);
+ 
++static const struct acpi_device_id tcl_acpi_ids[] = {
++	{ "EDPBRIDGE" }, { }
++};
++MODULE_DEVICE_TABLE(acpi, tcl_acpi_ids);
++
+ static struct i2c_driver tcl_driver = {
+ 	.id_table = tcl_ids,
+-	.driver = { .name = "tcl-lt8911-handoff", .of_match_table = tcl_match },
++	.driver = { .name = "tcl-lt8911-handoff", .of_match_table = tcl_match,
++		    .acpi_match_table = tcl_acpi_ids },
+ 	.probe = tcl_probe,
+ };
+ module_i2c_driver(tcl_driver);
+diff --git a/drivers/soc/qcom/tcl_acpi_display.c b/drivers/soc/qcom/tcl_acpi_display.c
+index caf6a15398b831854444b297045d23f64f616d49..d82d88ade6df2f0840ffd6ce28da92c8fa4942d5 100644
+--- a/drivers/soc/qcom/tcl_acpi_display.c
++++ b/drivers/soc/qcom/tcl_acpi_display.c
+@@ -637,10 +637,6 @@ static int prepare_bridge_client(void)
+ 		PROPERTY_ENTRY_BOOL("qcom,tcl-acpi-display"),
+ 		PROPERTY_ENTRY_U32("clock-frequency", 100000), { }
+ 	};
+-	struct i2c_board_info info = {
+-		I2C_BOARD_INFO("tcl-lt8911-handoff", 0x29),
+-		.swnode = &graph_nodes[6],
+-	};
+ 	struct acpi_device *adev;
+ 	acpi_handle handle;
+ 	int ret;
+@@ -676,12 +672,29 @@ static int prepare_bridge_client(void)
+ 		return -EPROBE_DEFER;
+ 	if (bridge_adapter->dev.parent != bridge_controller)
+ 		return -EINVAL;
+-	bridge_client = i2c_new_client_device(bridge_adapter, &info);
+-	if (IS_ERR(bridge_client)) {
+-		ret = PTR_ERR(bridge_client);
+-		bridge_client = NULL;
++	/* IC11 registration enumerates EDP1 from its ACPI I2cSerialBus resource.
++	 * Reuse that client; a second client at 0x29 would return -EBUSY.
++	 */
++	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.EDP1", &handle)))
++		return -ENODEV;
++	adev = acpi_get_acpi_dev(handle);
++	if (!adev)
++		return -ENODEV;
++	bridge_client = i2c_find_device_by_fwnode(acpi_fwnode_handle(adev));
++	acpi_dev_put(adev);
++	if (!bridge_client)
++		return -EPROBE_DEFER;
++	if (bridge_client->adapter != bridge_adapter ||
++	    bridge_client->addr != 0x29 || (bridge_client->flags & I2C_CLIENT_TEN))
++		return -EINVAL;
++	device_lock(&bridge_client->dev);
++	if (device_is_bound(&bridge_client->dev))
++		ret = -EBUSY;
++	else
++		ret = device_add_software_node(&bridge_client->dev, &graph_nodes[6]);
++	device_unlock(&bridge_client->dev);
++	if (ret)
+ 		return ret;
+-	}
+ 	/* The host remains blocked; the bridge will defer until it registers. */
+ 	if (!device_link_add(&bridge_client->dev, &dsi.pdev->dev, DL_FLAG_STATELESS))
+ 		return -ENOMEM;

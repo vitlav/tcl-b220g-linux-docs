@@ -1,0 +1,148 @@
+From 594981d15c3faa78a6002e0db07090a14043249a Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 11:02:10 +0300
+Subject: [PATCH 52/58] ACPI: IORT: describe TCL audio DMA streams and
+ coherency
+
+Record the existing TCL ACPI audio integration source. Hardware playback has been observed during development; this source snapshot still requires a complete rebuild and lifecycle regression validation.
+---
+ drivers/acpi/arm64/iort.c | 99 +++++++++++++++++++++++++++++++++++++++
+ drivers/base/platform.c   |  5 ++
+ 2 files changed, 104 insertions(+)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index bc8df903c0682bc6e986adc590460df9d18c6377..aea32b51ad512486f4dae7aa53dbdd9be6335e5c 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1718,6 +1718,102 @@ static int iort_tcl_gpu_map(struct device *dev, struct acpi_iort_node *node)
+ 	return 0;
+ }
+ 
++/* Select only the verified Q6ASM stream from the composite ADCM node. */
++static int iort_tcl_audio_map(struct device *dev, struct acpi_iort_node *node)
++{
++	static const u32 inputs[] = { 0x07030000 };
++	static const u32 outputs[] = { 0x1001 };
++	struct acpi_iort_named_component *nc;
++	struct acpi_iort_id_mapping *maps;
++	struct acpi_iort_node *parent;
++	struct acpi_iort_smmu *smmu;
++	u32 name_end = sizeof(*node) + sizeof(*nc) + sizeof("\\_SB.ADSP.ADCM");
++	u32 parent_min = sizeof(*parent) + sizeof(*smmu);
++	unsigned int i, j, matches;
++	int ret;
++
++	if (!dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") || !iort_table ||
++	    memcmp(iort_table->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE) ||
++	    memcmp(iort_table->oem_table_id, "QCOMEDK2", ACPI_OEM_TABLE_ID_SIZE) ||
++	    iort_table->oem_revision != 0x7180)
++		return -ENODEV;
++	if (node->type != ACPI_IORT_NODE_NAMED_COMPONENT ||
++	    node->length < name_end || node->mapping_offset < name_end ||
++	    node->mapping_offset > node->length ||
++	    node->mapping_count > (node->length - node->mapping_offset) / sizeof(*maps))
++		return -EINVAL;
++	nc = (void *)node->node_data;
++	if (nc->node_flags || nc->memory_properties || nc->memory_address_limit != 36)
++		return -EINVAL;
++	if (memcmp(nc->device_name, "\\_SB.ADSP.ADCM", sizeof("\\_SB.ADSP.ADCM")))
++		return -EINVAL;
++	maps = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node, node->mapping_offset);
++
++	/* Validate every mapping before mutating the device's fwspec. */
++	for (i = 0; i < ARRAY_SIZE(inputs); i++) {
++		matches = 0;
++		for (j = 0; j < node->mapping_count; j++) {
++			struct acpi_iort_id_mapping *m = &maps[j];
++
++			/* SINGLE_MAPPING would also capture an unrelated input. */
++			if (m->flags & ACPI_IORT_ID_SINGLE_MAPPING)
++				return -EINVAL;
++			if (inputs[i] < m->input_base ||
++			    inputs[i] - m->input_base > m->id_count)
++				continue;
++			if (++matches != 1 || m->flags || m->input_base != inputs[i] ||
++			    m->id_count || m->output_base != outputs[i] ||
++			    m->output_reference != 48)
++				return -EINVAL;
++		}
++		if (matches != 1)
++			return -EINVAL;
++	}
++	if (iort_table->length < parent_min || 48 > iort_table->length - parent_min)
++		return -EINVAL;
++	parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table, 48);
++	if (parent->type != ACPI_IORT_NODE_SMMU || parent->length < parent_min ||
++	    parent->length > iort_table->length - 48)
++		return -EINVAL;
++	smmu = (void *)parent->node_data;
++	if (smmu->base_address != 0x15000000 || smmu->span != 0x100000 ||
++	    smmu->model != ACPI_IORT_SMMU_CORELINK_MMU500)
++		return -EINVAL;
++	if (dev_iommu_fwspec_get(dev))
++		return -EBUSY;
++
++	for (i = 0; i < ARRAY_SIZE(outputs); i++) {
++		ret = iort_iommu_xlate(dev, parent, outputs[i]);
++		if (ret) {
++			iommu_fwspec_free(dev);
++			return ret;
++		}
++	}
++	return 0;
++}
++
++static bool iort_tcl_audio_device(struct device *dev)
++{
++	const char *name = dev_name(dev);
++
++	return !dev->of_node && name && !strcmp(name, "tcl-q6asm-dai") &&
++		device_property_read_bool(dev, "qcom,tcl-acpi-audio");
++}
++
++static acpi_status iort_tcl_audio_match(struct acpi_iort_node *node, void *context)
++{
++	struct acpi_iort_named_component *nc;
++
++	if (node->type != ACPI_IORT_NODE_NAMED_COMPONENT ||
++	    node->length < sizeof(*node) + sizeof(*nc) + sizeof("\\_SB.ADSP.ADCM"))
++		return AE_NOT_FOUND;
++	nc = (void *)node->node_data;
++	return !memcmp(nc->device_name, "\\_SB.ADSP.ADCM",
++		       sizeof("\\_SB.ADSP.ADCM")) ? AE_OK : AE_NOT_FOUND;
++}
++
++
+ /**
+  * iort_iommu_configure_id - Set-up IOMMU configuration for a device.
+  *
+@@ -1753,9 +1849,12 @@ int iort_iommu_configure_id(struct device *dev, const u32 *id_in)
+ 			fwspec->flags |= IOMMU_FWSPEC_PCI_RC_CANWBS;
+ 	} else {
+ 		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
++				      iort_tcl_audio_device(dev) ? iort_tcl_audio_match :
+ 				      iort_match_node_callback, dev);
+ 		if (!node)
+ 			return -ENODEV;
++		if (iort_tcl_audio_device(dev))
++			return id_in ? -EINVAL : iort_tcl_audio_map(dev, node);
+ 
+ 		if (!dev->of_node && dev_name(dev) && !strcmp(dev_name(dev), "tcl-sc7180-dpu") &&
+ 		    device_property_read_bool(dev, "qcom,tcl-acpi-display")) {
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index d59f7716232e445040f49e90d2f74f6331dd5585..6111e5fe561b0828cde00f3387ee405446c704d6 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -1505,6 +1505,11 @@ static int platform_dma_configure(struct device *dev)
+ 		ret = acpi_dma_configure(dev, acpi_get_dma_attr(adev));
+ 	}
+ 	/* @dev->driver may not be valid when we're called from the IOMMU layer */
++	if (is_software_node(fwnode) && !strcmp(dev_name(dev), "tcl-q6asm-dai") &&
++	    device_property_read_bool(dev, "qcom,tcl-acpi-audio"))
++		/* OEM ADCM stream is non-coherent; IORT validates board and mapping. */
++		ret = acpi_dma_configure(dev, DEV_DMA_NON_COHERENT);
++
+ 	if (ret || !drv || to_platform_driver(drv)->driver_managed_dma)
+ 		return ret;
+ 

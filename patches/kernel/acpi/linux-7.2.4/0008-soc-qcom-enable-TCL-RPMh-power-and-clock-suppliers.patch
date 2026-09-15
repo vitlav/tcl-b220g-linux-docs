@@ -1,7 +1,7 @@
 From d336edc8c4d373530a8c492f7fccfcb0383fd3d5 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:40 +0300
-Subject: [PATCH 08/16] soc: qcom: enable TCL RPMh power and clock suppliers
+Subject: [PATCH 08/58] soc: qcom: enable TCL RPMh power and clock suppliers
 
 Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
 ---
@@ -15,7 +15,7 @@ Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build wi
  7 files changed, 169 insertions(+), 57 deletions(-)
 
 diff --git a/drivers/clk/qcom/clk-rpmh.c b/drivers/clk/qcom/clk-rpmh.c
-index 6367b2a5a..8ed17f2ae 100644
+index 6367b2a5a4e08001051dcd7b41a4b1c29df67af5..8ed17f2ae93f79c2e5feb0042090bbc126633d85 100644
 --- a/drivers/clk/qcom/clk-rpmh.c
 +++ b/drivers/clk/qcom/clk-rpmh.c
 @@ -4,6 +4,8 @@
@@ -72,7 +72,7 @@ index 6367b2a5a..8ed17f2ae 100644
  	.driver		= {
  		.name	= "clk-rpmh",
 diff --git a/drivers/pmdomain/qcom/rpmhpd.c b/drivers/pmdomain/qcom/rpmhpd.c
-index ffc46de8d..98157f646 100644
+index ffc46de8d07a1900b981ac14d90ba09963b70d81..98157f6467a9ffeec4f88cdb5b9b00c66f6b880b 100644
 --- a/drivers/pmdomain/qcom/rpmhpd.c
 +++ b/drivers/pmdomain/qcom/rpmhpd.c
 @@ -11,6 +11,7 @@
@@ -140,7 +140,7 @@ index ffc46de8d..98157f646 100644
  		.name = "qcom-rpmhpd",
  		.of_match_table = rpmhpd_match_table,
 diff --git a/drivers/regulator/qcom-rpmh-regulator.c b/drivers/regulator/qcom-rpmh-regulator.c
-index 73856e3df..a8120abdf 100644
+index 73856e3df337add151ce1bb9ce9ce4b9a836384c..a8120abdf03bc033cce16adeba212db60498d2b5 100644
 --- a/drivers/regulator/qcom-rpmh-regulator.c
 +++ b/drivers/regulator/qcom-rpmh-regulator.c
 @@ -9,6 +9,8 @@
@@ -262,7 +262,7 @@ index 73856e3df..a8120abdf 100644
  		.name = "qcom-rpmh-regulator",
  		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
 diff --git a/drivers/soc/qcom/cmd-db.c b/drivers/soc/qcom/cmd-db.c
-index 84a75d8c4..c1d8669b7 100644
+index 84a75d8c4b70205be10d1faa75750ef431d609f6..c1d8669b7bae27726e503f0ebce2fc9cba9e5e05 100644
 --- a/drivers/soc/qcom/cmd-db.c
 +++ b/drivers/soc/qcom/cmd-db.c
 @@ -341,15 +341,26 @@ static const struct file_operations cmd_db_debugfs_ops = {
@@ -298,7 +298,7 @@ index 84a75d8c4..c1d8669b7 100644
  		ret = PTR_ERR(cmd_db_header);
  		cmd_db_header = NULL;
 diff --git a/drivers/soc/qcom/qcom_aoss.c b/drivers/soc/qcom/qcom_aoss.c
-index 259c41f0c..e642a9ad1 100644
+index 259c41f0c34ef5cad371bb90a7e3dd330aaa5778..e642a9ad18657985f3d618ab75919fb2dcb76cc4 100644
 --- a/drivers/soc/qcom/qcom_aoss.c
 +++ b/drivers/soc/qcom/qcom_aoss.c
 @@ -10,6 +10,7 @@
@@ -384,7 +384,7 @@ index 259c41f0c..e642a9ad1 100644
  
  	qmp_close(qmp);
 diff --git a/drivers/soc/qcom/rmtfs_mem.c b/drivers/soc/qcom/rmtfs_mem.c
-index 342c08451..b02d958ca 100644
+index 342c0845134ebc1e74ae9bf610154ac727a4732f..b02d958ca8207e87103cf7641825dd414bee532c 100644
 --- a/drivers/soc/qcom/rmtfs_mem.c
 +++ b/drivers/soc/qcom/rmtfs_mem.c
 @@ -10,6 +10,7 @@
@@ -471,7 +471,7 @@ index 342c08451..b02d958ca 100644
  		dev_err(&pdev->dev, "failed to parse qcom,vmid\n");
  		goto remove_cdev;
 diff --git a/drivers/soc/qcom/rpmh-rsc.c b/drivers/soc/qcom/rpmh-rsc.c
-index c6f7d5c9c..277a2d75a 100644
+index c6f7d5c9c493d9e06c048930b8a14a38660df4b1..277a2d75a5e58a5808a8ed2353545b9011b612a7 100644
 --- a/drivers/soc/qcom/rpmh-rsc.c
 +++ b/drivers/soc/qcom/rpmh-rsc.c
 @@ -21,6 +21,7 @@

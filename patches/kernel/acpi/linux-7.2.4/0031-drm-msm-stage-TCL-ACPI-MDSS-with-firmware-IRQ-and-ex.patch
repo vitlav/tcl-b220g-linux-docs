@@ -1,0 +1,286 @@
+From 89d4111bb23077d53ac8eb4eee5640100c7d0135 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 14:45:46 +0300
+Subject: [PATCH 31/58] drm/msm: stage TCL ACPI MDSS with firmware IRQ and
+ explicit suppliers
+
+---
+ drivers/gpu/drm/msm/msm_mdss.c      | 52 +++++++++++++++--
+ drivers/soc/qcom/tcl_acpi_display.c | 87 +++++++++++++++++++++++++++--
+ 2 files changed, 130 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/msm/msm_mdss.c b/drivers/gpu/drm/msm/msm_mdss.c
+index 1df369a3960bde1f82eafb079e0fa19023cc3072..e57ae25df8321c3608de42cd046bb46406109ee9 100644
+--- a/drivers/gpu/drm/msm/msm_mdss.c
++++ b/drivers/gpu/drm/msm/msm_mdss.c
+@@ -3,6 +3,8 @@
+  * Copyright (c) 2018, The Linux Foundation
+  */
+ 
++#include <linux/acpi.h>
++#include <linux/dmi.h>
+ #include <linux/bitfield.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+@@ -304,10 +306,11 @@ static void msm_mdss_destroy(struct msm_mdss *msm_mdss)
+ 
+ 	pm_runtime_suspend(msm_mdss->dev);
+ 	pm_runtime_disable(msm_mdss->dev);
+-	irq_domain_remove(msm_mdss->irq_controller.domain);
+-	msm_mdss->irq_controller.domain = NULL;
+ 	irq = platform_get_irq(pdev, 0);
+ 	irq_set_chained_handler_and_data(irq, NULL, NULL);
++	synchronize_irq(irq);
++	irq_domain_remove(msm_mdss->irq_controller.domain);
++	msm_mdss->irq_controller.domain = NULL;
+ }
+ 
+ static int msm_mdss_reset(struct device *dev)
+@@ -386,6 +389,8 @@ static struct msm_mdss *msm_mdss_init(struct platform_device *pdev, bool is_mdp5
+ 		return ERR_CAST(msm_mdss->mdss_data);
+ 
+ 	mdss_data = of_device_get_match_data(&pdev->dev);
++	if (!pdev->dev.of_node && platform_get_device_id(pdev))
++		mdss_data = (const void *)platform_get_device_id(pdev)->driver_data;
+ 	if (!mdss_data)
+ 		return ERR_PTR(-EINVAL);
+ 
+@@ -470,6 +475,30 @@ static const struct dev_pm_ops mdss_pm_ops = {
+ 	SET_RUNTIME_PM_OPS(mdss_runtime_suspend, mdss_runtime_resume, NULL)
+ };
+ 
++/* Only the board coordinator supplies this supplemental SC7180 device. */
++static int tcl_mdss_check_resources(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	acpi_handle gpu;
++
++	if (acpi_disabled || !dev->parent ||
++	    !dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    !device_property_read_bool(dev, "qcom,tcl-acpi-display") ||
++	    ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.GPU0", &gpu)) ||
++	    ACPI_HANDLE(dev->parent) != gpu ||
++	    !acpi_match_device((const struct acpi_device_id[]) {
++		{ "QCOM083A" }, { }
++	    }, dev->parent))
++		return -ENODEV;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mdss");
++	if (!res || res->start != 0xae00000 || resource_size(res) != 0x1000)
++		return -EINVAL;
++	return 0;
++}
++
+ static int mdss_probe(struct platform_device *pdev)
+ {
+ 	struct msm_mdss *mdss;
+@@ -477,6 +506,12 @@ static int mdss_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	int ret;
+ 
++	if (!dev->of_node) {
++		ret = tcl_mdss_check_resources(pdev);
++		if (ret)
++			return ret;
++	}
++
+ 	mdss = msm_mdss_init(pdev, is_mdp5);
+ 	if (IS_ERR(mdss))
+ 		return PTR_ERR(mdss);
+@@ -489,7 +524,8 @@ static int mdss_probe(struct platform_device *pdev)
+ 	 * Populate the children devices, find the MDP5/DPU node, and then add
+ 	 * the interfaces to our components list.
+ 	 */
+-	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
++	/* ACPI children are staged explicitly after their suppliers exist. */
++	ret = dev->of_node ? of_platform_populate(dev->of_node, NULL, NULL, dev) : 0;
+ 	if (ret) {
+ 		DRM_DEV_ERROR(dev, "failed to populate children devices\n");
+ 		msm_mdss_destroy(mdss);
+@@ -503,7 +539,8 @@ static void mdss_remove(struct platform_device *pdev)
+ {
+ 	struct msm_mdss *mdss = platform_get_drvdata(pdev);
+ 
+-	of_platform_depopulate(&pdev->dev);
++	if (pdev->dev.of_node)
++		of_platform_depopulate(&pdev->dev);
+ 
+ 	msm_mdss_destroy(mdss);
+ }
+@@ -564,7 +601,14 @@ static const struct of_device_id mdss_dt_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, mdss_dt_match);
+ 
++static const struct platform_device_id mdss_platform_ids[] = {
++	{ "tcl-sc7180-mdss", (kernel_ulong_t)&data_76k8 },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, mdss_platform_ids);
++
+ static struct platform_driver mdss_platform_driver = {
++	.id_table   = mdss_platform_ids,
+ 	.probe      = mdss_probe,
+ 	.remove     = mdss_remove,
+ 	.driver     = {
+diff --git a/drivers/soc/qcom/tcl_acpi_display.c b/drivers/soc/qcom/tcl_acpi_display.c
+index d48f910b29c62d79fd0cbf7733c2bd291ce66e85..fdc824d1a2217237886df24ec5f26bb7ca736004 100644
+--- a/drivers/soc/qcom/tcl_acpi_display.c
++++ b/drivers/soc/qcom/tcl_acpi_display.c
+@@ -2,6 +2,7 @@
+ /* Diagnostic, boot-lifetime ACPI display clock wiring for TCL B220G. */
+ #include <linux/acpi.h>
+ #include <linux/dmi.h>
++#include <linux/irq.h>
+ #include <linux/module.h>
+ #include <linux/interconnect.h>
+ #include <linux/resource.h>
+@@ -16,7 +17,8 @@
+  * Do not manually unbind its suppliers. No DPU/DSI host or scanout is enabled here.
+  * A coherent kernel containing the clock-core changes is required.
+  */
+-static struct tcl_display_stage gcc, dispcc, phy_reg, phy;
++static struct tcl_display_stage gcc, dispcc, phy_reg, phy, mdss;
++static int mdss_irq;
+ static struct tcl_display_stage bcm, noc[5];
+ static struct icc_path *display_mem, *display_cfg;
+ static struct device *rpmhcc, *rpmhpd, *gpu;
+@@ -36,6 +38,9 @@ static const struct resource dispcc_res[] = {
+ 	DEFINE_RES_MEM(0xaf00000, 0x20000),
+ };
+ 
++static const struct resource mdss_mem =
++	DEFINE_RES_MEM_NAMED(0xae00000, 0x1000, "mdss");
++
+ static const struct resource phy_res[] = {
+ 	DEFINE_RES_MEM_NAMED(0xae94400, 0x200, "dsi_phy"),
+ 	DEFINE_RES_MEM_NAMED(0xae94600, 0x280, "dsi_phy_lane"),
+@@ -89,7 +94,7 @@ static int check_firmware(void)
+ 	struct resource_entry *entry;
+ 	acpi_handle handle;
+ 	LIST_HEAD(resources);
+-	bool contains = false;
++	bool contains = false, contains_mdss = false;
+ 	unsigned int phy_windows = 0;
+ 	unsigned int i;
+ 	int ret;
+@@ -111,9 +116,21 @@ static int check_firmware(void)
+ 	if (ret < 0)
+ 		goto put;
+ 	list_for_each_entry(entry, &resources, node) {
++		if (resource_type(entry->res) == IORESOURCE_IRQ &&
++		    !(entry->res->flags & IORESOURCE_DISABLED) &&
++		    entry->res->start == entry->res->end) {
++			struct irq_data *data = irq_get_irq_data(entry->res->start);
++
++			/* _CRS is already translated to a Linux IRQ by ACPI. */
++			if (data && data->hwirq == 115 &&
++			    irqd_get_trigger_type(data) == IRQ_TYPE_LEVEL_HIGH)
++				mdss_irq = entry->res->start;
++		}
+ 		if (resource_type(entry->res) != IORESOURCE_MEM ||
+ 		    entry->res->flags & IORESOURCE_DISABLED)
+ 			continue;
++		if (resource_contains(entry->res, &mdss_mem))
++			contains_mdss = true;
+ 		if (resource_contains(entry->res, &dispcc_res[0]))
+ 			contains = true;
+ 		for (i = 0; i < ARRAY_SIZE(phy_res); i++)
+@@ -121,7 +138,8 @@ static int check_firmware(void)
+ 				phy_windows |= BIT(i);
+ 	}
+ 	acpi_dev_free_resource_list(&resources);
+-	if (contains && phy_windows == GENMASK(ARRAY_SIZE(phy_res) - 1, 0))
++	if (contains && contains_mdss && mdss_irq > 0 &&
++	    phy_windows == GENMASK(ARRAY_SIZE(phy_res) - 1, 0))
+ 		return 0;
+ 	ret = -EINVAL;
+ put:
+@@ -314,10 +332,67 @@ static int prepare_phy(void)
+ 	return ret;
+ }
+ 
++
++static int prepare_mdss(void)
++{
++	static const char * const clock_names[] = { "iface", "ahb", "core" };
++	static const char * const mem_route[] = {
++		"qxm_mdp0@tcl-sc7180-mnoc", "ebi@tcl-sc7180-mc",
++	};
++	static const char * const cfg_route[] = {
++		"acm_apps0@tcl-sc7180-gnoc", "qhs_display_cfg@tcl-sc7180-cnoc",
++	};
++	const struct property_entry mdss_props[] = {
++		PROPERTY_ENTRY_BOOL("qcom,tcl-acpi-display"),
++		PROPERTY_ENTRY_STRING_ARRAY("clock-names", clock_names),
++		PROPERTY_ENTRY_STRING_ARRAY("qcom,icc-mdp0-mem", mem_route),
++		PROPERTY_ENTRY_STRING_ARRAY("qcom,icc-cpu-cfg", cfg_route),
++		PROPERTY_ENTRY_U32("qcom,icc-tag", QCOM_ICC_TAG_ALWAYS),
++		{ }
++	};
++	struct resource resources[] = {
++		mdss_mem, DEFINE_RES_IRQ_NAMED(mdss_irq, "mdss"),
++	};
++	unsigned int i;
++	int ret;
++
++	ret = tcl_display_stage_create(&mdss, "tcl-sc7180-mdss", gpu,
++			resources, ARRAY_SIZE(resources), mdss_props);
++	if (ret)
++		return ret;
++	ret = link_supplier(&mdss, &gcc.pdev->dev);
++	if (ret)
++		return ret;
++	ret = link_supplier(&mdss, &dispcc.pdev->dev);
++	if (ret)
++		return ret;
++	for (i = 0; i < ARRAY_SIZE(noc); i++) {
++		ret = link_supplier(&mdss, &noc[i].pdev->dev);
++		if (ret)
++			return ret;
++	}
++	ret = tcl_display_stage_clock(&mdss, dev_name(&gcc.pdev->dev),
++			"gcc_disp_ahb_clk", "iface");
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_clock(&mdss, dev_name(&dispcc.pdev->dev),
++			"disp_cc_mdss_ahb_clk", "ahb");
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_clock(&mdss, dev_name(&dispcc.pdev->dev),
++			"disp_cc_mdss_mdp_clk", "core");
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_domain(&mdss, platform_get_drvdata(dispcc.pdev));
++	if (ret)
++		return ret;
++	return tcl_display_stage_activate(&mdss);
++}
++
+ static int block_pending_probes(void)
+ {
+ 	struct tcl_display_stage *stages[] = {
+-		&phy, &phy_reg, &dispcc, &gcc,
++		&mdss, &phy, &phy_reg, &dispcc, &gcc,
+ 		&noc[4], &noc[3], &noc[2], &noc[1], &noc[0], &bcm,
+ 	};
+ 	int first = 0, ret;
+@@ -372,6 +447,8 @@ static int __init tcl_display_init(void)
+ 		result = prepare_phy_regulator();
+ 	if (!result)
+ 		result = prepare_phy();
++	if (!result)
++		result = prepare_mdss();
+ 	ready = !result;
+ 	if (result) {
+ 		/* Keep ownership after any partial setup, including deferred probe.
+@@ -383,7 +460,7 @@ static int __init tcl_display_init(void)
+ 		pr_err("TCL display clocks stopped: result=%d block=%d; resources retained\n",
+ 		       result, ret);
+ 	} else {
+-		pr_info("TCL display ICC, clocks and DSI PHY ready; scanout not enabled\n");
++		pr_info("TCL display ICC, clocks, DSI PHY and MDSS ready; scanout not enabled\n");
+ 	}
+ 	return 0;
+ put_pd:

@@ -1,0 +1,1230 @@
+From 3651cb2687bae847b9be8647b3c1e382de962241 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 20:04:40 +0300
+Subject: [PATCH 48/58] drm/msm: prepare TCL ACPI Adreno and GMU with validated
+ resources
+
+---
+ drivers/acpi/arm64/iort.c                  |  80 ++++++
+ drivers/base/platform.c                    |  10 +
+ drivers/clk/qcom/common.c                  |   2 +-
+ drivers/clk/qcom/gcc-sc7180.c              |  53 +++-
+ drivers/clk/qcom/gdsc.c                    |  29 +-
+ drivers/clk/qcom/gdsc.h                    |   2 +-
+ drivers/clk/qcom/gpucc-sc7180.c            |  73 ++++-
+ drivers/gpu/drm/msm/adreno/a6xx_gmu.c      | 109 +++++--
+ drivers/gpu/drm/msm/adreno/a6xx_gpu.c      |  11 +-
+ drivers/gpu/drm/msm/adreno/adreno_device.c |  29 +-
+ drivers/gpu/drm/msm/adreno/adreno_gpu.c    |  35 ++-
+ drivers/gpu/drm/msm/adreno/tcl_acpi.h      |  40 +++
+ drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c |  11 +
+ drivers/soc/qcom/Makefile                  |   1 +
+ drivers/soc/qcom/tcl_acpi_gpu.c            | 314 +++++++++++++++++++++
+ 15 files changed, 747 insertions(+), 52 deletions(-)
+ create mode 100644 drivers/gpu/drm/msm/adreno/tcl_acpi.h
+ create mode 100644 drivers/soc/qcom/tcl_acpi_gpu.c
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index f5f3fe873afc2e97f2479bcad71d2d65cdca3d3b..bc8df903c0682bc6e986adc590460df9d18c6377 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1644,6 +1644,80 @@ static int iort_tcl_dpu_map(struct device *dev, struct acpi_iort_node *node)
+ 	return 0;
+ }
+ 
++/* Validate GPU and GMU independently against OEM IORT before attaching. */
++static int iort_tcl_gpu_map(struct device *dev, struct acpi_iort_node *node)
++{
++	const bool gmu = !strcmp(dev_name(dev), "tcl-sc7180-gmu");
++	const u32 inputs[] = { gmu ? 0x3030003 : 0x3030000 };
++	const u32 outputs[] = { gmu ? 5 : 0 };
++	struct acpi_iort_named_component *nc;
++	struct acpi_iort_id_mapping *maps;
++	struct acpi_iort_node *parent;
++	struct acpi_iort_smmu *smmu;
++	u32 name_end = sizeof(*node) + sizeof(*nc) + sizeof("\\_SB.GPU0");
++	u32 parent_min = sizeof(*parent) + sizeof(*smmu);
++	unsigned int i, j, matches;
++	int ret;
++
++	if (!dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") || !iort_table ||
++	    memcmp(iort_table->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE) ||
++	    memcmp(iort_table->oem_table_id, "QCOMEDK2", ACPI_OEM_TABLE_ID_SIZE) ||
++	    iort_table->oem_revision != 0x7180)
++		return -ENODEV;
++	if (node->type != ACPI_IORT_NODE_NAMED_COMPONENT ||
++	    node->length < name_end || node->mapping_offset < name_end ||
++	    node->mapping_offset > node->length ||
++	    node->mapping_count > (node->length - node->mapping_offset) / sizeof(*maps))
++		return -EINVAL;
++	nc = (void *)node->node_data;
++	if (memcmp(nc->device_name, "\\_SB.GPU0", sizeof("\\_SB.GPU0")))
++		return -EINVAL;
++	maps = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node, node->mapping_offset);
++
++	/* Validate every mapping before mutating the device's fwspec. */
++	for (i = 0; i < ARRAY_SIZE(inputs); i++) {
++		matches = 0;
++		for (j = 0; j < node->mapping_count; j++) {
++			struct acpi_iort_id_mapping *m = &maps[j];
++
++			/* SINGLE_MAPPING would also capture an unrelated input. */
++			if (m->flags & ACPI_IORT_ID_SINGLE_MAPPING)
++				return -EINVAL;
++			if (inputs[i] < m->input_base ||
++			    inputs[i] - m->input_base > m->id_count)
++				continue;
++			if (++matches != 1 || m->flags || m->input_base != inputs[i] ||
++			    m->id_count != (gmu ? 0 : 1) || m->output_base != outputs[i] ||
++			    m->output_reference != 0x32c)
++				return -EINVAL;
++		}
++		if (matches != 1)
++			return -EINVAL;
++	}
++	if (iort_table->length < parent_min || 0x32c > iort_table->length - parent_min)
++		return -EINVAL;
++	parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table, 0x32c);
++	if (parent->type != ACPI_IORT_NODE_SMMU || parent->length < parent_min ||
++	    parent->length > iort_table->length - 0x32c)
++		return -EINVAL;
++	smmu = (void *)parent->node_data;
++	if (smmu->base_address != 0x5040000 || smmu->span != 0x10000 ||
++	    smmu->model != ACPI_IORT_SMMU_V2)
++		return -EINVAL;
++	if (dev_iommu_fwspec_get(dev))
++		return -EBUSY;
++
++	for (i = 0; i < ARRAY_SIZE(outputs); i++) {
++		ret = iort_iommu_xlate(dev, parent, outputs[i]);
++		if (ret) {
++			iommu_fwspec_free(dev);
++			return ret;
++		}
++	}
++	return 0;
++}
++
+ /**
+  * iort_iommu_configure_id - Set-up IOMMU configuration for a device.
+  *
+@@ -1691,6 +1765,12 @@ int iort_iommu_configure_id(struct device *dev, const u32 *id_in)
+ 			return id_in ? -EINVAL : iort_tcl_dpu_map(dev, node);
+ 		}
+ 
++		if (!dev->of_node && dev_name(dev) &&
++		    (!strcmp(dev_name(dev), "tcl-sc7180-adreno") ||
++		     !strcmp(dev_name(dev), "tcl-sc7180-gmu")) &&
++		    device_property_read_bool(dev, "qcom,tcl-acpi-gpu"))
++			return id_in ? -EINVAL : iort_tcl_gpu_map(dev, node);
++
+ 		if (!id_in && iort_tcl_urs_input_id(dev, node, &tcl_input)) {
+ 			id_in = &tcl_input;
+ 			dev_info(dev, "TCL URS IORT input ID %#x\n", tcl_input);
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index 79169c2c8998cf8600005e6d1766ad86d1116d44..d59f7716232e445040f49e90d2f74f6331dd5585 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -1494,6 +1494,16 @@ static int platform_dma_configure(struct device *dev)
+ 		attr = acpi_get_dma_attr(adev);
+ 		ret = acpi_dma_configure(dev, attr);
+ 	}
++	if (!is_of_node(fwnode) && !is_acpi_device_node(fwnode) && dev_name(dev) &&
++	    (!strcmp(dev_name(dev), "tcl-sc7180-adreno") ||
++	     !strcmp(dev_name(dev), "tcl-sc7180-gmu")) &&
++	    device_property_read_bool(dev, "qcom,tcl-acpi-gpu")) {
++		struct acpi_device *adev = acpi_companion_or_self(dev->parent);
++
++		if (!adev)
++			return -ENODEV;
++		ret = acpi_dma_configure(dev, acpi_get_dma_attr(adev));
++	}
+ 	/* @dev->driver may not be valid when we're called from the IOMMU layer */
+ 	if (ret || !drv || to_platform_driver(drv)->driver_managed_dma)
+ 		return ret;
+diff --git a/drivers/clk/qcom/common.c b/drivers/clk/qcom/common.c
+index 36bf7b12316496e31e2cd9bc581048a275d05032..6785672b1475bfde109f926860dfcd5dd2fa2426 100644
+--- a/drivers/clk/qcom/common.c
++++ b/drivers/clk/qcom/common.c
+@@ -387,7 +387,7 @@ int qcom_cc_really_probe(struct device *dev,
+ 		scd->scs = desc->gdscs;
+ 		scd->num = desc->num_gdscs;
+ 		scd->pd_list = cc->pd_list;
+-		scd->platform_single_domain = !dev->of_node;
++		scd->platform_domains = !dev->of_node;
+ 		ret = gdsc_register(scd, &reset->rcdev, regmap);
+ 		if (ret)
+ 			goto put_rpm;
+diff --git a/drivers/clk/qcom/gcc-sc7180.c b/drivers/clk/qcom/gcc-sc7180.c
+index 26926df4d795e047cb4da3c33b06927648bda41b..b4e39c8ff0e9f2349d8702499f10fc30c93af6a3 100644
+--- a/drivers/clk/qcom/gcc-sc7180.c
++++ b/drivers/clk/qcom/gcc-sc7180.c
+@@ -2497,17 +2497,64 @@ static struct clk_branch tcl_disp_xo = {
+ 	},
+ };
+ 
++static struct clk_fixed_factor tcl_gpu_div = {
++	.mult = 1, .div = 2,
++	.hw.init = &(struct clk_init_data) {
++		.name = "tcl_gpu_gpll0_div",
++		.parent_hws = (const struct clk_hw *[]) { &tcl_gpll0.clkr.hw },
++		.num_parents = 1, .ops = &clk_fixed_factor_ops,
++	},
++};
++
++static struct clk_branch tcl_gpu_gpll0 = {
++	.halt_check = BRANCH_HALT_DELAY,
++	.clkr = {
++		.enable_reg = 0x52000, .enable_mask = BIT(15),
++		.hw.init = &(struct clk_init_data) {
++			.name = "gcc_gpu_gpll0_clk_src",
++			.parent_hws = (const struct clk_hw *[]) { &tcl_gpll0.clkr.hw },
++			.num_parents = 1, .ops = &clk_branch2_ops,
++		},
++	},
++};
++static struct clk_branch tcl_gpu_gpll0_div = {
++	.halt_check = BRANCH_HALT_DELAY,
++	.clkr = {
++		.enable_reg = 0x52000, .enable_mask = BIT(16),
++		.hw.init = &(struct clk_init_data) {
++			.name = "gcc_gpu_gpll0_div_clk_src",
++			.parent_hws = (const struct clk_hw *[]) { &tcl_gpu_div.hw },
++			.num_parents = 1, .ops = &clk_branch2_ops,
++		},
++	},
++};
++static struct clk_branch tcl_gpu_cfg = {
++	.halt_reg = 0x71004, .halt_check = BRANCH_HALT,
++	.clkr = {
++		.enable_reg = 0x71004, .enable_mask = BIT(0),
++		.hw.init = &(struct clk_init_data) {
++			.name = "gcc_gpu_cfg_ahb_clk", .ops = &clk_branch2_ops,
++		},
++	},
++};
++static struct clk_hw *tcl_gpu_gcc_hws[] = { &tcl_gpu_div.hw };
++
+ static struct clk_regmap *tcl_display_gcc_clocks[] = {
+ 	&tcl_gpll0.clkr, &tcl_disp_gpll0.clkr, &tcl_disp_ahb.clkr,
+ 	&tcl_disp_xo.clkr, &gcc_disp_hf_axi_clk.clkr,
++	&tcl_gpu_gpll0.clkr, &tcl_gpu_gpll0_div.clkr, &tcl_gpu_cfg.clkr,
++	&gcc_ddrss_gpu_axi_clk.clkr, &gcc_gpu_memnoc_gfx_clk.clkr,
+ };
+ 
+-/* Reject writes to PLL, USB, Wi-Fi and other GCC registers in this backend. */
++/* Only display/GPU branches; never retune GPLL0 or touch USB/Wi-Fi clocks. */
+ static const struct regmap_range tcl_gcc_write_ranges[] = {
+ 	regmap_reg_range(0xb00c, 0xb00c),
+ 	regmap_reg_range(0xb024, 0xb024),
+ 	regmap_reg_range(0xb030, 0xb030),
++	regmap_reg_range(0x4452c, 0x4452c),
+ 	regmap_reg_range(0x52000, 0x52000),
++	regmap_reg_range(0x71004, 0x71004),
++	regmap_reg_range(0x7100c, 0x7100c),
+ };
+ static const struct regmap_access_table tcl_gcc_write_table = {
+ 	.yes_ranges = tcl_gcc_write_ranges,
+@@ -2515,13 +2562,15 @@ static const struct regmap_access_table tcl_gcc_write_table = {
+ };
+ static const struct regmap_config tcl_gcc_regmap = {
+ 	.reg_bits = 32, .val_bits = 32, .reg_stride = 4,
+-	.max_register = 0x52010, .fast_io = true,
++	.max_register = 0x7100c, .fast_io = true,
+ 	.wr_table = &tcl_gcc_write_table,
+ };
+ static const struct qcom_cc_desc tcl_display_gcc_desc __maybe_unused = {
+ 	.config = &tcl_gcc_regmap,
+ 	.clks = tcl_display_gcc_clocks,
+ 	.num_clks = ARRAY_SIZE(tcl_display_gcc_clocks),
++	.clk_hws = tcl_gpu_gcc_hws,
++	.num_clk_hws = ARRAY_SIZE(tcl_gpu_gcc_hws),
+ 	.platform_clocks = true,
+ 	.use_rpm = true,
+ };
+diff --git a/drivers/clk/qcom/gdsc.c b/drivers/clk/qcom/gdsc.c
+index 726513535c701e3baf4992f3f99e10700d3fbd59..fa732b1f204be0ce50697213d378e0f47f3c573f 100644
+--- a/drivers/clk/qcom/gdsc.c
++++ b/drivers/clk/qcom/gdsc.c
+@@ -594,14 +594,24 @@ int gdsc_register(struct gdsc_desc *desc,
+ 	struct gdsc **scs = desc->scs;
+ 	size_t num = desc->num;
+ 
+-	/* Initial non-DT use is one standalone, supply-free display domain. */
+-	if (desc->platform_single_domain) {
+-		if (dev->of_node || num != 1 || !scs[0] || scs[0]->parent ||
+-		    scs[0]->supply || desc->pd_list || dev->pm_domain)
++	/* Board glue attaches standalone domains explicitly, without an OF provider. */
++	if (desc->platform_domains) {
++		if (dev->of_node || !num || desc->pd_list || dev->pm_domain)
+ 			return -EINVAL;
+-		scs[0]->regmap = regmap;
+-		scs[0]->rcdev = rcdev;
+-		return gdsc_init(scs[0]);
++		for (i = 0; i < num; i++)
++			if (!scs[i] || scs[i]->parent || scs[i]->supply || scs[i]->needs_icc)
++				return -EINVAL;
++		for (i = 0; i < num; i++) {
++			scs[i]->regmap = regmap;
++			scs[i]->rcdev = rcdev;
++			ret = gdsc_init(scs[i]);
++			if (ret) {
++				while (i--)
++					WARN_ON(pm_genpd_remove(&scs[i]->pd));
++				return ret;
++			}
++		}
++		return 0;
+ 	}
+ 
+ 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+@@ -681,8 +691,9 @@ void gdsc_unregister(struct gdsc_desc *desc)
+ 	struct device *dev = desc->dev;
+ 	size_t num = desc->num;
+ 
+-	if (desc->platform_single_domain) {
+-		WARN_ON(pm_genpd_remove(&desc->scs[0]->pd));
++	if (desc->platform_domains) {
++		while (num--)
++			WARN_ON(pm_genpd_remove(&desc->scs[num]->pd));
+ 		return;
+ 	}
+ 	gdsc_pm_subdomain_remove(desc, num);
+diff --git a/drivers/clk/qcom/gdsc.h b/drivers/clk/qcom/gdsc.h
+index 415a8fd9a216f27238b728e4296e8f42d30f5444..c1000bf129e99f05311ce9b1a818d32667c95f80 100644
+--- a/drivers/clk/qcom/gdsc.h
++++ b/drivers/clk/qcom/gdsc.h
+@@ -86,7 +86,7 @@ struct gdsc_desc {
+ 	struct gdsc **scs;
+ 	size_t num;
+ 	struct dev_pm_domain_list *pd_list;
+-	bool platform_single_domain;
++	bool platform_domains;
+ };
+ 
+ #ifdef CONFIG_QCOM_GDSC
+diff --git a/drivers/clk/qcom/gpucc-sc7180.c b/drivers/clk/qcom/gpucc-sc7180.c
+index b14a53db55fd1a0767fd008ae67d329836bceacb..cc671b8ecd6b151628e16e123f0c49d004754150 100644
+--- a/drivers/clk/qcom/gpucc-sc7180.c
++++ b/drivers/clk/qcom/gpucc-sc7180.c
+@@ -3,6 +3,10 @@
+  * Copyright (c) 2019, The Linux Foundation. All rights reserved.
+  */
+ 
++#include <linux/acpi.h>
++#include <linux/clk.h>
++#include <linux/dmi.h>
++#include <linux/property.h>
+ #include <linux/clk-provider.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+@@ -214,11 +218,63 @@ static const struct of_device_id gpu_cc_sc7180_match_table[] = {
+ };
+ MODULE_DEVICE_TABLE(of, gpu_cc_sc7180_match_table);
+ 
++static struct generic_pm_domain *tcl_gpu_domains[] = { &cx_gdsc.pd, &gx_gdsc.pd };
++static struct genpd_onecell_data tcl_gpu_pd_data = {
++	.domains = tcl_gpu_domains, .num_domains = ARRAY_SIZE(tcl_gpu_domains),
++};
++
++static int tcl_gpucc_prepare(struct platform_device *pdev)
++{
++#ifdef CONFIG_ACPI
++	static const char * const names[] = {
++		"bi_tcxo", "gcc_gpu_gpll0_clk_src", "gcc_gpu_gpll0_div_clk_src",
++	};
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	struct clk *clk;
++	acpi_handle handle;
++	int i;
++
++	if (acpi_disabled || dev->of_node || !dev->parent ||
++	    !dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    !device_property_read_bool(dev, "qcom,tcl-acpi-gpu") ||
++	    ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.GPU0", &handle)) ||
++	    acpi_device_handle(acpi_companion_or_self(dev->parent)) != handle ||
++	    !acpi_match_acpi_device((const struct acpi_device_id[]) {
++		{ "QCOM083A" }, { } }, acpi_companion_or_self(dev->parent)))
++		return -ENODEV;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res || res->start != 0x5090000 || resource_size(res) != 0x9000)
++		return -EINVAL;
++	for (i = 0; i < ARRAY_SIZE(names); i++) {
++		clk = devm_clk_get(dev, names[i]);
++		if (IS_ERR(clk))
++			return dev_err_probe(dev, PTR_ERR(clk), "missing %s\n", names[i]);
++		if (clk_get_rate(clk) != (i == 0 ? 19200000 : i == 1 ? 600000000 : 300000000))
++			return -EINVAL;
++	}
++	clk = devm_clk_get_enabled(dev, "iface");
++	return PTR_ERR_OR_ZERO(clk);
++#else
++	return -ENODEV;
++#endif
++}
++
+ static int gpu_cc_sc7180_probe(struct platform_device *pdev)
+ {
+ 	struct regmap *regmap;
+ 	struct alpha_pll_config gpu_cc_pll_config = {};
+ 	unsigned int value, mask;
++	struct qcom_cc_desc platform_desc = gpu_cc_sc7180_desc;
++	int ret;
++
++	if (!pdev->dev.of_node) {
++		ret = tcl_gpucc_prepare(pdev);
++		if (ret)
++			return ret;
++		platform_desc.platform_clocks = true;
++	}
+ 
+ 	regmap = qcom_cc_map(pdev, &gpu_cc_sc7180_desc);
+ 	if (IS_ERR(regmap))
+@@ -239,12 +295,23 @@ static int gpu_cc_sc7180_probe(struct platform_device *pdev)
+ 	mask = CX_GMU_CBCR_WAKE_MASK << CX_GMU_CBCR_WAKE_SHIFT;
+ 	mask |= CX_GMU_CBCR_SLEEP_MASK << CX_GMU_CBCR_SLEEP_SHIFT;
+ 	value = 0xF << CX_GMU_CBCR_WAKE_SHIFT | 0xF << CX_GMU_CBCR_SLEEP_SHIFT;
+-	regmap_update_bits(regmap, 0x1098, mask, value);
+-
+-	return qcom_cc_really_probe(&pdev->dev, &gpu_cc_sc7180_desc, regmap);
++	ret = regmap_update_bits(regmap, 0x1098, mask, value);
++	if (ret)
++		return ret;
++
++	ret = qcom_cc_really_probe(&pdev->dev, &platform_desc, regmap);
++	if (!ret && !pdev->dev.of_node)
++		platform_set_drvdata(pdev, &tcl_gpu_pd_data);
++	return ret;
+ }
+ 
++static const struct platform_device_id tcl_gpucc_ids[] = {
++	{ "tcl-sc7180-gpucc" }, { }
++};
++MODULE_DEVICE_TABLE(platform, tcl_gpucc_ids);
++
+ static struct platform_driver gpu_cc_sc7180_driver = {
++	.id_table = tcl_gpucc_ids,
+ 	.probe = gpu_cc_sc7180_probe,
+ 	.driver = {
+ 		.name = "sc7180-gpucc",
+diff --git a/drivers/gpu/drm/msm/adreno/a6xx_gmu.c b/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
+index 2e5d7b53a0c380c664a1bd66eb7e51be8a151b93..5e8f020d1e9605577729cd6305f5268fb9f7f3b8 100644
+--- a/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
++++ b/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /* Copyright (c) 2017-2019 The Linux Foundation. All rights reserved. */
+ 
++#include "tcl_acpi.h"
+ #include <linux/bitfield.h>
+ #include <linux/clk.h>
+ #include <linux/firmware/qcom/qcom_scm.h>
+@@ -1943,7 +1944,9 @@ static int a6xx_gmu_pwrlevels_probe(struct a6xx_gmu *gmu)
+ 	 * The GMU handles its own frequency switching so build a list of
+ 	 * available frequencies to send during initialization
+ 	 */
+-	ret = devm_pm_opp_of_add_table(gmu->dev);
++	ret = tcl_acpi_gpu_device(gmu->dev) ?
++		(dev_pm_opp_get_opp_count(gmu->dev) > 0 ? 0 : -EINVAL) :
++		devm_pm_opp_of_add_table(gmu->dev);
+ 	if (ret) {
+ 		DRM_DEV_ERROR(gmu->dev, "Unable to set the OPP table for the GMU\n");
+ 		return ret;
+@@ -1959,6 +1962,10 @@ static int a6xx_gmu_pwrlevels_probe(struct a6xx_gmu *gmu)
+ 	gmu->nr_gpu_freqs = a6xx_gmu_build_freq_table(&gpu->pdev->dev,
+ 		gmu->gpu_freqs, ARRAY_SIZE(gmu->gpu_freqs));
+ 
++	if (gmu->nr_gmu_freqs < 2 || gmu->nr_gpu_freqs < 2 ||
++	    gmu->nr_gmu_freqs > ARRAY_SIZE(gmu->gmu_freqs) ||
++	    gmu->nr_gpu_freqs > ARRAY_SIZE(gmu->gpu_freqs))
++		return -EINVAL;
+ 	gmu->current_perf_index = gmu->nr_gpu_freqs - 1;
+ 
+ 	/*
+@@ -1982,6 +1989,10 @@ static int a6xx_gmu_acd_probe(struct a6xx_gmu *gmu)
+ 	int ret, i, cmd_idx = 0;
+ 	extern bool disable_acd;
+ 
++	/* The initial board OPP has no ACD calibration data. */
++	if (tcl_acpi_gpu_device(gmu->dev))
++		return 0;
++
+ 	/* Skip ACD probe if requested via module param */
+ 	if (disable_acd) {
+ 		DRM_DEV_ERROR(gmu->dev, "Skipping GPU ACD probe\n");
+@@ -2045,10 +2056,27 @@ static int a6xx_gmu_acd_probe(struct a6xx_gmu *gmu)
+ 
+ static int a6xx_gmu_clocks_probe(struct a6xx_gmu *gmu)
+ {
+-	int ret = devm_clk_bulk_get_all(gmu->dev, &gmu->clocks);
++	int ret;
+ 
++	if (tcl_acpi_gpu_device(gmu->dev)) {
++		static const char * const names[] = { "gmu", "cxo", "axi", "memnoc" };
++		int i;
++
++		gmu->clocks = devm_kcalloc(gmu->dev, ARRAY_SIZE(names),
++					  sizeof(*gmu->clocks), GFP_KERNEL);
++		if (!gmu->clocks)
++			return -ENOMEM;
++		for (i = 0; i < ARRAY_SIZE(names); i++)
++			gmu->clocks[i].id = names[i];
++		ret = devm_clk_bulk_get(gmu->dev, ARRAY_SIZE(names), gmu->clocks);
++		if (ret)
++			return ret;
++		ret = ARRAY_SIZE(names);
++	} else {
++		ret = devm_clk_bulk_get_all(gmu->dev, &gmu->clocks);
++	}
+ 	if (ret < 1)
+-		return ret;
++		return ret ?: -EINVAL;
+ 
+ 	gmu->nr_clocks = ret;
+ 
+@@ -2067,6 +2095,8 @@ static int a6xx_gmu_get_irq(struct a6xx_gmu *gmu, struct platform_device *pdev,
+ 	int irq, ret;
+ 
+ 	irq = platform_get_irq_byname(pdev, name);
++	if (irq < 0)
++		return irq;
+ 
+ 	ret = request_irq(irq, handler, IRQF_TRIGGER_HIGH | IRQF_NO_AUTOEN, name, gmu);
+ 	if (ret) {
+@@ -2105,6 +2135,16 @@ void a6xx_gmu_sysprof_setup(struct msm_gpu *gpu, bool force_on)
+ 	pm_runtime_put(&gpu->pdev->dev);
+ }
+ 
++static void a6xx_gmu_detach_domain(struct a6xx_gmu *gmu, struct device *dev)
++{
++	if (IS_ERR_OR_NULL(dev))
++		return;
++	if (tcl_acpi_gpu_device(gmu->dev))
++		put_device(dev);
++	else
++		dev_pm_domain_detach(dev, false);
++}
++
+ void a6xx_gmu_remove(struct a6xx_gpu *a6xx_gpu)
+ {
+ 	struct adreno_gpu *adreno_gpu = &a6xx_gpu->base;
+@@ -2126,11 +2166,11 @@ void a6xx_gmu_remove(struct a6xx_gpu *a6xx_gpu)
+ 	 * Since cxpd is a virt device, the devlink with gmu-dev will be removed
+ 	 * automatically when we do detach
+ 	 */
+-	dev_pm_domain_detach(gmu->cxpd, false);
++	a6xx_gmu_detach_domain(gmu, gmu->cxpd);
+ 
+ 	if (!IS_ERR_OR_NULL(gmu->gxpd)) {
+ 		pm_runtime_disable(gmu->gxpd);
+-		dev_pm_domain_detach(gmu->gxpd, false);
++		a6xx_gmu_detach_domain(gmu, gmu->gxpd);
+ 	}
+ 
+ 	if (!IS_ERR_OR_NULL(gmu->qmp))
+@@ -2259,7 +2299,7 @@ int a6xx_gmu_wrapper_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 	return 0;
+ 
+ detach_cxpd:
+-	dev_pm_domain_detach(gmu->cxpd, false);
++	a6xx_gmu_detach_domain(gmu, gmu->cxpd);
+ 
+ err_mmio:
+ 	iounmap(gmu->mmio);
+@@ -2273,7 +2313,7 @@ int a6xx_gmu_wrapper_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 
+ int a6xx_gmu_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ {
+-	struct platform_device *pdev = of_find_device_by_node(node);
++	struct platform_device *pdev = node ? of_find_device_by_node(node) : NULL;
+ 	struct adreno_gpu *adreno_gpu = &a6xx_gpu->base;
+ 	struct msm_gpu *gpu = &adreno_gpu->base;
+ 	struct a6xx_gmu *gmu = &a6xx_gpu->gmu;
+@@ -2282,14 +2322,28 @@ int a6xx_gmu_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 	struct resource *res;
+ 	int ret;
+ 
++	if (!node) {
++		struct device *supplier = tcl_gpu_reference(&gpu->pdev->dev, "qcom,gmu");
++
++		if (IS_ERR(supplier))
++			return PTR_ERR(supplier);
++		pdev = to_platform_device(supplier);
++	}
+ 	if (!pdev)
+ 		return -ENODEV;
+-
+ 	gmu->dev = &pdev->dev;
+-
+-	ret = of_dma_configure(gmu->dev, node, true);
+-	if (ret)
++	gmu->hfi_irq = -1;
++	gmu->gmu_irq = -1;
++	if (node) {
++		ret = of_dma_configure(gmu->dev, node, true);
++	} else {
++		/* The coordinator's GMU platform driver performed checked IORT setup. */
++		ret = gmu->dev->driver && device_iommu_mapped(gmu->dev) ? 0 : -EPROBE_DEFER;
++	}
++	if (ret) {
++		put_device(gmu->dev);
+ 		return ret;
++	}
+ 
+ 	/* Set GMU idle level */
+ 	gmu->idle_level = (adreno_gpu->info->quirks & ADRENO_QUIRK_IFPC) ?
+@@ -2418,9 +2472,10 @@ int a6xx_gmu_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 		goto err_mmio;
+ 	}
+ 
+-	gmu->cxpd = dev_pm_domain_attach_by_name(gmu->dev, "cx");
+-	if (IS_ERR(gmu->cxpd)) {
+-		ret = PTR_ERR(gmu->cxpd);
++	gmu->cxpd = node ? dev_pm_domain_attach_by_name(gmu->dev, "cx") :
++		tcl_gpu_reference(gmu->dev, "qcom,cx-domain");
++	if (IS_ERR_OR_NULL(gmu->cxpd)) {
++		ret = gmu->cxpd ? PTR_ERR(gmu->cxpd) : -ENODEV;
+ 		goto err_mmio;
+ 	}
+ 
+@@ -2431,7 +2486,7 @@ int a6xx_gmu_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 	}
+ 
+ 	/* Other errors are handled during GPU ACD probe */
+-	gmu->qmp = qmp_get(gmu->dev);
++	gmu->qmp = node ? qmp_get(gmu->dev) : ERR_PTR(-ENODEV);
+ 	if (PTR_ERR_OR_ZERO(gmu->qmp) == -EPROBE_DEFER) {
+ 		ret = -EPROBE_DEFER;
+ 		goto detach_gxpd;
+@@ -2445,10 +2500,17 @@ int a6xx_gmu_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 	 * Get a link to the GX power domain to reset the GPU in case of GMU
+ 	 * crash
+ 	 */
+-	gmu->gxpd = dev_pm_domain_attach_by_name(gmu->dev, "gx");
++	gmu->gxpd = node ? dev_pm_domain_attach_by_name(gmu->dev, "gx") :
++		tcl_gpu_reference(gmu->dev, "qcom,gx-domain");
++	if (IS_ERR_OR_NULL(gmu->gxpd)) {
++		ret = gmu->gxpd ? PTR_ERR(gmu->gxpd) : -ENODEV;
++		goto detach_gxpd;
++	}
+ 
+-	/* Get the power levels for the GMU and GPU */
+-	a6xx_gmu_pwrlevels_probe(gmu);
++	/* Do not initialize HFI with an empty or invalid RPMh vote table. */
++	ret = a6xx_gmu_pwrlevels_probe(gmu);
++	if (ret)
++		goto detach_gxpd;
+ 
+ 	ret = a6xx_gmu_acd_probe(gmu);
+ 	if (ret)
+@@ -2466,7 +2528,7 @@ int a6xx_gmu_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 
+ detach_gxpd:
+ 	if (!IS_ERR_OR_NULL(gmu->gxpd))
+-		dev_pm_domain_detach(gmu->gxpd, false);
++		a6xx_gmu_detach_domain(gmu, gmu->gxpd);
+ 
+ 	if (!IS_ERR_OR_NULL(gmu->qmp))
+ 		qmp_put(gmu->qmp);
+@@ -2474,16 +2536,19 @@ int a6xx_gmu_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 	device_link_del(link);
+ 
+ detach_cxpd:
+-	dev_pm_domain_detach(gmu->cxpd, false);
++	a6xx_gmu_detach_domain(gmu, gmu->cxpd);
+ 
+ err_mmio:
+ 	iounmap(gmu->mmio);
+-	free_irq(gmu->gmu_irq, gmu);
+-	free_irq(gmu->hfi_irq, gmu);
++	if (gmu->gmu_irq >= 0)
++		free_irq(gmu->gmu_irq, gmu);
++	if (gmu->hfi_irq >= 0)
++		free_irq(gmu->hfi_irq, gmu);
+ 
+ err_memory:
+ 	a6xx_gmu_memory_free(gmu);
+ err_put_device:
++	pm_runtime_disable(gmu->dev);
+ 	/* Drop reference taken in of_find_device_by_node */
+ 	put_device(gmu->dev);
+ 
+diff --git a/drivers/gpu/drm/msm/adreno/a6xx_gpu.c b/drivers/gpu/drm/msm/adreno/a6xx_gpu.c
+index 8b3bb2fd433bab983a701823a46fb1553fa32825..1cf7d6579803d9d51ff80527f70c0ce9cd27bd7a 100644
+--- a/drivers/gpu/drm/msm/adreno/a6xx_gpu.c
++++ b/drivers/gpu/drm/msm/adreno/a6xx_gpu.c
+@@ -2,6 +2,7 @@
+ /* Copyright (c) 2017-2019 The Linux Foundation. All rights reserved. */
+ 
+ 
++#include "tcl_acpi.h"
+ #include "msm_gem.h"
+ #include "msm_mmu.h"
+ #include "msm_gpu_trace.h"
+@@ -2614,6 +2615,8 @@ static int a6xx_set_supported_hw(struct device *dev, struct a6xx_gpu *a6xx_gpu,
+ 	u32 speedbin;
+ 	int ret;
+ 
++	if (tcl_acpi_gpu_device(dev))
++		return 0; /* Board initially exposes only the all-bin 180 MHz OPP. */
+ 	ret = a6xx_read_speedbin(dev, a6xx_gpu, info, &speedbin);
+ 	/*
+ 	 * -ENOENT means that the platform doesn't support speedbin which is
+@@ -2698,8 +2701,10 @@ static struct msm_gpu *a6xx_gpu_init(struct drm_device *dev)
+ 	/* Check if there is a GMU phandle and set it up */
+ 	struct device_node *node __free(device_node) =
+ 		of_parse_phandle(pdev->dev.of_node, "qcom,gmu", 0);
+-	/* FIXME: How do we gracefully handle this? */
+-	BUG_ON(!node);
++	if (!node && !tcl_acpi_gpu_device(&pdev->dev)) {
++		kfree(a6xx_gpu);
++		return ERR_PTR(-ENODEV);
++	}
+ 
+ 	adreno_gpu->gmu_is_wrapper = of_device_is_compatible(node, "qcom,adreno-gmu-wrapper");
+ 
+@@ -2719,6 +2724,8 @@ static struct msm_gpu *a6xx_gpu_init(struct drm_device *dev)
+ 	a6xx_gpu->have_mmu500 = (phandle &&
+ 		of_device_is_compatible(phandle, "arm,mmu-500"));
+ 	of_node_put(phandle);
++	if (tcl_acpi_gpu_device(&pdev->dev))
++		a6xx_gpu->have_mmu500 = false; /* OEM IORT: generic SMMUv2, as in DT. */
+ 
+ 	if (is_a7xx || !a6xx_gpu->have_mmu500)
+ 		a6xx_gpu->cx_misc_mmio = msm_ioremap(pdev, "cx_mem");
+diff --git a/drivers/gpu/drm/msm/adreno/adreno_device.c b/drivers/gpu/drm/msm/adreno/adreno_device.c
+index 7f20320ef66af3a17e69ca327c6f8b2a873d6741..695b1692821b61b32d84443a0adfa5be8ede399b 100644
+--- a/drivers/gpu/drm/msm/adreno/adreno_device.c
++++ b/drivers/gpu/drm/msm/adreno/adreno_device.c
+@@ -6,6 +6,7 @@
+  * Copyright (c) 2014,2017 The Linux Foundation. All rights reserved.
+  */
+ 
++#include "tcl_acpi.h"
+ #include "adreno_gpu.h"
+ 
+ bool hang_debug = false;
+@@ -216,7 +217,10 @@ static int adreno_bind(struct device *dev, struct device *master, void *data)
+ 	struct msm_gpu *gpu;
+ 	int ret;
+ 
+-	ret = find_chipid(dev->of_node, &config.chip_id);
++	if (tcl_acpi_gpu_device(dev))
++		ret = device_property_read_u32(dev, "qcom,chipid", &config.chip_id);
++	else
++		ret = find_chipid(dev->of_node, &config.chip_id);
+ 	/* We shouldn't have gotten this far if we can't parse the chip_id */
+ 	if (WARN_ON(ret))
+ 		return ret;
+@@ -243,7 +247,7 @@ static int adreno_bind(struct device *dev, struct device *master, void *data)
+ 		return PTR_ERR(gpu);
+ 	}
+ 
+-	ret = dev_pm_opp_of_find_icc_paths(dev, NULL);
++	ret = dev->of_node ? dev_pm_opp_of_find_icc_paths(dev, NULL) : 0;
+ 	if (ret)
+ 		return ret;
+ 
+@@ -271,6 +275,21 @@ static const struct component_ops a3xx_ops = {
+ 
+ static int adreno_probe(struct platform_device *pdev)
+ {
++	if (!pdev->dev.of_node) {
++		struct resource *res;
++		u32 chipid;
++
++		if (!tcl_acpi_gpu_device(&pdev->dev) ||
++		    device_property_read_u32(&pdev->dev, "qcom,chipid", &chipid) ||
++		    chipid != 0x06010800)
++			return -ENODEV;
++		res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "kgsl_3d0_reg_memory");
++		if (!res || res->start != 0x5000000 || resource_size(res) != 0x40000)
++			return -EINVAL;
++		/* Keep GPU failure independent from the working display component. */
++		return msm_gpu_probe(pdev, &a3xx_ops);
++	}
++
+ 	if (of_device_is_compatible(pdev->dev.of_node, "amd,imageon") ||
+ 	    msm_gpu_no_components())
+ 		return msm_gpu_probe(pdev, &a3xx_ops);
+@@ -405,7 +424,13 @@ static const struct dev_pm_ops adreno_pm_ops = {
+ 	RUNTIME_PM_OPS(adreno_runtime_suspend, adreno_runtime_resume, NULL)
+ };
+ 
++static const struct platform_device_id tcl_adreno_ids[] = {
++	{ "tcl-sc7180-adreno" }, { }
++};
++MODULE_DEVICE_TABLE(platform, tcl_adreno_ids);
++
+ static struct platform_driver adreno_driver = {
++	.id_table = tcl_adreno_ids,
+ 	.probe = adreno_probe,
+ 	.remove = adreno_remove,
+ 	.shutdown = adreno_shutdown,
+diff --git a/drivers/gpu/drm/msm/adreno/adreno_gpu.c b/drivers/gpu/drm/msm/adreno/adreno_gpu.c
+index c62c45bb0ddbba7d396f2f32afc5ff5cce2ffe75..05d7ebb5399b7303e3d3d918fd36f5cb15117fcf 100644
+--- a/drivers/gpu/drm/msm/adreno/adreno_gpu.c
++++ b/drivers/gpu/drm/msm/adreno/adreno_gpu.c
+@@ -6,6 +6,7 @@
+  * Copyright (c) 2014 The Linux Foundation. All rights reserved.
+  */
+ 
++#include "tcl_acpi.h"
+ #include <linux/ascii85.h>
+ #include <linux/interconnect.h>
+ #include <linux/firmware/qcom/qcom_scm.h>
+@@ -46,15 +47,26 @@ static int zap_shader_load_mdt(struct msm_gpu *gpu, const char *fwname,
+ 	}
+ 
+ 	np = of_get_available_child_by_name(dev->of_node, "zap-shader");
+-	if (!np) {
+-		zap_available = false;
+-		return -ENODEV;
+-	}
+-
+-	ret = of_reserved_mem_region_to_resource(np, 0, &r);
+-	if (ret) {
+-		zap_available = false;
+-		return ret;
++	if (tcl_acpi_gpu_device(dev)) {
++		struct resource *res = platform_get_resource_byname(gpu->pdev,
++						IORESOURCE_MEM, "zap-shader");
++
++		if (!res || res->start != 0x80840000 || resource_size(res) != 0x2000)
++			return -EINVAL;
++		r = *res;
++		ret = device_property_read_string(dev, "qcom,zap-firmware", &signed_fwname);
++		if (ret)
++			return ret;
++	} else {
++		if (!np) {
++			zap_available = false;
++			return -ENODEV;
++		}
++		ret = of_reserved_mem_region_to_resource(np, 0, &r);
++		if (ret) {
++			zap_available = false;
++			return ret;
++		}
+ 	}
+ 	mem_phys = r.start;
+ 
+@@ -1105,7 +1117,10 @@ static int adreno_get_pwrlevels(struct device *dev,
+ 	gpu->fast_rate = 0;
+ 
+ 	/* devm_pm_opp_of_add_table may error out but will still create an OPP table */
+-	ret = devm_pm_opp_of_add_table(dev);
++	if (tcl_acpi_gpu_device(dev))
++		ret = dev_pm_opp_get_opp_count(dev) > 0 ? 0 : -EINVAL;
++	else
++		ret = devm_pm_opp_of_add_table(dev);
+ 	if (ret == -ENODEV) {
+ 		/* Special cases for ancient hw with ancient DT bindings */
+ 		if (adreno_is_a2xx(adreno_gpu)) {
+diff --git a/drivers/gpu/drm/msm/adreno/tcl_acpi.h b/drivers/gpu/drm/msm/adreno/tcl_acpi.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..104f8c7cca1c1acad35a2649c18740c826d35f43
+--- /dev/null
++++ b/drivers/gpu/drm/msm/adreno/tcl_acpi.h
+@@ -0,0 +1,40 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++#ifndef ADRENO_TCL_ACPI_H
++#define ADRENO_TCL_ACPI_H
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/platform_device.h>
++#include <linux/property.h>
++
++static inline bool tcl_acpi_gpu_device(struct device *dev)
++{
++#ifdef CONFIG_ACPI
++	acpi_handle handle;
++
++	return !acpi_disabled && !dev->of_node && dev->parent &&
++		dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") &&
++		dmi_match(DMI_PRODUCT_NAME, "B220G") &&
++		device_property_read_bool(dev, "qcom,tcl-acpi-gpu") &&
++		ACPI_SUCCESS(acpi_get_handle(NULL, "\\_SB.GPU0", &handle)) &&
++		acpi_device_handle(acpi_companion_or_self(dev->parent)) == handle;
++#else
++	return false;
++#endif
++}
++
++/* bus_find_device takes the reference consumed by the caller. */
++static inline struct device *tcl_gpu_reference(struct device *dev, const char *name)
++{
++	struct fwnode_handle *fwnode;
++	struct device *supplier;
++
++	if (!tcl_acpi_gpu_device(dev))
++		return ERR_PTR(-ENODEV);
++	fwnode = fwnode_find_reference(dev_fwnode(dev), name, 0);
++	if (IS_ERR(fwnode))
++		return ERR_CAST(fwnode);
++	supplier = bus_find_device_by_fwnode(&platform_bus_type, fwnode);
++	fwnode_handle_put(fwnode);
++	return supplier ?: ERR_PTR(-EPROBE_DEFER);
++}
++#endif
+diff --git a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c b/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
+index 4ba940559a806d1893343f9d34d823bc7ebc4c1c..5d949ddf4b020e76ecfc4423371d0704c9e1c318 100644
+--- a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
++++ b/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
+@@ -385,6 +385,8 @@ static int qcom_adreno_smmu_init_context(struct arm_smmu_domain *smmu_domain,
+ 	 */
+ 
+ 	priv = dev_get_drvdata(dev);
++	if (!priv)
++		return -EINVAL;
+ 	priv->cookie = smmu_domain;
+ 	priv->get_ttbr1_cfg = qcom_adreno_smmu_get_ttbr1_cfg;
+ 	priv->set_ttbr0_cfg = qcom_adreno_smmu_set_ttbr0_cfg;
+@@ -585,6 +587,15 @@ static int qcom_smmu_def_domain_type(struct device *dev)
+ 	const struct of_device_id *match =
+ 		of_match_device(qcom_smmu_client_of_match, dev);
+ 
++	/* Match the DT GPU/GMU identity default: MSM installs its own domain
++	 * after creating the private Adreno SMMU interface. A DMA domain here
++	 * would enter init_context before that interface exists.
++	 */
++	if (!dev->of_node && dev_name(dev) &&
++	    device_property_read_bool(dev, "qcom,tcl-acpi-gpu") &&
++	    (!strcmp(dev_name(dev), "tcl-sc7180-adreno") ||
++	     !strcmp(dev_name(dev), "tcl-sc7180-gmu")))
++		return IOMMU_DOMAIN_IDENTITY;
+ 	return match ? IOMMU_DOMAIN_IDENTITY : 0;
+ }
+ 
+diff --git a/drivers/soc/qcom/Makefile b/drivers/soc/qcom/Makefile
+index b13c6e7075775ad1aaf875ca4a66c849c08322ba..180f302443f1c9c49b65a49f3642be6228840b7a 100644
+--- a/drivers/soc/qcom/Makefile
++++ b/drivers/soc/qcom/Makefile
+@@ -45,3 +45,4 @@ obj-$(CONFIG_QCOM_TCL_ACPI_SMEM) += tcl_acpi_smem.o
+ 
+ obj-$(CONFIG_QCOM_TCL_ACPI_WIFI) += tcl_acpi_wifi.o
+ obj-$(CONFIG_QCOM_TCL_ACPI_DISPLAY) += tcl_acpi_display.o
++obj-$(CONFIG_QCOM_TCL_ACPI_DISPLAY) += tcl_acpi_gpu.o
+diff --git a/drivers/soc/qcom/tcl_acpi_gpu.c b/drivers/soc/qcom/tcl_acpi_gpu.c
+new file mode 100644
+index 0000000000000000000000000000000000000000..4a92a84a5b20b4689078bdc62c2a944b09861983
+--- /dev/null
++++ b/drivers/soc/qcom/tcl_acpi_gpu.c
+@@ -0,0 +1,314 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* TCL B220G ACPI Adreno bring-up. Resources are retained for the boot. */
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/interconnect.h>
++#include <linux/ioport.h>
++#include <linux/iommu.h>
++#include <linux/module.h>
++#include <linux/pm_opp.h>
++#include <linux/pm_runtime.h>
++#include <linux/irq.h>
++#include <dt-bindings/clock/qcom,gpucc-sc7180.h>
++#include <dt-bindings/power/qcom-rpmpd.h>
++#include <dt-bindings/interconnect/qcom,icc.h>
++#include "tcl_acpi_display_stage.h"
++
++static struct tcl_display_stage cc, cx, gx, gmu, adreno;
++static struct device *firmware, *gcc, *xo;
++static struct icc_path *mem_path;
++static struct clk *smmu_bus;
++static int result;
++static bool ready;
++module_param(result, int, 0444);
++module_param(ready, bool, 0444);
++static const struct property_entry props[] = {
++	PROPERTY_ENTRY_BOOL("qcom,tcl-acpi-gpu"), { }
++};
++static const struct resource cc_res[] = { DEFINE_RES_MEM(0x5090000, 0x9000) };
++static struct resource gmu_res[] = {
++	DEFINE_RES_MEM_NAMED(0x506a000, 0x31000, "gmu"),
++	DEFINE_RES_MEM_NAMED(0xb290000, 0x10000, "gmu_pdc"),
++	DEFINE_RES_MEM_NAMED(0xb490000, 0x10000, "gmu_pdc_seq"),
++	DEFINE_RES_IRQ_NAMED(0, "hfi"), DEFINE_RES_IRQ_NAMED(0, "gmu"),
++};
++static struct resource gpu_res[] = {
++	DEFINE_RES_MEM_NAMED(0x5000000, 0x40000, "kgsl_3d0_reg_memory"),
++	DEFINE_RES_MEM_NAMED(0x509e000, 0x1000, "cx_mem"),
++	DEFINE_RES_MEM_NAMED(0x5061000, 0x800, "cx_dbgc"),
++	DEFINE_RES_MEM_NAMED(0x80840000, 0x2000, "zap-shader"),
++	DEFINE_RES_IRQ_NAMED(0, "kgsl_3d0_irq"),
++};
++
++static struct device *supplier(const char *name)
++{
++	struct device *dev = bus_find_device_by_name(&platform_bus_type, NULL, name);
++
++	if (!dev)
++		return ERR_PTR(-EPROBE_DEFER);
++	if (!dev->driver) {
++		put_device(dev);
++		return ERR_PTR(-EPROBE_DEFER);
++	}
++	return dev;
++}
++
++static int firmware_check(void)
++{
++	struct acpi_device *adev;
++	struct resource_entry *entry;
++	acpi_handle handle;
++	LIST_HEAD(resources);
++	bool gpu_window = false, cc_window = false, gmu_window = false;
++	int ret, irq = 0;
++
++	if (acpi_disabled || !dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.GPU0", &handle)))
++		return -ENODEV;
++	adev = acpi_get_acpi_dev(handle);
++	if (!adev)
++		return -ENODEV;
++	firmware = &adev->dev;
++	if (!acpi_match_acpi_device((const struct acpi_device_id[]) {
++		{ "QCOM083A" }, { } }, adev))
++		return -ENODEV;
++	ret = acpi_dev_get_resources(adev, &resources, NULL, NULL);
++	if (ret < 0)
++		return ret;
++	list_for_each_entry(entry, &resources, node) {
++		struct resource *res = entry->res;
++
++		if (res->flags & IORESOURCE_DISABLED)
++			continue;
++		if (resource_type(res) == IORESOURCE_MEM) {
++			gpu_window |= res->start == 0x5000000 && resource_size(res) == 0x3f010;
++			cc_window |= resource_contains(res, &cc_res[0]);
++			gmu_window |= resource_contains(res, &gmu_res[0]);
++		} else if (resource_type(res) == IORESOURCE_IRQ && res->start == res->end) {
++			struct irq_data *data = irq_get_irq_data(res->start);
++
++			if (data && data->hwirq == 332 &&
++			    irqd_get_trigger_type(data) == IRQ_TYPE_LEVEL_HIGH)
++				irq = res->start;
++		}
++	}
++	acpi_dev_free_resource_list(&resources);
++	if (!gpu_window || !cc_window || !gmu_window || irq <= 0)
++		return -EINVAL;
++	/* Full GPU/PDC windows and GMU interrupts supplement truncated OEM CRS
++	 * using the SC7180 binding and the working board DT. Never map RAM.
++	 */
++	if (region_intersects(0x80840000, 0x2000, IORESOURCE_SYSTEM_RAM,
++			      IORES_DESC_NONE) != REGION_DISJOINT)
++		return -EINVAL;
++	gpu_res[4].start = gpu_res[4].end = irq;
++	ret = acpi_register_gsi(NULL, 336, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_HIGH);
++	if (ret < 0)
++		return ret;
++	gmu_res[3].start = gmu_res[3].end = ret;
++	ret = acpi_register_gsi(NULL, 337, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_HIGH);
++	if (ret < 0)
++		return ret;
++	gmu_res[4].start = gmu_res[4].end = ret;
++	return 0;
++}
++
++static int keep_supplier(struct device *dev, struct device *provider)
++{
++	return device_link_add(dev, provider, DL_FLAG_STATELESS) ? 0 : -ENOMEM;
++}
++
++static int prepare_clock_controller(void)
++{
++	static const char * const names[] = {
++		"gcc_gpu_gpll0_clk_src", "gcc_gpu_gpll0_div_clk_src", "gcc_gpu_cfg_ahb_clk",
++	};
++	static const char * const connections[] = {
++		"gcc_gpu_gpll0_clk_src", "gcc_gpu_gpll0_div_clk_src", "iface",
++	};
++	int i, ret;
++
++	gcc = supplier("tcl-display-gcc");
++	if (IS_ERR(gcc))
++		return PTR_ERR(gcc);
++	xo = supplier("qcom-sc7180-rpmhcc");
++	if (IS_ERR(xo))
++		return PTR_ERR(xo);
++	ret = tcl_display_stage_create(&cc, "tcl-sc7180-gpucc", firmware,
++			cc_res, ARRAY_SIZE(cc_res), props);
++	if (ret)
++		return ret;
++	ret = keep_supplier(&cc.pdev->dev, gcc);
++	if (ret)
++		return ret;
++	ret = keep_supplier(&cc.pdev->dev, xo);
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_clock(&cc, dev_name(xo), "bi_tcxo", "bi_tcxo");
++	if (ret)
++		return ret;
++	for (i = 0; i < ARRAY_SIZE(names); i++) {
++		ret = tcl_display_stage_clock(&cc, dev_name(gcc), names[i], connections[i]);
++		if (ret)
++			return ret;
++	}
++	return tcl_display_stage_activate(&cc);
++}
++
++static int prepare_domains(void)
++{
++	struct genpd_onecell_data *pd = platform_get_drvdata(cc.pdev);
++	int ret;
++
++	if (!pd || pd->num_domains != 2 || !pd->domains ||
++	    !pd->domains[CX_GDSC] || !pd->domains[GX_GDSC])
++		return -EINVAL;
++	ret = tcl_display_stage_create(&cx, "tcl-gpu-cx-domain", firmware, NULL, 0, props);
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_domain(&cx, pd->domains[CX_GDSC]);
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_create(&gx, "tcl-gpu-gx-domain", firmware, NULL, 0, props);
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_domain(&gx, pd->domains[GX_GDSC]);
++	if (ret)
++		return ret;
++	pm_runtime_enable(&cx.pdev->dev);
++	pm_runtime_enable(&gx.pdev->dev);
++	/* First bring-up holds CX and SMMU bus. Dynamic idle follows validation. */
++	ret = pm_runtime_resume_and_get(&cx.pdev->dev);
++	if (ret < 0)
++		return ret;
++	smmu_bus = clk_get_sys(dev_name(gcc), "gcc_gpu_memnoc_gfx_clk");
++	if (IS_ERR(smmu_bus))
++		return PTR_ERR(smmu_bus);
++	return clk_prepare_enable(smmu_bus);
++}
++
++static int gmu_dma_probe(struct platform_device *pdev)
++{
++	struct iommu_fwspec *spec = dev_iommu_fwspec_get(&pdev->dev);
++
++	if (!spec || spec->num_ids != 1 || spec->ids[0] != 5 ||
++	    !device_iommu_mapped(&pdev->dev))
++		return -EINVAL;
++	return 0;
++}
++static const struct platform_device_id gmu_ids[] = { { "tcl-sc7180-gmu" }, { } };
++static struct platform_driver gmu_driver = {
++	.probe = gmu_dma_probe,
++	.driver_managed_dma = true,
++	.id_table = gmu_ids,
++	.driver = { .name = "tcl-sc7180-gmu" },
++};
++
++static int prepare_gmu(void)
++{
++	static const char * const clocks[] = { "gmu", "cxo", "axi", "memnoc" };
++	static const char * const sources[] = {
++		"gpu_cc_cx_gmu_clk", "gpu_cc_cxo_clk",
++		"gcc_ddrss_gpu_axi_clk", "gcc_gpu_memnoc_gfx_clk",
++	};
++	const struct property_entry properties[] = {
++		PROPERTY_ENTRY_BOOL("qcom,tcl-acpi-gpu"),
++		PROPERTY_ENTRY_STRING_ARRAY("clock-names", clocks),
++		PROPERTY_ENTRY_REF("qcom,cx-domain", to_software_node(dev_fwnode(&cx.pdev->dev))),
++		PROPERTY_ENTRY_REF("qcom,gx-domain", to_software_node(dev_fwnode(&gx.pdev->dev))),
++		{ }
++	};
++	struct dev_pm_opp_data opp = { .freq = 200000000, .level = RPMH_REGULATOR_LEVEL_MIN_SVS };
++	int ret, i;
++
++	ret = tcl_display_stage_create(&gmu, "tcl-sc7180-gmu", firmware,
++			gmu_res, ARRAY_SIZE(gmu_res), properties);
++	if (ret)
++		return ret;
++	ret = keep_supplier(&gmu.pdev->dev, &cc.pdev->dev);
++	if (ret)
++		return ret;
++	for (i = 0; i < ARRAY_SIZE(clocks); i++) {
++		ret = tcl_display_stage_clock(&gmu, i < 2 ? dev_name(&cc.pdev->dev) : dev_name(gcc),
++					      sources[i], clocks[i]);
++		if (ret)
++			return ret;
++	}
++	ret = dev_pm_opp_add_dynamic(&gmu.pdev->dev, &opp);
++	if (ret)
++		return ret;
++	return tcl_display_stage_activate(&gmu);
++}
++
++static int prepare_adreno(void)
++{
++	const struct property_entry properties[] = {
++		PROPERTY_ENTRY_BOOL("qcom,tcl-acpi-gpu"),
++		PROPERTY_ENTRY_U32("qcom,chipid", 0x06010800),
++		PROPERTY_ENTRY_REF("qcom,gmu", to_software_node(dev_fwnode(&gmu.pdev->dev))),
++		PROPERTY_ENTRY_STRING("qcom,zap-firmware", "qcom/sc7180/tcl/qcdxkmsuc7180.mbn"),
++		{ }
++	};
++	struct dev_pm_opp_data opp = { .freq = 180000000, .level = RPMH_REGULATOR_LEVEL_MIN_SVS };
++	int ret;
++
++	ret = tcl_display_stage_create(&adreno, "tcl-sc7180-adreno", firmware,
++			gpu_res, ARRAY_SIZE(gpu_res), properties);
++	if (ret)
++		return ret;
++	ret = keep_supplier(&adreno.pdev->dev, &gmu.pdev->dev);
++	if (ret)
++		return ret;
++	/* All fuse bins support 180MHz; bandwidth is the corresponding DT vote. */
++	ret = dev_pm_opp_add_dynamic(&adreno.pdev->dev, &opp);
++	if (ret)
++		return ret;
++	mem_path = icc_get(&adreno.pdev->dev, "qxm_gpu@tcl-sc7180-gnoc", "ebi@tcl-sc7180-mc");
++	if (IS_ERR_OR_NULL(mem_path))
++		return mem_path ? PTR_ERR(mem_path) : -ENODEV;
++	icc_set_tag(mem_path, QCOM_ICC_TAG_ALWAYS);
++	ret = icc_set_bw(mem_path, 0, 1804000);
++	if (ret)
++		return ret;
++	return tcl_display_stage_activate(&adreno);
++}
++
++static int __init tcl_gpu_init(void)
++{
++	int ret;
++
++	result = firmware_check();
++	if (result)
++		goto out;
++	result = platform_driver_register(&gmu_driver);
++	if (result)
++		goto out;
++	result = prepare_clock_controller();
++	if (!result)
++		result = prepare_domains();
++	if (!result)
++		result = prepare_gmu();
++	if (!result)
++		result = prepare_adreno();
++out:
++	ready = !result;
++	if (result) {
++		/* Prevent asynchronous retries after partial initialization. */
++		if (gmu.pdev && !gmu.pdev->dev.driver) {
++			ret = device_set_driver_override(&gmu.pdev->dev, TCL_DISPLAY_STAGE_BLOCK);
++			if (ret)
++				pr_err("TCL GMU retry block failed: %d\n", ret);
++		}
++		if (adreno.pdev && !adreno.pdev->dev.driver) {
++			ret = device_set_driver_override(&adreno.pdev->dev, TCL_DISPLAY_STAGE_BLOCK);
++			if (ret)
++				pr_err("TCL GPU retry block failed: %d\n", ret);
++		}
++	}
++	pr_info("TCL ACPI GPU preparation result=%d ready=%d; resources retained\n", result, ready);
++	return 0;
++}
++module_init(tcl_gpu_init);
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("TCL B220G ACPI Adreno coordinator, boot lifetime, 180MHz initial OPP");

@@ -1,1 +1,7 @@
-PASS: 16 patches applied to vanilla v7.2.4 index; resulting tree equals HEAD: 2ef16275e93035bfe1c07011996a4318f985018d
+Base: 5015d0d945b3d3f2b038d2667880d5762f7d9437
+Patches: 58
+Method: git read-tree base; sequential git apply --cached --check and git apply --cached in a temporary index
+Expected tree: 187314ae5214642ccf465aef87b5115c3ae205fb
+Replayed tree: 187314ae5214642ccf465aef87b5115c3ae205fb
+Result: PASS
+No full checkout created. Compilation and hardware qualification of this exact snapshot remain pending.

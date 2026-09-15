@@ -1,0 +1,124 @@
+From 95d3c4d19efe9466d0a6f6bc7b33b1518aa82c3f Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 15:02:28 +0300
+Subject: [PATCH 34/58] ACPI: require complete translated DMA for TCL DPU
+ platform devices
+
+---
+ drivers/acpi/scan.c     | 30 ++++++++++++++++++++++++------
+ drivers/base/platform.c | 23 +++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 9a7ac2eb9ce0b8475e499e87832b8400d2d8913e..a8e13d3b6766d8b739cee5ed054eeb98b431f03a 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1599,6 +1599,12 @@ int acpi_dma_get_range(struct device *dev, const struct bus_dma_region **map)
+ 	return ret >= 0 ? 0 : ret;
+ }
+ 
++static bool acpi_tcl_dpu_strict_dma(struct device *dev)
++{
++	return !dev->of_node && !strcmp(dev_name(dev), "tcl-sc7180-dpu") &&
++		device_property_read_bool(dev, "qcom,tcl-acpi-display");
++}
++
+ #ifdef CONFIG_IOMMU_API
+ int acpi_iommu_fwspec_init(struct device *dev, u32 id,
+ 			   struct fwnode_handle *fwnode)
+@@ -1614,22 +1620,32 @@ int acpi_iommu_fwspec_init(struct device *dev, u32 id,
+ 
+ static int acpi_iommu_configure_id(struct device *dev, const u32 *id_in)
+ {
++	bool strict = acpi_tcl_dpu_strict_dma(dev);
+ 	int err;
+ 
+ 	/* Serialise to make dev->iommu stable under our potential fwspec */
+ 	mutex_lock(&iommu_probe_device_lock);
+ 	/* If we already translated the fwspec there is nothing left to do */
+ 	if (dev_iommu_fwspec_get(dev)) {
+-		mutex_unlock(&iommu_probe_device_lock);
+-		return 0;
++		err = 0;
++		goto validate;
+ 	}
+ 
+ 	err = iort_iommu_configure_id(dev, id_in);
+-	if (err && err != -EPROBE_DEFER)
++	if (!strict && err && err != -EPROBE_DEFER)
+ 		err = rimt_iommu_configure_id(dev, id_in);
+-	if (err && err != -EPROBE_DEFER)
++	if (!strict && err && err != -EPROBE_DEFER)
+ 		err = viot_iommu_configure(dev);
+ 
++validate:
++	if (!err && strict) {
++		struct iommu_fwspec *spec = dev_iommu_fwspec_get(dev);
++
++		if (id_in || !spec || spec->num_ids != 3 ||
++		    spec->ids[0] != 0x800 || spec->ids[1] != 0x802 ||
++		    spec->ids[2] != 0x801)
++			err = -EINVAL;
++	}
+ 	mutex_unlock(&iommu_probe_device_lock);
+ 
+ 	return err;
+@@ -1662,6 +1678,8 @@ int acpi_dma_configure_id(struct device *dev, enum dev_dma_attr attr,
+ 	int ret;
+ 
+ 	if (attr == DEV_DMA_NOT_SUPPORTED) {
++		if (acpi_tcl_dpu_strict_dma(dev))
++			return -ENODEV;
+ 		set_dma_ops(dev, &dma_dummy_ops);
+ 		return 0;
+ 	}
+@@ -1670,8 +1688,8 @@ int acpi_dma_configure_id(struct device *dev, enum dev_dma_attr attr,
+ 
+ 	/* Ignore all other errors apart from EPROBE_DEFER */
+ 	ret = acpi_iommu_configure_id(dev, input_id);
+-	if (ret == -EPROBE_DEFER)
+-		return -EPROBE_DEFER;
++	if (ret == -EPROBE_DEFER || (ret && acpi_tcl_dpu_strict_dma(dev)))
++		return ret;
+ 	if (ret)
+ 		dev_dbg(dev, "Adding to IOMMU failed: %d\n", ret);
+ 
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index fb9120b0bcfe0e7dd9dfc0d29b91e0ad40a01440..f0a3b0b23745f47a6f3989b9140c5496bf6b37f9 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -1481,11 +1481,34 @@ static int platform_dma_configure(struct device *dev)
+ 	} else if (is_acpi_device_node(fwnode)) {
+ 		attr = acpi_get_dma_attr(to_acpi_device_node(fwnode));
+ 		ret = acpi_dma_configure(dev, attr);
++	} else if (!strcmp(dev_name(dev), "tcl-sc7180-dpu") &&
++		   device_property_read_bool(dev, "qcom,tcl-acpi-display")) {
++		struct acpi_device *adev;
++
++		/* Supplemental DPU keeps its software node and MDSS parent. */
++		if (!dev->parent || !dev->parent->parent)
++			return -ENODEV;
++		adev = ACPI_COMPANION(dev->parent->parent);
++		if (!adev)
++			return -ENODEV;
++		attr = acpi_get_dma_attr(adev);
++		ret = acpi_dma_configure(dev, attr);
+ 	}
+ 	/* @dev->driver may not be valid when we're called from the IOMMU layer */
+ 	if (ret || !drv || to_platform_driver(drv)->driver_managed_dma)
+ 		return ret;
+ 
++	if (!strcmp(dev_name(dev), "tcl-sc7180-dpu") &&
++	    device_property_read_bool(dev, "qcom,tcl-acpi-display")) {
++		struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
++
++		/* A valid fwspec alone does not prove successful SMMU attach. */
++		if (!dev->iommu_group || !domain)
++			return -EPROBE_DEFER;
++		if (!(domain->type & __IOMMU_DOMAIN_PAGING))
++			return -EINVAL;
++	}
++
+ 	ret = iommu_device_use_default_domain(dev);
+ 	if (ret)
+ 		arch_teardown_dma_ops(dev);

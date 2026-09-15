@@ -1,7 +1,7 @@
 From ae9091e54e8867fae0b4ec12db0467663175e96f Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:41:38 +0300
-Subject: [PATCH 03/16] firmware: qcom: enable ACPI SCM initialization for
+Subject: [PATCH 03/58] firmware: qcom: enable ACPI SCM initialization for
  QCOM080B
 
 Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
@@ -10,7 +10,7 @@ Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new 
  1 file changed, 29 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/firmware/qcom/qcom_scm.c b/drivers/firmware/qcom/qcom_scm.c
-index 6b601a4b8..aa5b7ce20 100644
+index 6b601a4b89dbf04322730aa22fc9590d180a383c..aa5b7ce20149546121a5e78e430c6756f8a0a953 100644
 --- a/drivers/firmware/qcom/qcom_scm.c
 +++ b/drivers/firmware/qcom/qcom_scm.c
 @@ -3,6 +3,7 @@

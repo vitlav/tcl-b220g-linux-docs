@@ -1,0 +1,282 @@
+From 9e9c5cfa16f6a19e77a08a677d279cb613e6b6d4 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 13:22:06 +0300
+Subject: [PATCH 19/58] clk: qcom: support guarded TCL ACPI DISPCC and
+ standalone GDSC
+
+Development on top of the validated vanilla 7.2.4 ACPI baseline. Changed ARM64 objects compile with W=1; hardware activation is pending the provider and consumer wiring. Do not treat this as a validated display implementation.
+---
+ drivers/clk/qcom/common.c        | 30 ++++++++++--
+ drivers/clk/qcom/common.h        |  2 +
+ drivers/clk/qcom/dispcc-sc7180.c | 82 ++++++++++++++++++++++++++++++--
+ drivers/clk/qcom/gdsc.c          | 14 ++++++
+ drivers/clk/qcom/gdsc.h          |  1 +
+ 5 files changed, 123 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/clk/qcom/common.c b/drivers/clk/qcom/common.c
+index eec369d2173b5ce24bc1ca860d2ac1bbdce04524..c5af502f1fe0c5f42495236301a6ade6c6bbabaf 100644
+--- a/drivers/clk/qcom/common.c
++++ b/drivers/clk/qcom/common.c
+@@ -8,6 +8,7 @@
+ #include <linux/regmap.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk-provider.h>
++#include <linux/clkdev.h>
+ #include <linux/interconnect-clk.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/reset-controller.h>
+@@ -333,6 +334,9 @@ int qcom_cc_really_probe(struct device *dev,
+ 	size_t num_clk_hws = desc->num_clk_hws;
+ 	struct clk_hw **clk_hws = desc->clk_hws;
+ 
++	if (!dev->of_node && !desc->platform_clocks)
++		return -ENODEV;
++
+ 	cc = devm_kzalloc(dev, sizeof(*cc), GFP_KERNEL);
+ 	if (!cc)
+ 		return -ENOMEM;
+@@ -360,6 +364,7 @@ int qcom_cc_really_probe(struct device *dev,
+ 	}
+ 
+ 	reset = &cc->reset;
++	reset->rcdev.dev = dev;
+ 	reset->rcdev.of_node = dev->of_node;
+ 	reset->rcdev.ops = &qcom_reset_ops;
+ 	reset->rcdev.owner = dev->driver->owner;
+@@ -381,6 +386,7 @@ int qcom_cc_really_probe(struct device *dev,
+ 		scd->scs = desc->gdscs;
+ 		scd->num = desc->num_gdscs;
+ 		scd->pd_list = cc->pd_list;
++		scd->platform_single_domain = !dev->of_node;
+ 		ret = gdsc_register(scd, &reset->rcdev, regmap);
+ 		if (ret)
+ 			goto put_rpm;
+@@ -420,9 +426,27 @@ int qcom_cc_really_probe(struct device *dev,
+ 			goto put_rpm;
+ 	}
+ 
+-	ret = devm_of_clk_add_hw_provider(dev, qcom_cc_clk_hw_get, cc);
+-	if (ret)
+-		goto put_rpm;
++	if (dev->of_node) {
++		ret = devm_of_clk_add_hw_provider(dev, qcom_cc_clk_hw_get, cc);
++		if (ret)
++			goto put_rpm;
++	} else {
++		/* Provider-scoped names; board glue adds consumer connections. */
++		for (i = 0; i < num_clks; i++) {
++			if (!rclks[i])
++				continue;
++			ret = devm_clk_hw_register_clkdev(dev, &rclks[i]->hw,
++				clk_hw_get_name(&rclks[i]->hw), dev_name(dev));
++			if (ret)
++				goto put_rpm;
++		}
++		for (i = 0; i < num_clk_hws; i++) {
++			ret = devm_clk_hw_register_clkdev(dev, clk_hws[i],
++				clk_hw_get_name(clk_hws[i]), dev_name(dev));
++			if (ret)
++				goto put_rpm;
++		}
++	}
+ 
+ 	ret = qcom_cc_icc_register(dev, desc);
+ 
+diff --git a/drivers/clk/qcom/common.h b/drivers/clk/qcom/common.h
+index 6f2406f8839e8f432ef34ce32c930cf045f6ae7a..59065eceaddea7c5ba0b0443b21be4948e4694a3 100644
+--- a/drivers/clk/qcom/common.h
++++ b/drivers/clk/qcom/common.h
+@@ -35,6 +35,7 @@ struct qcom_cc_driver_data {
+ 	void (*clk_regs_configure)(struct device *dev, struct regmap *regmap);
+ };
+ 
++/* Explicit opt-in for platform devices whose clocks use clkdev lookup. */
+ struct qcom_cc_desc {
+ 	const struct regmap_config *config;
+ 	struct clk_regmap **clks;
+@@ -49,6 +50,7 @@ struct qcom_cc_desc {
+ 	size_t num_icc_hws;
+ 	unsigned int icc_first_node_id;
+ 	bool use_rpm;
++	bool platform_clocks;
+ 	const struct qcom_cc_driver_data *driver_data;
+ };
+ 
+diff --git a/drivers/clk/qcom/dispcc-sc7180.c b/drivers/clk/qcom/dispcc-sc7180.c
+index ae98fe4dcfb2b777e016cfe0de1149a02df9d9bc..34d1c8029b44b79d5bca0f9acb90a5459a61121b 100644
+--- a/drivers/clk/qcom/dispcc-sc7180.c
++++ b/drivers/clk/qcom/dispcc-sc7180.c
+@@ -3,6 +3,10 @@
+  * Copyright (c) 2019, 2022, The Linux Foundation. All rights reserved.
+  */
+ 
++#include <linux/acpi.h>
++#include <linux/clk.h>
++#include <linux/dmi.h>
++#include <linux/property.h>
+ #include <linux/clk-provider.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+@@ -100,7 +104,8 @@ static const struct parent_map disp_cc_parent_map_2[] = {
+ 
+ static const struct clk_parent_data disp_cc_parent_data_2[] = {
+ 	{ .fw_name = "bi_tcxo" },
+-	{ .fw_name = "dsi0_phy_pll_out_byteclk" },
++	{ .fw_name = "dsi0_phy_pll_out_byteclk",
++	  .name = "dsi0_phy_pll_out_byteclk" },
+ };
+ 
+ static const struct parent_map disp_cc_parent_map_3[] = {
+@@ -134,7 +139,8 @@ static const struct parent_map disp_cc_parent_map_5[] = {
+ 
+ static const struct clk_parent_data disp_cc_parent_data_5[] = {
+ 	{ .fw_name = "bi_tcxo" },
+-	{ .fw_name = "dsi0_phy_pll_out_dsiclk" },
++	{ .fw_name = "dsi0_phy_pll_out_dsiclk",
++	  .name = "dsi0_phy_pll_out_dsiclk" },
+ };
+ 
+ static const struct freq_tbl ftbl_disp_cc_mdss_ahb_clk_src[] = {
+@@ -704,15 +710,76 @@ static const struct of_device_id disp_cc_sc7180_match_table[] = {
+ };
+ MODULE_DEVICE_TABLE(of, disp_cc_sc7180_match_table);
+ 
++/* XO/GCC precede DISPCC; DSI parents register later to avoid a PHY cycle. */
++static int disp_cc_sc7180_platform_prepare(struct platform_device *pdev)
++{
++#ifdef CONFIG_ACPI
++	static const char * const parents[] = {
++		"bi_tcxo", "gcc_disp_gpll0_clk_src",
++	};
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	struct clk *clk;
++	acpi_handle gpu;
++	int i;
++
++	if (acpi_disabled || !dev->parent ||
++	    !dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    !device_property_read_bool(dev, "qcom,tcl-acpi-display") ||
++	    ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.GPU0", &gpu)) ||
++	    ACPI_HANDLE(dev->parent) != gpu)
++		return -ENODEV;
++	if (!acpi_match_device((const struct acpi_device_id[]) {
++		{ "QCOM083A" }, { } }, dev->parent))
++		return -ENODEV;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res || res->start != 0xaf00000 || resource_size(res) != 0x20000)
++		return -EINVAL;
++	for (i = 0; i < ARRAY_SIZE(parents); i++) {
++		clk = devm_clk_get(dev, parents[i]);
++		if (IS_ERR(clk))
++			return dev_err_probe(dev, PTR_ERR(clk), "missing clock %s\n", parents[i]);
++		if (!i && clk_get_rate(clk) != 19200000)
++			return -EINVAL;
++	}
++	clk = devm_clk_get_enabled(dev, "iface");
++	return PTR_ERR_OR_ZERO(clk);
++#else
++	return -ENODEV;
++#endif
++}
++
+ static int disp_cc_sc7180_probe(struct platform_device *pdev)
+ {
+ 	struct regmap *regmap;
+ 	struct alpha_pll_config disp_cc_pll_config = {};
++	struct qcom_cc_desc platform_desc = disp_cc_sc7180_desc;
++	const struct qcom_cc_desc *desc = &disp_cc_sc7180_desc;
++	int ret;
++
++	if (!pdev->dev.of_node) {
++		ret = disp_cc_sc7180_platform_prepare(pdev);
++		if (ret)
++			return ret;
++		platform_desc.platform_clocks = true;
++		desc = &platform_desc;
++	}
+ 
+ 	regmap = qcom_cc_map(pdev, &disp_cc_sc7180_desc);
+ 	if (IS_ERR(regmap))
+ 		return PTR_ERR(regmap);
+ 
++	/* Firmware may leave ROT running; stop it before MDSS power cycling. */
++	if (!pdev->dev.of_node) {
++		ret = regmap_update_bits(regmap,
++					disp_cc_mdss_rot_clk.clkr.enable_reg,
++					disp_cc_mdss_rot_clk.clkr.enable_mask, 0);
++		if (ret)
++			return ret;
++	}
++
+ 	/* 1380MHz configuration */
+ 	disp_cc_pll_config.l = 0x47;
+ 	disp_cc_pll_config.alpha = 0xe000;
+@@ -721,11 +788,20 @@ static int disp_cc_sc7180_probe(struct platform_device *pdev)
+ 
+ 	clk_fabia_pll_configure(&disp_cc_pll0, regmap, &disp_cc_pll_config);
+ 
+-	return qcom_cc_really_probe(&pdev->dev, &disp_cc_sc7180_desc, regmap);
++	ret = qcom_cc_really_probe(&pdev->dev, desc, regmap);
++	if (!ret && !pdev->dev.of_node)
++		platform_set_drvdata(pdev, &mdss_gdsc.pd);
++	return ret;
+ }
+ 
++static const struct platform_device_id disp_cc_sc7180_platform_ids[] = {
++	{ "tcl-sc7180-dispcc" }, { }
++};
++MODULE_DEVICE_TABLE(platform, disp_cc_sc7180_platform_ids);
++
+ static struct platform_driver disp_cc_sc7180_driver = {
+ 	.probe = disp_cc_sc7180_probe,
++	.id_table = disp_cc_sc7180_platform_ids,
+ 	.driver = {
+ 		.name = "sc7180-dispcc",
+ 		.of_match_table = disp_cc_sc7180_match_table,
+diff --git a/drivers/clk/qcom/gdsc.c b/drivers/clk/qcom/gdsc.c
+index ee5f86ca50cb77372da9fd51590b846d66274b28..726513535c701e3baf4992f3f99e10700d3fbd59 100644
+--- a/drivers/clk/qcom/gdsc.c
++++ b/drivers/clk/qcom/gdsc.c
+@@ -594,6 +594,16 @@ int gdsc_register(struct gdsc_desc *desc,
+ 	struct gdsc **scs = desc->scs;
+ 	size_t num = desc->num;
+ 
++	/* Initial non-DT use is one standalone, supply-free display domain. */
++	if (desc->platform_single_domain) {
++		if (dev->of_node || num != 1 || !scs[0] || scs[0]->parent ||
++		    scs[0]->supply || desc->pd_list || dev->pm_domain)
++			return -EINVAL;
++		scs[0]->regmap = regmap;
++		scs[0]->rcdev = rcdev;
++		return gdsc_init(scs[0]);
++	}
++
+ 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+@@ -671,6 +681,10 @@ void gdsc_unregister(struct gdsc_desc *desc)
+ 	struct device *dev = desc->dev;
+ 	size_t num = desc->num;
+ 
++	if (desc->platform_single_domain) {
++		WARN_ON(pm_genpd_remove(&desc->scs[0]->pd));
++		return;
++	}
+ 	gdsc_pm_subdomain_remove(desc, num);
+ 	of_genpd_del_provider(dev->of_node);
+ }
+diff --git a/drivers/clk/qcom/gdsc.h b/drivers/clk/qcom/gdsc.h
+index 92ff6bcce7b1c18a38b38dfa881b6a4e04f43aba..415a8fd9a216f27238b728e4296e8f42d30f5444 100644
+--- a/drivers/clk/qcom/gdsc.h
++++ b/drivers/clk/qcom/gdsc.h
+@@ -86,6 +86,7 @@ struct gdsc_desc {
+ 	struct gdsc **scs;
+ 	size_t num;
+ 	struct dev_pm_domain_list *pd_list;
++	bool platform_single_domain;
+ };
+ 
+ #ifdef CONFIG_QCOM_GDSC

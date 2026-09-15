@@ -1,7 +1,7 @@
 From 7db6b7c31939d7b22845fbd9d7f7285ed678bb5f Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:41 +0300
-Subject: [PATCH 14/16] soc: qcom: wire TCL ACPI SMEM and WiFi devices
+Subject: [PATCH 14/58] soc: qcom: wire TCL ACPI SMEM and WiFi devices
 
 Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
 ---
@@ -14,7 +14,7 @@ Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build wi
  create mode 100644 drivers/soc/qcom/tcl_acpi_wifi.c
 
 diff --git a/drivers/soc/qcom/Kconfig b/drivers/soc/qcom/Kconfig
-index 2caadbbcf..f142fe4d6 100644
+index 2caadbbcf8307ff94f5afbdd1481e5e5e291749f..f142fe4d60478e5cb4be811eaf2b7fb2da334556 100644
 --- a/drivers/soc/qcom/Kconfig
 +++ b/drivers/soc/qcom/Kconfig
 @@ -304,3 +304,16 @@ config QCOM_UBWC_CONFIG
@@ -35,7 +35,7 @@ index 2caadbbcf..f142fe4d6 100644
 +	depends on ACPI && EFI && ARCH_QCOM && QCOM_RPMH && QCOM_SMEM
 +	depends on QCOM_RPMHPD && COMMON_CLK_QCOM && REGULATOR
 diff --git a/drivers/soc/qcom/Makefile b/drivers/soc/qcom/Makefile
-index b7f1d2a57..b4419f49f 100644
+index b7f1d2a5736748b8772c090fd24462fa91f321c6..b4419f49f18ce70164d3173aebb8e459184b282f 100644
 --- a/drivers/soc/qcom/Makefile
 +++ b/drivers/soc/qcom/Makefile
 @@ -40,3 +40,7 @@ qcom_ice-objs			+= ice.o
@@ -48,7 +48,7 @@ index b7f1d2a57..b4419f49f 100644
 +obj-$(CONFIG_QCOM_TCL_ACPI_WIFI) += tcl_acpi_wifi.o
 diff --git a/drivers/soc/qcom/tcl_acpi_smem.c b/drivers/soc/qcom/tcl_acpi_smem.c
 new file mode 100644
-index 000000000..3ccd77099
+index 0000000000000000000000000000000000000000..3ccd77099bdf9f04f8960b73be2c243bba105b41
 --- /dev/null
 +++ b/drivers/soc/qcom/tcl_acpi_smem.c
 @@ -0,0 +1,89 @@
@@ -143,7 +143,7 @@ index 000000000..3ccd77099
 +MODULE_DESCRIPTION("TCL diagnostic ACPI SMEM/TCSR board glue");
 diff --git a/drivers/soc/qcom/tcl_acpi_wifi.c b/drivers/soc/qcom/tcl_acpi_wifi.c
 new file mode 100644
-index 000000000..3091b3a3e
+index 0000000000000000000000000000000000000000..3091b3a3ec916351407d85380bda77769b5d8d4d
 --- /dev/null
 +++ b/drivers/soc/qcom/tcl_acpi_wifi.c
 @@ -0,0 +1,500 @@

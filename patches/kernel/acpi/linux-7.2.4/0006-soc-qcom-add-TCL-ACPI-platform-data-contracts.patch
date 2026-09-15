@@ -1,7 +1,7 @@
 From 221108f06d738760957db0c5df50440f223a29e8 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:40 +0300
-Subject: [PATCH 06/16] soc: qcom: add TCL ACPI platform data contracts
+Subject: [PATCH 06/58] soc: qcom: add TCL ACPI platform data contracts
 
 Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
 ---
@@ -11,7 +11,7 @@ Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build wi
 
 diff --git a/include/linux/platform_data/qcom-tcl-acpi.h b/include/linux/platform_data/qcom-tcl-acpi.h
 new file mode 100644
-index 000000000..13dc3f9a0
+index 0000000000000000000000000000000000000000..13dc3f9a012062dd8fde0ea4d175bb3f79cf207b
 --- /dev/null
 +++ b/include/linux/platform_data/qcom-tcl-acpi.h
 @@ -0,0 +1,30 @@

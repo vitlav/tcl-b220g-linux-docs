@@ -1,7 +1,7 @@
 From 96120355b960d82a8fcd98be2e42a6ab151236cc Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:41:38 +0300
-Subject: [PATCH 05/16] usb: dwc3: add TCL ACPI firmware handoff driver
+Subject: [PATCH 05/58] usb: dwc3: add TCL ACPI firmware handoff driver
 
 Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
 ---
@@ -12,7 +12,7 @@ Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new 
  create mode 100644 drivers/usb/dwc3/tcl_usb_acpi.c
 
 diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
-index 18169727a..22fc467fe 100644
+index 18169727a413ee72405a89f477e4da16946e1764..22fc467fec1c7e9058a6d668584682062f84432e 100644
 --- a/drivers/usb/dwc3/Kconfig
 +++ b/drivers/usb/dwc3/Kconfig
 @@ -234,4 +234,13 @@ config USB_DWC3_GOOGLE
@@ -30,7 +30,7 @@ index 18169727a..22fc467fe 100644
 +
  endif
 diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
-index f37971197..22dd78547 100644
+index f37971197203e1379d554da9d60860360ea9c3fe..22dd78547529ba77634f97c33bc1b4aee2919f40 100644
 --- a/drivers/usb/dwc3/Makefile
 +++ b/drivers/usb/dwc3/Makefile
 @@ -61,3 +61,6 @@ obj-$(CONFIG_USB_DWC3_OCTEON)		+= dwc3-octeon.o
@@ -42,7 +42,7 @@ index f37971197..22dd78547 100644
 +obj-$(CONFIG_USB_DWC3_TCL_ACPI) += tcl_usb_acpi.o
 diff --git a/drivers/usb/dwc3/tcl_usb_acpi.c b/drivers/usb/dwc3/tcl_usb_acpi.c
 new file mode 100644
-index 000000000..813483f71
+index 0000000000000000000000000000000000000000..813483f7109b2e29d7407acd52d486da8158df22
 --- /dev/null
 +++ b/drivers/usb/dwc3/tcl_usb_acpi.c
 @@ -0,0 +1,1138 @@

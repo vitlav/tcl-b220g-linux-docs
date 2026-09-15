@@ -1,0 +1,48 @@
+From 9c063e6537ff7976e654fe9b8ad4e11cec6eb46e Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 20:04:40 +0300
+Subject: [PATCH 47/58] pinctrl: qcom: allow the TCL ACPI touchpad interrupt
+ pin
+
+---
+ drivers/pinctrl/qcom/pinctrl-sc7180.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/pinctrl/qcom/pinctrl-sc7180.c b/drivers/pinctrl/qcom/pinctrl-sc7180.c
+index d4323ca7899f40a2a779023728b6de1e32e06903..3c3b3976952b9ef5506ed9b0224e73acd7fdafc2 100644
+--- a/drivers/pinctrl/qcom/pinctrl-sc7180.c
++++ b/drivers/pinctrl/qcom/pinctrl-sc7180.c
+@@ -1156,7 +1156,9 @@ static int sc7180_pinctrl_acpi_probe(struct platform_device *pdev)
+ 	acpi_handle handle;
+ 	static const u16 keyboard_pins[] = { 32, 33, 115, 116 };
+ 	static const u16 display_pins[] = { 32, 33, 86, 87, 115, 116 };
+-	u16 pins[ARRAY_SIZE(display_pins)];
++	static const u16 touchpad_pins[] = { 32, 33, 86, 87, 94, 115, 116 };
++	const u16 *expected;
++	u16 pins[ARRAY_SIZE(touchpad_pins)];
+ 	int irq, count;
+ 
+ 	if (!dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
+@@ -1168,13 +1170,18 @@ static int sc7180_pinctrl_acpi_probe(struct platform_device *pdev)
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res || res->start != 0x3400000 || resource_size(res) != 0xc00000)
+ 		return -EINVAL;
+-	/* Exact whitelists: preserve keyboard-only boots, optionally add IC11. */
++	/* Exact sets preserve earlier boots; TCPD uses GPIO94 as level-low IRQ. */
+ 	count = device_property_count_u16(&pdev->dev, "gpios");
+-	if (count != ARRAY_SIZE(keyboard_pins) && count != ARRAY_SIZE(display_pins))
++	if (count == ARRAY_SIZE(keyboard_pins))
++		expected = keyboard_pins;
++	else if (count == ARRAY_SIZE(display_pins))
++		expected = display_pins;
++	else if (count == ARRAY_SIZE(touchpad_pins))
++		expected = touchpad_pins;
++	else
+ 		return -EINVAL;
+ 	if (device_property_read_u16_array(&pdev->dev, "gpios", pins, count) ||
+-	    memcmp(pins, count == ARRAY_SIZE(keyboard_pins) ? keyboard_pins : display_pins,
+-		   count * sizeof(pins[0])))
++	    memcmp(pins, expected, count * sizeof(pins[0])))
+ 		return -EINVAL;
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0)

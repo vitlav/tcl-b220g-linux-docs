@@ -1,0 +1,98 @@
+From acab85818fd06e8272f214d246b6549cc2b781f3 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 21:12:49 +0300
+Subject: [PATCH 51/58] soc: qcom: stop TCL firmware scanout before display
+ handoff
+
+---
+ drivers/soc/qcom/tcl_acpi_display.c | 63 +++++++++++++++++++++++++++++
+ 1 file changed, 63 insertions(+)
+
+diff --git a/drivers/soc/qcom/tcl_acpi_display.c b/drivers/soc/qcom/tcl_acpi_display.c
+index d82d88ade6df2f0840ffd6ce28da92c8fa4942d5..c168e801d307ba5725401f2da6b7a1622377e90b 100644
+--- a/drivers/soc/qcom/tcl_acpi_display.c
++++ b/drivers/soc/qcom/tcl_acpi_display.c
+@@ -3,6 +3,8 @@
+ #include <linux/acpi.h>
+ #include <linux/dmi.h>
+ #include <linux/i2c.h>
++#include <linux/io.h>
++#include <linux/iopoll.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/irq.h>
+ #include <linux/irqdomain.h>
+@@ -702,6 +704,64 @@ static int prepare_bridge_client(void)
+ }
+ 
+ 
++/* SC7180 DPU 6.2 offsets, matching catalog/dpu_6_2_sc7180.h and
++ * dpu_hw_intf.c. Stop firmware DMA while its original SMMU and DSI clock
++ * configuration are still intact. DPU's default DMA domain is attached
++ * before its probe, so doing this in dpu_kms_hw_init would be too late.
++ */
++static int quiesce_firmware_scanout(void)
++{
++	const unsigned int intf_base = 0x6a800;
++	const unsigned int timing_enable = 0x000, intf_status = 0x26c;
++	void __iomem *base;
++	u32 revision, enable, status;
++	int ret;
++
++	if (!mdss.pdev || !dpu.pdev || dpu.pdev->dev.driver ||
++	    !device_has_driver_override(&dpu.pdev->dev) ||
++	    !device_property_read_bool(&dpu.pdev->dev, "qcom,tcl-acpi-display"))
++		return -ENODEV;
++	ret = pm_runtime_resume_and_get(&mdss.pdev->dev);
++	if (ret < 0)
++		return ret;
++	base = ioremap(dpu_mem[0].start, resource_size(&dpu_mem[0]));
++	if (!base) {
++		ret = -ENOMEM;
++		goto put;
++	}
++	revision = readl(base);
++	if (revision != 0x60020000) {
++		dev_err(gpu, "unexpected DPU revision %#x before handoff\n", revision);
++		ret = -ENODEV;
++		goto unmap;
++	}
++	enable = readl(base + intf_base + timing_enable);
++	status = readl(base + intf_base + intf_status);
++	dev_info(gpu, "firmware DSI timing enable=%#x status=%#x\n", enable, status);
++	/* This register contains only the timing-enable bit. Reject unknown HW. */
++	if (enable & ~BIT(0)) {
++		ret = -EINVAL;
++		goto unmap;
++	}
++	writel(0, base + intf_base + timing_enable);
++	/* Read STATUS, not the shadow ENABLE register: disable latches at VSYNC.
++	 * Allow six frames at the validated 60 Hz panel mode. Never attach a new
++	 * IOMMU domain after a failed stop, nor conceal the failure with a reset.
++	 */
++	ret = readl_poll_timeout(base + intf_base + intf_status, status,
++				!(status & BIT(0)), 1000, 100000);
++	if (ret)
++		dev_err(gpu, "firmware DSI stop timed out: status=%#x; aborting handoff\n",
++			status);
++	else
++		dev_info(gpu, "firmware DSI scanout stopped before clock/IOMMU handoff\n");
++unmap:
++	iounmap(base);
++put:
++	pm_runtime_put_sync(&mdss.pdev->dev);
++	return ret;
++}
++
+ static int prepare_clock_defaults(void)
+ {
+ 	static const char * const names[] = {
+@@ -760,6 +820,9 @@ static int activate_display(void)
+ {
+ 	int ret;
+ 
++	ret = quiesce_firmware_scanout();
++	if (ret)
++		return dev_err_probe(gpu, ret, "TCL firmware scanout stop failed\n");
+ 	ret = prepare_clock_defaults();
+ 	if (ret)
+ 		return dev_err_probe(gpu, ret, "TCL initial display clocks failed\n");

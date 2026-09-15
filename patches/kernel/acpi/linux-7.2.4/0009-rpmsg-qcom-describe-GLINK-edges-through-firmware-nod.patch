@@ -1,7 +1,7 @@
 From ecc65db07b22a62f2d062c6a9cf0a7e89dfb5795 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:40 +0300
-Subject: [PATCH 09/16] rpmsg: qcom: describe GLINK edges through firmware
+Subject: [PATCH 09/58] rpmsg: qcom: describe GLINK edges through firmware
  nodes
 
 Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
@@ -12,7 +12,7 @@ Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build wi
  3 files changed, 54 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/rpmsg/qcom_glink_native.c b/drivers/rpmsg/qcom_glink_native.c
-index d9d4468e4..53cb6cb07 100644
+index d9d4468e4cbdfda0b235a3246b07bfe78b1a3d1c..53cb6cb07e98f35762c02391fa75646407094fea 100644
 --- a/drivers/rpmsg/qcom_glink_native.c
 +++ b/drivers/rpmsg/qcom_glink_native.c
 @@ -10,6 +10,7 @@
@@ -48,7 +48,7 @@ index d9d4468e4..53cb6cb07 100644
  	glink->dev->groups = qcom_glink_groups;
  
 diff --git a/drivers/rpmsg/qcom_glink_smem.c b/drivers/rpmsg/qcom_glink_smem.c
-index 35bb03e67..36cf48c8a 100644
+index 35bb03e67ae8a15dfc7c8c183df2f76b2fb0bb99..36cf48c8ad0cf82fd53912ca66be5edff04bf318 100644
 --- a/drivers/rpmsg/qcom_glink_smem.c
 +++ b/drivers/rpmsg/qcom_glink_smem.c
 @@ -6,6 +6,7 @@
@@ -149,7 +149,7 @@ index 35bb03e67..36cf48c8a 100644
  
  void qcom_glink_smem_unregister(struct qcom_glink_smem *smem)
 diff --git a/include/linux/rpmsg/qcom_glink.h b/include/linux/rpmsg/qcom_glink.h
-index bfbd48f43..16d0b919b 100644
+index bfbd48f435fa56db6de04f753e782453eea6b11d..16d0b919b489f53c6e613fd32122cd1d37741a92 100644
 --- a/include/linux/rpmsg/qcom_glink.h
 +++ b/include/linux/rpmsg/qcom_glink.h
 @@ -6,6 +6,7 @@

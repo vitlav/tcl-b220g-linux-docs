@@ -1,0 +1,315 @@
+From 7ae6ce17a9406d61380231b4529707ec2ddcce6e Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 13:50:44 +0300
+Subject: [PATCH 24/58] soc: qcom: wire diagnostic TCL ACPI display clock
+ providers
+
+---
+ drivers/soc/qcom/Kconfig                  |  11 ++
+ drivers/soc/qcom/Makefile                 |   1 +
+ drivers/soc/qcom/tcl_acpi_display.c       | 209 ++++++++++++++++++++++
+ drivers/soc/qcom/tcl_acpi_display_stage.h |  12 +-
+ 4 files changed, 227 insertions(+), 6 deletions(-)
+ create mode 100644 drivers/soc/qcom/tcl_acpi_display.c
+
+diff --git a/drivers/soc/qcom/Kconfig b/drivers/soc/qcom/Kconfig
+index f142fe4d60478e5cb4be811eaf2b7fb2da334556..70b2cdbb36a2edfa4fe79dd4bb24639aef10f03a 100644
+--- a/drivers/soc/qcom/Kconfig
++++ b/drivers/soc/qcom/Kconfig
+@@ -317,3 +317,14 @@ config QCOM_TCL_ACPI_WIFI
+ 	tristate "TCL SC7180 diagnostic ACPI WiFi wiring"
+ 	depends on ACPI && EFI && ARCH_QCOM && QCOM_RPMH && QCOM_SMEM
+ 	depends on QCOM_RPMHPD && COMMON_CLK_QCOM && REGULATOR
++
++config QCOM_TCL_ACPI_DISPLAY
++	tristate "TCL B220G diagnostic ACPI display clock wiring"
++	depends on ACPI && ARCH_QCOM && PM_GENERIC_DOMAINS
++	depends on QCOM_CLK_RPMH=y && QCOM_RPMHPD=y
++	depends on SC_GCC_7180=y && SC_DISPCC_7180=y
++	help
++	  Explicit GCC/DISPCC clock providers using existing diagnostic RPMh
++	  suppliers and the OEM GPU0 namespace. This enables neither DPU nor
++	  scanout. The coordinator retains resources for the diagnostic boot;
++	  unloading and manual supplier unbinding are not supported.
+diff --git a/drivers/soc/qcom/Makefile b/drivers/soc/qcom/Makefile
+index b4419f49f18ce70164d3173aebb8e459184b282f..b13c6e7075775ad1aaf875ca4a66c849c08322ba 100644
+--- a/drivers/soc/qcom/Makefile
++++ b/drivers/soc/qcom/Makefile
+@@ -44,3 +44,4 @@ obj-$(CONFIG_QCOM_UBWC_CONFIG) += ubwc_config.o
+ obj-$(CONFIG_QCOM_TCL_ACPI_SMEM) += tcl_acpi_smem.o
+ 
+ obj-$(CONFIG_QCOM_TCL_ACPI_WIFI) += tcl_acpi_wifi.o
++obj-$(CONFIG_QCOM_TCL_ACPI_DISPLAY) += tcl_acpi_display.o
+diff --git a/drivers/soc/qcom/tcl_acpi_display.c b/drivers/soc/qcom/tcl_acpi_display.c
+new file mode 100644
+index 0000000000000000000000000000000000000000..3cd519954b410376699e96d6d21070fd512e2e63
+--- /dev/null
++++ b/drivers/soc/qcom/tcl_acpi_display.c
+@@ -0,0 +1,209 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Diagnostic, boot-lifetime ACPI display clock wiring for TCL B220G. */
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/module.h>
++#include <linux/resource.h>
++#include <dt-bindings/power/qcom,rpmhpd.h>
++
++#include "tcl_acpi_display_stage.h"
++
++/* Like the diagnostic Wi-Fi owner, this coordinator has no unload support.
++ * Do not manually unbind its suppliers. No DPU/DSI or scanout is enabled here.
++ * A coherent kernel containing the clock-core changes is required.
++ */
++static struct tcl_display_stage gcc, dispcc;
++static struct device *rpmhcc, *rpmhpd, *gpu;
++static int result;
++static bool ready;
++module_param(result, int, 0444);
++module_param(ready, bool, 0444);
++
++static const struct property_entry props[] = {
++	PROPERTY_ENTRY_BOOL("qcom,tcl-acpi-display"), { }
++};
++static const struct resource gcc_res[] = {
++	DEFINE_RES_MEM(0x100000, 0x1f0000),
++};
++static const struct resource dispcc_res[] = {
++	DEFINE_RES_MEM(0xaf00000, 0x20000),
++};
++
++/* Existing RPMh suppliers must be built in and bound before loading us. */
++static struct device *get_supplier(const char *name)
++{
++	struct device *dev = bus_find_device_by_name(&platform_bus_type, NULL, name);
++	bool valid;
++
++	if (!dev)
++		return ERR_PTR(-EPROBE_DEFER);
++	device_lock(dev);
++	valid = device_is_bound(dev) && dev->driver && !dev->driver->owner;
++	device_unlock(dev);
++	if (!valid) {
++		put_device(dev);
++		return ERR_PTR(-EPROBE_DEFER);
++	}
++	return dev;
++}
++
++static int check_firmware(void)
++{
++	static const struct acpi_device_id ids[] = { { "QCOM083A" }, { } };
++	struct acpi_device *adev;
++	struct resource_entry *entry;
++	acpi_handle handle;
++	LIST_HEAD(resources);
++	bool contains = false;
++	int ret;
++
++	if (acpi_disabled ||
++	    !dmi_match(DMI_SYS_VENDOR, "TCL Communication Ltd.") ||
++	    !dmi_match(DMI_PRODUCT_NAME, "B220G") ||
++	    ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB.GPU0", &handle)))
++		return -ENODEV;
++	adev = acpi_get_acpi_dev(handle);
++	if (!adev)
++		return -ENODEV;
++	gpu = &adev->dev;
++	if (!acpi_match_device(ids, gpu)) {
++		ret = -ENODEV;
++		goto put;
++	}
++	ret = acpi_dev_get_resources(adev, &resources, NULL, NULL);
++	if (ret < 0)
++		goto put;
++	list_for_each_entry(entry, &resources, node) {
++		if (resource_type(entry->res) == IORESOURCE_MEM &&
++		    !(entry->res->flags & IORESOURCE_DISABLED) &&
++		    resource_contains(entry->res, &dispcc_res[0]))
++			contains = true;
++	}
++	acpi_dev_free_resource_list(&resources);
++	if (contains)
++		return 0;
++	ret = -EINVAL;
++put:
++	put_device(gpu);
++	gpu = NULL;
++	return ret;
++}
++
++static int link_supplier(struct tcl_display_stage *consumer, struct device *supplier)
++{
++	/* Boot-lifetime references: teardown is explicitly not supported yet. */
++	return device_link_add(&consumer->pdev->dev, supplier,
++			       DL_FLAG_STATELESS) ? 0 : -ENOMEM;
++}
++
++static int prepare_gcc(struct generic_pm_domain *cx)
++{
++	int ret;
++
++	ret = tcl_display_stage_create(&gcc, "tcl-display-gcc", gpu,
++			gcc_res, ARRAY_SIZE(gcc_res), props);
++	if (ret)
++		return ret;
++	ret = link_supplier(&gcc, rpmhcc);
++	if (ret)
++		return ret;
++	ret = link_supplier(&gcc, rpmhpd);
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_clock(&gcc, dev_name(rpmhcc), "bi_tcxo", "bi_tcxo");
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_domain(&gcc, cx);
++	if (ret)
++		return ret;
++	return tcl_display_stage_activate(&gcc);
++}
++
++static int prepare_dispcc(void)
++{
++	int ret;
++
++	ret = tcl_display_stage_create(&dispcc, "tcl-sc7180-dispcc", gpu,
++			dispcc_res, ARRAY_SIZE(dispcc_res), props);
++	if (ret)
++		return ret;
++	ret = link_supplier(&dispcc, rpmhcc);
++	if (ret)
++		return ret;
++	ret = link_supplier(&dispcc, &gcc.pdev->dev);
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_clock(&dispcc, dev_name(rpmhcc), "bi_tcxo", "bi_tcxo");
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_clock(&dispcc, dev_name(&gcc.pdev->dev),
++			"gcc_disp_gpll0_clk_src", "gcc_disp_gpll0_clk_src");
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_clock(&dispcc, dev_name(&gcc.pdev->dev),
++			"gcc_disp_ahb_clk", "iface");
++	if (ret)
++		return ret;
++	ret = tcl_display_stage_activate(&dispcc);
++	if (ret)
++		return ret;
++	return platform_get_drvdata(dispcc.pdev) ? 0 : -ENODEV;
++}
++
++static int __init tcl_display_init(void)
++{
++	struct genpd_onecell_data *domains;
++	int ret;
++
++	ret = check_firmware();
++	if (ret)
++		return ret;
++	rpmhcc = get_supplier("qcom-sc7180-rpmhcc");
++	if (IS_ERR(rpmhcc)) {
++		ret = PTR_ERR(rpmhcc);
++		goto put_gpu;
++	}
++	rpmhpd = get_supplier("qcom-sc7180-rpmhpd");
++	if (IS_ERR(rpmhpd)) {
++		ret = PTR_ERR(rpmhpd);
++		goto put_cc;
++	}
++	domains = dev_get_drvdata(rpmhpd);
++	if (!domains || domains->num_domains <= SC7180_CX ||
++	    !domains->domains[SC7180_CX]) {
++		ret = -ENODEV;
++		goto put_pd;
++	}
++
++	result = prepare_gcc(domains->domains[SC7180_CX]);
++	if (!result)
++		result = prepare_dispcc();
++	ready = !result;
++	if (result) {
++		/* Keep ownership after any partial setup, including deferred probe.
++		 * Block further probe attempts, retaining bound providers and
++		 * their clock objects. Never free an attached domain or
++		 * clkdev alias while a partially registered device can use it.
++		 */
++		ret = dispcc.pdev ? device_set_driver_override(&dispcc.pdev->dev,
++				TCL_DISPLAY_STAGE_BLOCK) : 0;
++		if (!ret && gcc.pdev)
++			ret = device_set_driver_override(&gcc.pdev->dev,
++					TCL_DISPLAY_STAGE_BLOCK);
++		pr_err("TCL display clocks stopped: result=%d block=%d; resources retained\n",
++		       result, ret);
++	} else {
++		pr_info("TCL display clock providers ready; scanout not enabled\n");
++	}
++	return 0;
++put_pd:
++	put_device(rpmhpd);
++put_cc:
++	put_device(rpmhcc);
++put_gpu:
++	put_device(gpu);
++	return ret;
++}
++module_init(tcl_display_init);
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("TCL B220G diagnostic ACPI display clock coordinator, no unload");
+diff --git a/drivers/soc/qcom/tcl_acpi_display_stage.h b/drivers/soc/qcom/tcl_acpi_display_stage.h
+index 63321ab430c89eb70a97d09ee9a225ea9990005a..248bd4d52699f22f506675d141d8c2e6a58cd4a0 100644
+--- a/drivers/soc/qcom/tcl_acpi_display_stage.h
++++ b/drivers/soc/qcom/tcl_acpi_display_stage.h
+@@ -24,7 +24,7 @@ struct tcl_display_stage {
+ 	bool domain_attached;
+ };
+ 
+-static int tcl_display_stage_create(struct tcl_display_stage *stage,
++static inline int tcl_display_stage_create(struct tcl_display_stage *stage,
+ 		const char *name, struct device *parent,
+ 		const struct resource *resources, unsigned int count,
+ 		const struct property_entry *properties)
+@@ -57,7 +57,7 @@ static int tcl_display_stage_create(struct tcl_display_stage *stage,
+ 	return ret;
+ }
+ 
+-static int tcl_display_stage_clock(struct tcl_display_stage *stage,
++static inline int tcl_display_stage_clock(struct tcl_display_stage *stage,
+ 		const char *provider, const char *source, const char *consumer)
+ {
+ 	struct clk_lookup *lookup;
+@@ -82,7 +82,7 @@ static int tcl_display_stage_clock(struct tcl_display_stage *stage,
+ 	return 0;
+ }
+ 
+-static int tcl_display_stage_domain(struct tcl_display_stage *stage,
++static inline int tcl_display_stage_domain(struct tcl_display_stage *stage,
+ 		struct generic_pm_domain *domain)
+ {
+ 	int ret;
+@@ -98,7 +98,7 @@ static int tcl_display_stage_domain(struct tcl_display_stage *stage,
+ 	return ret;
+ }
+ 
+-static int tcl_display_stage_activate(struct tcl_display_stage *stage)
++static inline int tcl_display_stage_activate(struct tcl_display_stage *stage)
+ {
+ 	int ret;
+ 
+@@ -112,7 +112,7 @@ static int tcl_display_stage_activate(struct tcl_display_stage *stage)
+ 	return ret > 0 ? 0 : ret ?: -EPROBE_DEFER;
+ }
+ 
+-static int tcl_display_stage_quiesce(struct tcl_display_stage *stage)
++static inline int tcl_display_stage_quiesce(struct tcl_display_stage *stage)
+ {
+ 	int ret;
+ 
+@@ -125,7 +125,7 @@ static int tcl_display_stage_quiesce(struct tcl_display_stage *stage)
+ 	return 0;
+ }
+ 
+-static int tcl_display_stage_destroy(struct tcl_display_stage *stage)
++static inline int tcl_display_stage_destroy(struct tcl_display_stage *stage)
+ {
+ 	int ret;
+ 

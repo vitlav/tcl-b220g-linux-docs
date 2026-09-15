@@ -1,0 +1,23 @@
+From 7030c1ddd1e0498cb61d64dda6f4c30bd4ce9936 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 11 Sep 2026 19:20:52 +0300
+Subject: [PATCH 46/58] ACPI: IORT: recognize raw ACPI ancestors in named
+ component lookup
+
+---
+ drivers/acpi/arm64/iort.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 3ee887b247bce3a72b7abdfb7a66383070403910..f5f3fe873afc2e97f2479bcad71d2d65cdca3d3b 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -282,7 +282,7 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+ 		 * start with.
+ 		 */
+ 		do {
+-			adev = ACPI_COMPANION(cdev);
++			adev = acpi_companion_or_self(cdev);
+ 			if (adev)
+ 				break;
+ 

@@ -1,7 +1,7 @@
 From e4db8bb0308eb8ea5f881fc296e711760e03eceb Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:40 +0300
-Subject: [PATCH 07/16] soc: qcom: support firmware-described SMEM and
+Subject: [PATCH 07/58] soc: qcom: support firmware-described SMEM and
  signaling
 
 Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
@@ -15,7 +15,7 @@ Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build wi
  6 files changed, 107 insertions(+), 37 deletions(-)
 
 diff --git a/drivers/hwspinlock/qcom_hwspinlock.c b/drivers/hwspinlock/qcom_hwspinlock.c
-index 712003a46..1d5150a3a 100644
+index 712003a4640cc17e71a78b48e62b45bc45bf99e8..1d5150a3a11129f28e328cd75b339b79fa8c39c1 100644
 --- a/drivers/hwspinlock/qcom_hwspinlock.c
 +++ b/drivers/hwspinlock/qcom_hwspinlock.c
 @@ -185,8 +185,14 @@ static struct regmap *qcom_hwspinlock_probe_mmio(struct platform_device *pdev,
@@ -53,7 +53,7 @@ index 712003a46..1d5150a3a 100644
  		.name	= "qcom_hwspinlock",
  		.of_match_table = qcom_hwspinlock_of_match,
 diff --git a/drivers/mailbox/qcom-apcs-ipc-mailbox.c b/drivers/mailbox/qcom-apcs-ipc-mailbox.c
-index d3a8f6b4a..cf1b063fa 100644
+index d3a8f6b4a03b368821ef9a5b24fee78037104610..cf1b063facebdf7acbcbc7e1fae8f37e36db1e2b 100644
 --- a/drivers/mailbox/qcom-apcs-ipc-mailbox.c
 +++ b/drivers/mailbox/qcom-apcs-ipc-mailbox.c
 @@ -94,7 +94,15 @@ static int qcom_apcs_ipc_probe(struct platform_device *pdev)
@@ -90,7 +90,7 @@ index d3a8f6b4a..cf1b063fa 100644
  	.driver = {
  		.name = "qcom_apcs_ipc",
 diff --git a/drivers/soc/qcom/smem.c b/drivers/soc/qcom/smem.c
-index afb21a778..0dac7e546 100644
+index afb21a778fe7bb22a6093145c900e132b1ff7747..0dac7e546f11dbeb66eb9a7413033c1067e3411a 100644
 --- a/drivers/soc/qcom/smem.c
 +++ b/drivers/soc/qcom/smem.c
 @@ -4,6 +4,7 @@
@@ -158,7 +158,7 @@ index afb21a778..0dac7e546 100644
  	ret = hwspin_lock_timeout_irqsave(smem->hwlock, HWSPINLOCK_TIMEOUT, &flags);
  	if (ret)
 diff --git a/drivers/soc/qcom/smem_state.c b/drivers/soc/qcom/smem_state.c
-index be52ec439..9ba802911 100644
+index be52ec4396d1ee295a4b8cefa20046d4ac7d485d..9ba8029113fbfb93ec45946c41d420e932217b64 100644
 --- a/drivers/soc/qcom/smem_state.c
 +++ b/drivers/soc/qcom/smem_state.c
 @@ -8,6 +8,7 @@
@@ -306,7 +306,7 @@ index be52ec439..9ba802911 100644
  
  /**
 diff --git a/drivers/soc/qcom/smp2p.c b/drivers/soc/qcom/smp2p.c
-index af0ceeaf6..285073383 100644
+index af0ceeaf6e07301accb07ee21a4d83f42a037d4e..285073383b651b693559c30c2aa20f5a996a596a 100644
 --- a/drivers/soc/qcom/smp2p.c
 +++ b/drivers/soc/qcom/smp2p.c
 @@ -4,6 +4,7 @@
@@ -400,7 +400,7 @@ index af0ceeaf6..285073383 100644
  			if (ret < 0)
  				goto unwind_interfaces;
 diff --git a/include/linux/soc/qcom/smem_state.h b/include/linux/soc/qcom/smem_state.h
-index 652c0158b..eee8ed0fb 100644
+index 652c0158baac13017eb65f7c55a5f9b6598c1b8f..eee8ed0fb167bae8a526cb05d99cf4ced01d3536 100644
 --- a/include/linux/soc/qcom/smem_state.h
 +++ b/include/linux/soc/qcom/smem_state.h
 @@ -4,7 +4,9 @@

@@ -1,7 +1,7 @@
 From 6eb15f4b714a4eb8e1df7f618b9e9851bcf479cf Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:41 +0300
-Subject: [PATCH 13/16] i2c: qcom-geni: handle TCL ACPI keyboard without QUP
+Subject: [PATCH 13/58] i2c: qcom-geni: handle TCL ACPI keyboard without QUP
  wrapper
 
 Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
@@ -10,7 +10,7 @@ Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build wi
  1 file changed, 150 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-qcom-geni.c b/drivers/i2c/busses/i2c-qcom-geni.c
-index d2f5055b0..4ff1a3cf4 100644
+index d2f5055b0b108648b1efcb15cd3d1243cdfd5c91..4ff1a3cf4b11948348efc19ed370741ee77d3ca4 100644
 --- a/drivers/i2c/busses/i2c-qcom-geni.c
 +++ b/drivers/i2c/busses/i2c-qcom-geni.c
 @@ -3,6 +3,11 @@
