@@ -1,10 +1,20 @@
-From 9e9c5cfa16f6a19e77a08a677d279cb613e6b6d4 Mon Sep 17 00:00:00 2001
+From cf0f93dbc3e049cebbcdb43328bcb6029bbf80fa Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 13:22:06 +0300
 Subject: [PATCH 19/58] clk: qcom: support guarded TCL ACPI DISPCC and
  standalone GDSC
 
-Development on top of the validated vanilla 7.2.4 ACPI baseline. Changed ARM64 objects compile with W=1; hardware activation is pending the provider and consumer wiring. Do not treat this as a validated display implementation.
+The SC7180 display clock controller and its GDSC domain normally
+register as OF providers. Board-created ACPI consumers instead need
+explicit clock lookup and domain access.
+
+Extend the Qualcomm clock-controller helpers for non-OF registration and
+add a guarded TCL DISPCC platform entry. Supply the parent-clock naming
+needed outside OF and support a standalone GDSC domain without
+registering a nonexistent OF provider. Resource and board checks
+restrict the path to the supplemental controller. The board coordinator
+remains responsible for assigning consumer aliases and attaching
+power-domain users.
 ---
  drivers/clk/qcom/common.c        | 30 ++++++++++--
  drivers/clk/qcom/common.h        |  2 +

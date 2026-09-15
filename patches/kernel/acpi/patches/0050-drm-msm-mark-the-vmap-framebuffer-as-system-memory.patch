@@ -1,8 +1,16 @@
-From 3461f7ab693e8966ef685279456fda53b3304589 Mon Sep 17 00:00:00 2001
+From 042b1be4b7ae6832a2d12a7b04e3b33434b0a682 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 20:24:43 +0300
 Subject: [PATCH 50/58] drm/msm: mark the vmap framebuffer as system memory
 
+MSM fbdev obtains its framebuffer address by mapping GEM-backed
+system-memory pages with msm_gem_get_vaddr(). The framebuffer flags must
+describe that mapping consistently to the system-memory fbops.
+
+Set FBINFO_VIRTFB on the allocated fb_info before it is used by the
+framebuffer helpers. This identifies the vmap buffer as system memory
+rather than an MMIO framebuffer. It does not change the physical scanout
+allocation, panel mode or DMA mapping.
 ---
  drivers/gpu/drm/msm/msm_fbdev.c | 2 ++
  1 file changed, 2 insertions(+)

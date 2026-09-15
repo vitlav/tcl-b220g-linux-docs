@@ -1,10 +1,21 @@
-From 02ff891f99b64442e72ffaafbd283dbb3ed6ee8b Mon Sep 17 00:00:00 2001
+From dfd333049ecfd8c3a97db7ce50af06c7e57c56aa Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:02:10 +0300
 Subject: [PATCH 56/58] ASoC: qcom: describe TCL LPASS macro and pinctrl
  providers
 
-Record the existing TCL ACPI audio integration source. Hardware playback has been observed during development; this source snapshot still requires a complete rebuild and lifecycle regression validation.
+The ACPI sound path needs LPASS macro clocks, SoundWire pin
+configuration and access to the internal speaker enable GPIOs. These
+descriptions normally come from DT and are absent for the supplemental
+audio devices.
+
+Add platform matches and non-OF clock handling for the RX, TX and VA
+macros and the SC7280 LPI pinctrl driver. Apply the opted-in SoundWire
+LPI configuration after its clocks are available, and extend the guarded
+TCL GPIO-valid mask for speaker PA lines 46 and 47. The external board
+provider still supplies the resource/power ordering. This does not
+establish microphone routing or a generic firmware description for other
+laptops.
 ---
  drivers/pinctrl/qcom/pinctrl-lpass-lpi.c      | 77 +++++++++++++++++--
  drivers/pinctrl/qcom/pinctrl-msm.c            | 12 +++

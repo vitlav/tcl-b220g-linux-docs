@@ -1,9 +1,18 @@
-From e72e28ab38b250e7e3850477fd1553391dd09df8 Mon Sep 17 00:00:00 2001
+From 70b8f32d8dc8e71c778121a596aa8b55941d56a6 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 13:22:06 +0300
 Subject: [PATCH 20/58] drm: msm: enable guarded TCL platform DSI PHY providers
 
-Development on top of the validated vanilla 7.2.4 ACPI baseline. Changed ARM64 objects compile with W=1; hardware activation is pending the provider and consumer wiring. Do not treat this as a validated display implementation.
+The ACPI display graph needs the SC7180 10 nm DSI PHY as a platform
+device with explicit resources and clocks. OF-only matching and
+clock-provider registration prevent that PHY from binding.
+
+Add the guarded TCL PHY platform match, validate its memory windows, and
+expose the PLL outputs to non-OF consumers. Balance the published PLL
+slot and provider lifetime during cleanup. Preserve OF matching for
+existing platforms. This supplies the PHY driver endpoint; its
+regulator, domain and consumer clock links are added separately by the
+board coordinator.
 ---
  drivers/gpu/drm/msm/dsi/phy/dsi_phy.c      | 98 +++++++++++++++++++++-
  drivers/gpu/drm/msm/dsi/phy/dsi_phy_10nm.c | 28 +++++--

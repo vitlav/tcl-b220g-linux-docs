@@ -1,10 +1,18 @@
-From 1f144f6b1867c2c742a946fed44b00bae5ab3c22 Mon Sep 17 00:00:00 2001
+From d9b9c2fc4dc5b007ef417b4d293ec4fe99787cac Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 13:22:06 +0300
 Subject: [PATCH 22/58] drm: msm: obtain explicit clocks for non-OF display
  consumers
 
-Development on top of the validated vanilla 7.2.4 ACPI baseline. Changed ARM64 objects compile with W=1; hardware activation is pending the provider and consumer wiring. Do not treat this as a validated display implementation.
+The MSM clock helper enumerates clocks through OF, which yields no
+usable clock list for supplemental ACPI MDSS/DPU devices. Their
+coordinator supplies clock-names and explicit lookup aliases instead.
+
+Add a helper that reads the non-OF clock-name list and acquires the
+named clocks with managed lifetime, preserving the OF acquisition path.
+Use it from MDSS and DPU probe. Missing clocks and supplier deferral
+must propagate to the consumer rather than allowing register access with
+incomplete clock setup.
 ---
  drivers/gpu/drm/msm/disp/dpu1/dpu_kms.c |  2 +-
  drivers/gpu/drm/msm/msm_drv.h           |  1 +

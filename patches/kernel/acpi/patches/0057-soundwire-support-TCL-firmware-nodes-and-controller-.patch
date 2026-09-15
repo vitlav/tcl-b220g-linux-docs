@@ -1,10 +1,21 @@
-From f9ad6e02e732eea951c41e30bc50302b1790e591 Mon Sep 17 00:00:00 2001
+From 7edee22736d6f1e9d48dd941bef909ebb3cb676e Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:02:11 +0300
 Subject: [PATCH 57/58] soundwire: support TCL firmware nodes and controller
  rebinding
 
-Record the existing TCL ACPI audio integration source. Hardware playback has been observed during development; this source snapshot still requires a complete rebuild and lifecycle regression validation.
+The supplemental SoundWire masters describe port configuration and codec
+children through firmware properties. The controller and core need to
+consume that representation and clean up partial child enumeration;
+rebind must also account for inherited runtime-PM state.
+
+Add firmware-node slave discovery with reference cleanup, property
+readers with range/count checks for controller ports, and the TCL master
+platform IDs. Reset runtime-PM bookkeeping on the relevant probe/remove
+path and use the existing reset/re-enumeration mechanism when an empty
+bus cannot enter clock stop. These changes require repeated bind/PCM/PM
+validation. They do not change the slave-status indexing loop or
+establish the cause of the observed TX Alert.
 ---
  drivers/soundwire/bus.c   |   7 ++-
  drivers/soundwire/bus.h   |   1 +

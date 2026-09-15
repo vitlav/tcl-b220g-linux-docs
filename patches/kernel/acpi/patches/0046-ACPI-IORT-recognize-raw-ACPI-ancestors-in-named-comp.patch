@@ -1,9 +1,18 @@
-From 7030c1ddd1e0498cb61d64dda6f4c30bd4ce9936 Mon Sep 17 00:00:00 2001
+From bb54eea0d9780fa8f308f3b894911638c5314c77 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 19:20:52 +0300
 Subject: [PATCH 46/58] ACPI: IORT: recognize raw ACPI ancestors in named
  component lookup
 
+IORT named-component lookup walks parents that may themselves be ACPI
+namespace devices. ACPI_COMPANION() handles physical companions but does
+not cover that raw ACPI-device case.
+
+Use the previously added ACPI-device resolution helper while matching
+the ancestor chain. This lets supplemental display/GPU children reach
+the correct OEM named component without inventing a companion for their
+raw ACPI parent. Stream selection and table validation remain in the
+dedicated consumer-specific paths.
 ---
  drivers/acpi/arm64/iort.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

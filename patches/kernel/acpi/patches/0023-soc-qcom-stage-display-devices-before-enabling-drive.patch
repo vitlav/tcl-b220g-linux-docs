@@ -1,10 +1,20 @@
-From bf5c6577d617cc34ef1d65485107e91971658ae7 Mon Sep 17 00:00:00 2001
+From 014ab1655795f393cd84cab05680ba3ab5519609 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 13:32:14 +0300
 Subject: [PATCH 23/58] soc: qcom: stage display devices before enabling driver
  probe
 
-Create platform children with probe blocked, then publish clock aliases and attach the owned genpd before normal platform-ID matching. Quiesce drivers before dropping aliases and detaching owned domains. Board owners must retain supplier lifetimes and establish device links. Synthetic tests on the running TCL 7.2.4 kernel verified blocked probe, properties, clocks, ID matching, domain attachment and cleanup without physical MMIO.
+Registering a display platform child can immediately invoke its driver,
+before the coordinator has installed clock aliases and its power domain.
+Teardown must reverse that ordering to avoid consumers using released
+suppliers.
+
+Add staging helpers that register a child with probe blocked, install
+its clocks/domain, and enable normal matching only at activation.
+Provide quiesce/destroy operations that detach the driver before
+removing aliases and the owned domain attachment. The coordinator still
+owns supplier references and device links; these helpers do not infer
+that dependency graph.
 ---
  drivers/soc/qcom/tcl_acpi_display_stage.h | 156 ++++++++++++++++++++++
  1 file changed, 156 insertions(+)

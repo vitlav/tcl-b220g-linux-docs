@@ -1,9 +1,18 @@
-From 7db6b7c31939d7b22845fbd9d7f7285ed678bb5f Mon Sep 17 00:00:00 2001
+From e1b7557b7a29f368a79f9d239cf6b6ed725ff4fc Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:41 +0300
 Subject: [PATCH 14/58] soc: qcom: wire TCL ACPI SMEM and WiFi devices
 
-Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+The generic Qualcomm drivers need concrete platform devices and
+software-node properties for the TCL ACPI firmware resources. OEM tables
+alone do not construct the Linux SMEM/WLAN dependency graph.
+
+Add board glue and Kconfig/Makefile entries for SMEM and Wi-Fi. Register
+the hardware-lock/SMEM resources and the modem/WLAN suppliers, including
+command database, RPMh, RMTFS, SMP2P and AOSS connections. Wire the PAS
+and ath10k consumers to those resources and unwind registrations on
+failure. The glue complements the preceding driver adaptations; working
+networking also requires OEM firmware and userspace services.
 ---
  drivers/soc/qcom/Kconfig         |  13 +
  drivers/soc/qcom/Makefile        |   4 +

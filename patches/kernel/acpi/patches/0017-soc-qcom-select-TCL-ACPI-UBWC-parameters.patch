@@ -1,9 +1,17 @@
-From cee4671f26a622c22852099807a69b24a4e13d5a Mon Sep 17 00:00:00 2001
+From 2384ad0709956f075317c50035997aa180291b78 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 13:22:06 +0300
 Subject: [PATCH 17/58] soc: qcom: select TCL ACPI UBWC parameters
 
-Development on top of the validated vanilla 7.2.4 ACPI baseline. Changed ARM64 objects compile with W=1; hardware activation is pending the provider and consumer wiring. Do not treat this as a validated display implementation.
+UBWC configuration selection normally uses the DT root compatible. An
+ACPI boot has no OF root, although the TCL display and GPU still require
+the SC7180 compression layout.
+
+Add an ACPI fallback that checks the TCL B220G DMI identity and the
+QCOM083A device at the expected GPU0 namespace handle before returning
+sc7180_data. Reject unmatched systems instead of choosing a generic UBWC
+layout. This selects shared compression parameters only; it does not
+instantiate the display or GPU.
 ---
  drivers/soc/qcom/ubwc_config.c | 30 ++++++++++++++++++++++++++++++
  1 file changed, 30 insertions(+)

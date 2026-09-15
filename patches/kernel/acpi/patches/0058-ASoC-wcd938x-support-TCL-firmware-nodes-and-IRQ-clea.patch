@@ -1,10 +1,21 @@
-From 09d7150108962f50760c6d790b65ab8b8af0e9af Mon Sep 17 00:00:00 2001
+From 0dd08ef31ab13d17b101cd144b10989089760ac2 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:02:11 +0300
 Subject: [PATCH 58/58] ASoC: wcd938x: support TCL firmware nodes and IRQ
  cleanup
 
-Record the existing TCL ACPI audio integration source. Hardware playback has been observed during development; this source snapshot still requires a complete rebuild and lifecycle regression validation.
+The WCD9385 aggregate and its RX/TX SoundWire devices are supplied by
+software nodes during ACPI boot. OF phandle matching alone cannot
+assemble them, and IRQ-domain objects must not outlive the codec binding
+that owns their callbacks.
+
+Validate the firmware port maps, resolve the RX/TX node references, and
+match components through those references. Add IRQ cleanup and failure
+unwind for the aggregate. Recognize the explicitly named TCL test
+aggregate so its external providers own regulator/reset setup instead of
+requiring an OF topology. This is still board-specific integration: it
+does not supply a generic ACPI regulator description, validated headset
+thresholds or proven microphone routing.
 ---
  sound/soc/codecs/wcd938x-sdw.c |  29 +++++-
  sound/soc/codecs/wcd938x.c     | 159 +++++++++++++++++++++++++++++----

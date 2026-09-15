@@ -1,10 +1,19 @@
-From 6eb15f4b714a4eb8e1df7f618b9e9851bcf479cf Mon Sep 17 00:00:00 2001
+From c42b40a71af4881878495fa8748d72a42045372c Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:41 +0300
 Subject: [PATCH 13/58] i2c: qcom-geni: handle TCL ACPI keyboard without QUP
  wrapper
 
-Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+The ACPI I2C5 keyboard controller has no Linux QUP wrapper from which
+the GENI driver can derive the usual FIFO layout and DMA setup. Guessing
+a wrapper version risks incorrect FIFO handling.
+
+Select a FIFO-only descriptor for the ACPI controller and accept a FIFO
+depth only when the two supported HW_PARAM_0 interpretations agree. Add
+guarded board pinctrl mappings for the I2C pins and keyboard-enable
+line, validate the I2C5 resource, and release registered mappings on
+cleanup. This enables the described keyboard controller without claiming
+GPI DMA or unrestricted support for every ACPI GENI instance.
 ---
  drivers/i2c/busses/i2c-qcom-geni.c | 152 ++++++++++++++++++++++++++++-
  1 file changed, 150 insertions(+), 2 deletions(-)

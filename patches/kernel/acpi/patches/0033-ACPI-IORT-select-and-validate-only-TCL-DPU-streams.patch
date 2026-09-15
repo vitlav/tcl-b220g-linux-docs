@@ -1,8 +1,18 @@
-From 7eb028dca3dabef39a9df1fc0ee6d67f35c68a39 Mon Sep 17 00:00:00 2001
+From c45963978a62edf9773c2d559fbef9b2dffafae0 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 14:57:58 +0300
 Subject: [PATCH 33/58] ACPI: IORT: select and validate only TCL DPU streams
 
+GPU0 is a composite IORT named component containing streams for several
+engines. Assigning all of its streams to the DPU would include unrelated
+masters and would not express the display's actual DMA identity.
+
+Select only the three DPU mappings that resolve to SIDs 0x800, 0x802 and
+0x801. Validate mapping uniqueness, flags, table bounds and the Apps
+MMU500 target before constructing the device fwspec. Reject existing or
+partial incompatible state and unwind failed construction. This
+deliberately narrows the OEM composite description to the supplemental
+display engine.
 ---
  drivers/acpi/arm64/iort.c  | 83 ++++++++++++++++++++++++++++++++++++++
  drivers/iommu/iommu-priv.h |  1 -

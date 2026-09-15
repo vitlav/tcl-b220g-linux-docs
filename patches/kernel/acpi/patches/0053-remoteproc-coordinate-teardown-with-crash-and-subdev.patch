@@ -1,10 +1,21 @@
-From 7aa02d15feac95c17dbc7c2e5734c43a65ef37d4 Mon Sep 17 00:00:00 2001
+From a47e58c2ca0dcac87ee6e6ffe08893e6334d5a6a Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:02:10 +0300
 Subject: [PATCH 53/58] remoteproc: coordinate teardown with crash and
  subdevice state
 
-Record the existing TCL ACPI audio integration source. Hardware playback has been observed during development; this source snapshot still requires a complete rebuild and lifecycle regression validation.
+Remoteproc deletion can overlap crash reporting/recovery and subdevice
+shutdown. Without explicit deletion and started-state tracking, teardown
+may leave subdevices active or allow crash work to touch a processor
+being removed.
+
+Track deletion and subdevice-start state, serialize crash admission, and
+drain pending crash work during removal. Coordinate shutdown even when
+the processor has already entered a crashed state and balance subdevice
+stop/unprepare handling. These changes affect shared remoteproc
+lifecycle code, not only TCL. They require dedicated crash/remove and
+repeated unload/reload regression coverage before being treated as a
+generally qualified lifecycle fix.
 ---
  drivers/remoteproc/remoteproc_core.c | 64 +++++++++++++++++++++++++---
  include/linux/remoteproc.h           |  6 +++

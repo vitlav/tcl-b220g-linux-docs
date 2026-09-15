@@ -1,9 +1,19 @@
-From 4a80d3e3f312d0722d19c0b84dfb60f6f4093544 Mon Sep 17 00:00:00 2001
+From 329c456713d107255ab54b5d1cc9789934d6c2d8 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 14:22:37 +0300
 Subject: [PATCH 27/58] interconnect: qcom: reject incomplete BCM
  initialization
 
+BCM initialization can leave a nonzero address marking an incompletely
+initialized object, and the RPMh interconnect probe previously ignored
+initialization failures. Later consumers could therefore use partial
+command-database state.
+
+Validate the command database address, auxiliary data length and node
+BCM capacity before publishing shared state. Set bcm->addr only after
+validation and propagate each BCM initialization error from provider
+probe. This makes missing or malformed supplier data fail explicitly
+instead of treating the provider as ready.
 ---
  drivers/interconnect/qcom/icc-rpmh.c | 26 ++++++++++++++++++++------
  1 file changed, 20 insertions(+), 6 deletions(-)

@@ -1,8 +1,18 @@
-From 64951075bfa2b25a05d1a544cd400cafab25aa9a Mon Sep 17 00:00:00 2001
+From 65ab79d32ddf894741cd0c49feb2167ce98cb611 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 14:30:18 +0300
 Subject: [PATCH 29/58] soc: qcom: wire both TCL display interconnect paths
 
+Display scanout requires both a memory data path and a CPU configuration
+path. Bringing up only the memory route leaves a distinct set of
+register-access interconnect dependencies unspecified.
+
+Extend the coordinator with the BCM voter and five staged SC7180 fabric
+providers. Resolve the MDP-to-EBI memory route and the
+APPS-to-display-configuration route, apply the intended voting tags, and
+retain the paths with their suppliers. These interconnect routes
+describe SoC traffic and do not replace the DSI/eDP pixel link or IOMMU
+translation.
 ---
  drivers/soc/qcom/Kconfig            |  1 +
  drivers/soc/qcom/tcl_acpi_display.c | 76 +++++++++++++++++++++++++++--

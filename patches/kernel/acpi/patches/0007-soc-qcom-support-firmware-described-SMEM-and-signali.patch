@@ -1,10 +1,20 @@
-From e4db8bb0308eb8ea5f881fc296e711760e03eceb Mon Sep 17 00:00:00 2001
+From 01a092382fd6b8f2cb3028d2457172bb326f8669 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:40 +0300
 Subject: [PATCH 07/58] soc: qcom: support firmware-described SMEM and
  signaling
 
-Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+SMEM, hardware locks, APCS mailboxes and SMP2P must be usable from the
+supplemental ACPI devices without requiring synthetic OF nodes. Their
+existing OF-specific resource and state-reference parsing prevents that
+connection.
+
+Add platform match data for hardware locks and APCS, accept explicit
+SMEM resources and its hardware-lock property, and parse SMP2P entries
+through firmware-node APIs. Extend SMEM-state registration and lookup to
+firmware nodes while retaining the OF-facing interface. Preserve
+references across lookup and release so consumers can resolve the same
+named state/bit contract through either firmware representation.
 ---
  drivers/hwspinlock/qcom_hwspinlock.c    | 18 ++++++++--
  drivers/mailbox/qcom-apcs-ipc-mailbox.c | 17 +++++++++-

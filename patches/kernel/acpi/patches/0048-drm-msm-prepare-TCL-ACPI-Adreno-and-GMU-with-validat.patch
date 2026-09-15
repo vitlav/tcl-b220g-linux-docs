@@ -1,9 +1,21 @@
-From 3651cb2687bae847b9be8647b3c1e382de962241 Mon Sep 17 00:00:00 2001
+From dffc0d7f57fe22500f4a6c357f9de0a30810b8c0 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 20:04:40 +0300
 Subject: [PATCH 48/58] drm/msm: prepare TCL ACPI Adreno and GMU with validated
  resources
 
+Native 3D requires separate Adreno and GMU devices with their own DMA
+identities, clocks and power domains. The composite ACPI GPU0 resource
+is not directly equivalent to the Linux GPU/GMU topology.
+
+Add a guarded TCL GPU coordinator, explicit GPUCC/GCC clocks and CX/GX
+domain wiring, and firmware-node resource/reference support in the
+Adreno/GMU consumers. Validate their memory windows, chip identity,
+zap-shader reservation and distinct IORT mappings to the Adreno SMMU.
+Stage suppliers before the consumers and check translated DMA
+attachment. This supplies native GPU initialization; it does not
+implement Venus video decoding or remove the remaining board-specific
+power and firmware dependencies.
 ---
  drivers/acpi/arm64/iort.c                  |  80 ++++++
  drivers/base/platform.c                    |  10 +

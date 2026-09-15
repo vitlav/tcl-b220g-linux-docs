@@ -1,9 +1,19 @@
-From 9aa9ae1dc960b144f969d8122e336e951446580a Mon Sep 17 00:00:00 2001
+From ed4264a167ed9dbe5ae1e2362b5897818661bb8d Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 15:16:52 +0300
 Subject: [PATCH 37/58] drm/msm/dsi: check initial power errors and add ACPI
  byte OPPs
 
+DSI configuration detection accesses hardware after acquiring clocks and
+runtime power, but must not continue when either acquisition fails. The
+ACPI host also lacks the byte-clock OPP table normally supplied by DT.
+
+Return clock/runtime-PM errors from initial configuration detection and
+initialize host mutexes before later cleanup can use them. Add dynamic
+byte-clock OPPs at 187.5, 300 and 358 MHz with performance levels 64,
+128 and 192, and remove them on unwind. These levels are power-domain
+states, not voltages. Keep optional OF OPP-table handling for existing
+DT platforms.
 ---
  drivers/gpu/drm/msm/dsi/dsi_host.c | 67 ++++++++++++++++++++++++------
  1 file changed, 55 insertions(+), 12 deletions(-)

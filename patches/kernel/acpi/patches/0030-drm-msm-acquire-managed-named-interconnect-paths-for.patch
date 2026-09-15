@@ -1,9 +1,19 @@
-From ab127fd3611d81ec3eeb223ced7e9cc14d882e84 Mon Sep 17 00:00:00 2001
+From f554bad44b7304b30cc00fbd3431f20fa6640ae5 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 14:39:01 +0300
 Subject: [PATCH 30/58] drm/msm: acquire managed named interconnect paths for
  ACPI consumers
 
+MDSS and DPU need managed ICC requests from the explicit route
+properties provided by the ACPI coordinator. Treating a missing or
+malformed required route as optional can allow incomplete display setup.
+
+Add msm_devm_icc_get() to parse source/destination pairs and voting
+tags, acquire a named path, and release it through devres. Allow the DPU
+child to use its MDSS parent's route description while owning its own
+request. Preserve the OF path, distinguish optional mdp1-mem from
+required routes, and propagate non-OF configuration errors to the
+consumer.
 ---
  drivers/gpu/drm/msm/disp/dpu1/dpu_kms.c |  6 ++-
  drivers/gpu/drm/msm/msm_drv.h           |  2 +

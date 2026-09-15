@@ -1,10 +1,21 @@
-From c4415b07034303e14f5c4c6c09331675ac88554b Mon Sep 17 00:00:00 2001
+From c01d30ddee3bf82b02fd2025df983678cbb649ba Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:02:10 +0300
 Subject: [PATCH 54/58] soc: qcom: connect firmware-described ADSP and APR
  services
 
-Record the existing TCL ACPI audio integration source. Hardware playback has been observed during development; this source snapshot still requires a complete rebuild and lifecycle regression validation.
+The ACPI ADSP needs its own PAS descriptor and a GLINK/APR service
+hierarchy described with software nodes. OF-only channel matching and
+child registration prevent those audio services from binding and
+complicate teardown ownership.
+
+Add the SC7180 ADSP platform data, adapt sysmon and GLINK shutdown
+handling, and retain/release firmware-node references with channel
+devices. Convert APR child and protection-domain parsing to firmware
+properties, match software-node compatibles, and balance device/IDR
+ownership on failure. This provides the ADSP service transport; the
+external board coordinator still supplies the resource graph and DSP
+startup sequence.
 ---
  drivers/remoteproc/qcom_common.c   |   6 ++
  drivers/remoteproc/qcom_q6v5_pas.c |  19 ++++

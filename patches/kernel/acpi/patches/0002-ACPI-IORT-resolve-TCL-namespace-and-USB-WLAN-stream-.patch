@@ -1,10 +1,20 @@
-From 0146addcec25c881b46de2ed5d58c6744b8cd715 Mon Sep 17 00:00:00 2001
+From f7dc2dacfa8c9d0d585580a77e6dcd2cc7aba4a5 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:41:38 +0300
 Subject: [PATCH 02/58] ACPI: IORT: resolve TCL namespace and USB WLAN stream
  mappings
 
-Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
+The TCL IORT names describe composite ACPI devices, while Linux creates
+child devices for USB and WLAN. Looking up only the immediate companion
+misses their named components; using a default input ID also misses the
+OEM mappings.
+
+Extend named-component lookup to the relevant ACPI namespace ancestry.
+For the recognized QCOM SC7180 table, supply USB input 0x80030000 and
+WLAN input 0x11030000, validating their mappings to SID 0x540 and WLAN
+SIDs 0xc0/0xc1 on the Apps SMMU at 0x15000000. Check the OEM revision,
+mapping layout and SMMU resource before accepting the board-specific
+interpretation. Other IORT tables continue through the generic path.
 ---
  drivers/acpi/arm64/iort.c | 148 +++++++++++++++++++++++++++++++++++++-
  1 file changed, 146 insertions(+), 2 deletions(-)

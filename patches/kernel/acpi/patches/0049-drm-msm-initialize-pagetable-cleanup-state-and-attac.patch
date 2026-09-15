@@ -1,9 +1,21 @@
-From 2e300ba47215d525a4bfed84971479849b27aa72 Mon Sep 17 00:00:00 2001
+From badbb79880ff3e1878929beac8b35bc4131e20be Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 20:24:43 +0300
 Subject: [PATCH 49/58] drm/msm: initialize pagetable cleanup state and attach
  TCL SMMU power
 
+MSM pagetable construction can reach cleanup before the pagetable's
+parent and callback state are initialized. The ACPI GPU path also needs
+the Adreno SMMU attached to the correct power supplier before it
+services GPU translations.
+
+Initialize pagetable ownership state before fallible allocation and skip
+TLB register access when the runtime-PM acquisition returns zero or an
+error. Extend the TCL coordinator to find the expected Adreno SMMU,
+attach its power domain and retain the associated dependency. Propagate
+missing supplier/attachment errors rather than continuing GPU startup.
+These changes cover failure cleanup and SMMU power wiring; they do not
+prove every GPU suspend or recovery path.
 ---
  drivers/gpu/drm/msm/msm_iommu.c | 10 ++++----
  drivers/soc/qcom/tcl_acpi_gpu.c | 42 ++++++++++++++++++++++++++++++++-

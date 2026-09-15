@@ -1,9 +1,21 @@
-From 13a51499d1cf1ca6e3b9f54642a92c9429970de0 Mon Sep 17 00:00:00 2001
+From 2adae9a95cd200a0e3e120f9c57014c3fb31b952 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 15:31:11 +0300
 Subject: [PATCH 38/58] drm: wire TCL ACPI DSI supplies, display graph and
  firmware bridge
 
+The staged display engine still lacks the DSI host, supplies, endpoint
+graph and bridge required to reach the laptop panel. OEM firmware
+already programs the LT8911EXB bridge, so this implementation makes that
+handoff an explicit constraint.
+
+Add the guarded DSI host and REFGEN/supply setup, extend the board's
+I2C/pin description for the bridge, and construct the software-node
+display graph. Add an LT8911 handoff bridge that checks the expected
+register state and exposes the fixed panel mode; it does not perform a
+complete bridge cold initialization. Include the display build
+configuration and DSI interface changes used by this graph. Later
+activation must still establish clocks and safely stop firmware scanout.
 ---
  arch/arm64/configs/tcl_acpi_display_defconfig | 1235 +++++++++++++++++
  drivers/gpu/drm/bridge/Kconfig                |    7 +

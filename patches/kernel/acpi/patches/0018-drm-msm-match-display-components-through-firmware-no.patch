@@ -1,10 +1,18 @@
-From 8dba57ad93e49a6d041ccbab488ba933dd1d99a3 Mon Sep 17 00:00:00 2001
+From 18ac0afa1c30f716ea74f05557dcb44fbdf2ee48 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 13:22:06 +0300
 Subject: [PATCH 18/58] drm: msm: match display components through firmware
  nodes
 
-Development on top of the validated vanilla 7.2.4 ACPI baseline. Changed ARM64 objects compile with W=1; hardware activation is pending the provider and consumer wiring. Do not treat this as a validated display implementation.
+MSM component discovery uses OF graph and node comparisons, so the
+supplemental ACPI display children cannot join the DRM component
+aggregate. Their identities are supplied as firmware-node references.
+
+Add firmware-node component matching with balanced reference release and
+walk the described non-OF display interfaces when building the component
+list. Keep OF component discovery for DT devices. This establishes the
+component relationships used by later board graph wiring; all referenced
+devices must still exist and bind before the aggregate can initialize.
 ---
  drivers/gpu/drm/msm/msm_drv.c | 71 +++++++++++++++++++++++++++++++++++
  1 file changed, 71 insertions(+)

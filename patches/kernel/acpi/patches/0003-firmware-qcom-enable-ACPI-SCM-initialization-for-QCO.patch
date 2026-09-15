@@ -1,10 +1,19 @@
-From ae9091e54e8867fae0b4ec12db0467663175e96f Mon Sep 17 00:00:00 2001
+From f241530d6908b42aaeb03cdfaac67ffda48105c2 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:41:38 +0300
 Subject: [PATCH 03/58] firmware: qcom: enable ACPI SCM initialization for
  QCOM080B
 
-Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
+The SCM device is exposed as QCOM080B under ACPI, but probe previously
+assumed OF interconnect and reserved-memory descriptions. SCM also needs
+usable DMA coherency information for its secure-call buffers.
+
+Add the ACPI match and reject an ACPI device without valid _CCA support.
+Restrict OF interconnect and reserved-memory setup to OF devices, give
+the ACPI TZMEM pool an initial page, and clear ACPI dependencies after
+successful initialization. These changes enable the secure-call
+supplier; they do not synthesize missing firmware DMA attributes or
+configure its consumers.
 ---
  drivers/firmware/qcom/qcom_scm.c | 38 ++++++++++++++++++++++++--------
  1 file changed, 29 insertions(+), 9 deletions(-)

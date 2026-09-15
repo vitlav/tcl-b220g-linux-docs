@@ -1,9 +1,21 @@
-From d336edc8c4d373530a8c492f7fccfcb0383fd3d5 Mon Sep 17 00:00:00 2001
+From 496ce3242db9f4813336e82dfb64cd640809f512 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:40 +0300
 Subject: [PATCH 08/58] soc: qcom: enable TCL RPMh power and clock suppliers
 
-Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+The supplemental ACPI modem and display devices depend on RPMh clocks,
+power domains, regulators, command database, AOSS messaging and RMTFS
+memory. These suppliers previously obtained essential data only through
+OF.
+
+Add platform match data and property-based parsing to the RPMh
+suppliers, explicit regulator initialization data for board-owned
+consumers, and resource-based CMD DB/RMTFS setup. Convert the relevant
+AOSS references and RSC TCS configuration to firmware-node properties.
+Validate required resource sizes and property arrays rather than
+treating their absence as a complete provider description. The board
+glue still has to create suppliers and preserve their dependency
+ordering.
 ---
  drivers/clk/qcom/clk-rpmh.c             | 22 +++++++++-
  drivers/pmdomain/qcom/rpmhpd.c          | 25 ++++++++++--

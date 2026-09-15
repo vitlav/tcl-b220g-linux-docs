@@ -1,9 +1,18 @@
-From 221108f06d738760957db0c5df50440f223a29e8 Mon Sep 17 00:00:00 2001
+From c0f43e213910bd598d26210c06b5257db911e6b4 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:40 +0300
 Subject: [PATCH 06/58] soc: qcom: add TCL ACPI platform data contracts
 
-Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+Board-created ACPI devices need to pass references that cannot be
+represented by the existing OF-only consumer setup. Define the shared
+platform-data structures before adding their producers and consumers.
+
+The PAS contract carries two proxy power-domain devices plus the GLINK
+firmware node and interrupt. The regulator contract carries the PMIC
+identity, an array of regulator descriptions, initialization data and
+the firmware-supply flag. Resource ownership remains with the board
+provider, which must keep those objects alive while the consumer uses
+them. This header does not register any hardware by itself.
 ---
  include/linux/platform_data/qcom-tcl-acpi.h | 30 +++++++++++++++++++++
  1 file changed, 30 insertions(+)

@@ -1,9 +1,19 @@
-From c556a5b777c5bb8a04346597d1ba898a56cad711 Mon Sep 17 00:00:00 2001
+From fb3cfc495fb39a17d6ddfd8e8b64b98377daa298 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:47:37 +0300
 Subject: [PATCH 15/58] arm64: add TCL ACPI diagnostic configuration for
  vanilla 7.2.4
 
+Provide an ARM64 configuration entry point for the ACPI diagnostic boot
+on the vanilla source base. Without a recorded configuration, applying
+the driver patches does not produce the intended diagnostic kernel.
+
+Add tcl_acpi_defconfig with the ACPI, Qualcomm, USB, storage, networking
+and diagnostic options needed by that baseline. This is a configuration
+change, not a driver implementation. The later multimedia source
+snapshot ships its actual kernel.config separately; that configuration
+must be used when reproducing the complete display/audio build rather
+than assuming this initial defconfig contains every later requirement.
 ---
  arch/arm64/configs/tcl_acpi_defconfig | 1232 +++++++++++++++++++++++++
  1 file changed, 1232 insertions(+)

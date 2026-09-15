@@ -1,9 +1,18 @@
-From 89d4111bb23077d53ac8eb4eee5640100c7d0135 Mon Sep 17 00:00:00 2001
+From 442726ebd8e49ad5d7072423757e46b3b6bc98bb Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 14:45:46 +0300
 Subject: [PATCH 31/58] drm/msm: stage TCL ACPI MDSS with firmware IRQ and
  explicit suppliers
 
+The ACPI GPU0 resource contains the MDSS interrupt and register window,
+but does not automatically construct the Linux MDSS parent and its child
+IRQ domain. The display coordinator must supply that layer explicitly.
+
+Add a guarded MDSS platform match, validate the 0xae00000 register
+window and translated level-high GSI115 interrupt, and stage the device
+with clock and ICC properties. Skip OF child population for this path.
+Synchronize the parent interrupt and remove the IRQ domain during
+destruction so later display children do not retain a dead controller.
 ---
  drivers/gpu/drm/msm/msm_mdss.c      | 52 +++++++++++++++--
  drivers/soc/qcom/tcl_acpi_display.c | 87 +++++++++++++++++++++++++++--

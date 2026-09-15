@@ -1,9 +1,20 @@
-From 96120355b960d82a8fcd98be2e42a6ab151236cc Mon Sep 17 00:00:00 2001
+From fad851a24672776135ba9b84330cbf46a66ba7fd Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:41:38 +0300
 Subject: [PATCH 05/58] usb: dwc3: add TCL ACPI firmware handoff driver
 
-Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
+The OEM ACPI USB resource layout needs a Qualcomm glue driver to expose
+a DWC3 host while preserving firmware-provided PHY setup. The existing
+child layout and generic defaults do not by themselves establish the
+required TCL DMA mapping.
+
+Add a separately selectable TCL ACPI DWC3 glue driver and its build
+entries. Validate the board USB window and the attached SID 0x540 DMA
+domain before registering the core; supply the child properties,
+QSCRATCH handling and resource subdivision used by this controller. This
+is a firmware-handoff implementation: successful host operation does not
+establish independent PHY cold initialization, role switching or
+suspend/resume support.
 ---
  drivers/usb/dwc3/Kconfig        |    9 +
  drivers/usb/dwc3/Makefile       |    3 +

@@ -1,9 +1,18 @@
-From 13cfaaf5aa013d99fb2e2da6849b9f5140923b6d Mon Sep 17 00:00:00 2001
+From 50a70a449bcf279bee5cdc49c62f32e0230c4f49 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 17:37:54 +0300
 Subject: [PATCH 41/58] soc: qcom: validate TCL display parent names and domain
  array
 
+Several display and fabric admission checks compare a parent device name
+before checking that it exists. The coordinator also passes a domain
+array whose size must match the actual array object.
+
+Add parent-name guards in DPU, DSI, BCM-voter and SC7180 fabric
+matching. Correct the coordinator's domain-array size expression so
+dependency setup covers the intended array. These checks tighten
+existing board paths; they do not add new supported devices or remove
+the requirement to validate resources and suppliers.
 ---
  drivers/gpu/drm/msm/disp/dpu1/dpu_kms.c | 1 +
  drivers/gpu/drm/msm/dsi/dsi.c           | 1 +

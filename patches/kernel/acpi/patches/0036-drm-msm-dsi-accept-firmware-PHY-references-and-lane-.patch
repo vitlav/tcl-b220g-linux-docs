@@ -1,9 +1,19 @@
-From ffa084cabd9997491b75a1f9cfb72338561f29f3 Mon Sep 17 00:00:00 2001
+From 91a63abdc7cd82469ac77cdd16148c733af74ee9 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 15:10:55 +0300
 Subject: [PATCH 36/58] drm/msm/dsi: accept firmware PHY references and lane
  descriptions
 
+DSI resolves its PHY and output endpoint using OF APIs. The supplemental
+ACPI host instead carries firmware-node references and an explicit lane
+map, so it cannot use that discovery path unchanged.
+
+Resolve the PHY by firmware node, defer until its driver is bound, and
+retain its device reference while in use. Parse the output graph,
+data-lanes and optional TE source through firmware APIs, validating lane
+counts/ranges and requiring the non-OF endpoint description. Obtain the
+host interrupt through the platform API. The existing OF graph path
+remains available.
 ---
  drivers/gpu/drm/msm/dsi/dsi.c      | 27 ++++++++++++++
  drivers/gpu/drm/msm/dsi/dsi_host.c | 60 +++++++++++++++---------------

@@ -1,9 +1,18 @@
-From 8d8b09d22d215f2dcb7d647030b37b14c0de67e1 Mon Sep 17 00:00:00 2001
+From 40b21a33512da4cbc3982a4147eeac47bde45eb9 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 14:49:34 +0300
 Subject: [PATCH 32/58] drm/msm/dpu: add guarded TCL ACPI catalog and dynamic
  power OPPs
 
+The supplemental ACPI DPU has neither an OF catalog match nor an OF OPP
+table. Both the hardware catalog and performance-level requirements must
+be explicit before KMS accesses the engine.
+
+Select the SC7180 DPU catalog through guarded platform match data and
+add the non-OF dynamic OPP setup used for core-clock power voting.
+Validate the TCL DPU resources and propagate missing OPP/rate errors on
+the ACPI path. This describes DPU capabilities and performance states;
+interconnect, IOMMU and DSI graph setup remain separate prerequisites.
 ---
  drivers/gpu/drm/msm/disp/dpu1/dpu_kms.c | 102 ++++++++++++++++++++++--
  1 file changed, 97 insertions(+), 5 deletions(-)

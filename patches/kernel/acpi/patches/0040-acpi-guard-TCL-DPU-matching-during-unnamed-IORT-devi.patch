@@ -1,9 +1,18 @@
-From acb35aba6e1efdde2036c3cabeaae4974400dd8d Mon Sep 17 00:00:00 2001
+From e99f3b4ac92972b9c15896f5ff57efe7ea6f119b Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 17:34:51 +0300
 Subject: [PATCH 40/58] acpi: guard TCL DPU matching during unnamed IORT device
  setup
 
+IORT and ACPI DMA setup can run while a device has no name. The
+TCL-specific DPU checks used strcmp() on dev_name() without first
+establishing that a name exists.
+
+Guard those comparisons in IORT lookup, ACPI DMA-range handling and
+platform DMA setup. Unnamed devices then bypass the name-based board
+match instead of dereferencing NULL. The change preserves the existing
+matching condition for named TCL DPU devices and does not broaden the
+board-specific DMA policy.
 ---
  drivers/acpi/arm64/iort.c | 2 +-
  drivers/acpi/scan.c       | 5 ++++-

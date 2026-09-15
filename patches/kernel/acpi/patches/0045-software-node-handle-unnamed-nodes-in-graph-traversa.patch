@@ -1,8 +1,17 @@
-From 47b9012d3bb7cdb71d2e909ad9b41db40ccd5bab Mon Sep 17 00:00:00 2001
+From eb4ca73561209b7abbb8658346aba6adb80bade4 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 18:49:19 +0300
 Subject: [PATCH 45/58] software node: handle unnamed nodes in graph traversal
 
+Software-node graph traversal assumes port and endpoint nodes always
+have names. Supplemental graphs can include unnamed nodes, making those
+string comparisons unsafe.
+
+Check names before testing the ports container and before parsing
+port/endpoint names. Return the appropriate traversal or parse failure
+for unnamed nodes instead of dereferencing a NULL name. Named graphs
+keep their existing behavior. This is a graph-helper robustness fix, not
+a replacement for the board's endpoint properties.
 ---
  drivers/base/swnode.c | 13 ++++++++++---
  1 file changed, 10 insertions(+), 3 deletions(-)

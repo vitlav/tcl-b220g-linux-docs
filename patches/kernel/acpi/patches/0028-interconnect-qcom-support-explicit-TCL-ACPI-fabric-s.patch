@@ -1,9 +1,19 @@
-From 7ab4e53898096838a836b6569d43dd7c4093067d Mon Sep 17 00:00:00 2001
+From f22dc6e5e7680b6e09010b0974f2508babb800b2 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 14:30:18 +0300
 Subject: [PATCH 28/58] interconnect: qcom: support explicit TCL ACPI fabric
  suppliers
 
+The ACPI display fabrics need BCM voters and SC7180 interconnect
+providers without OF phandles. A voter lookup must not accidentally
+match two devices merely because both lack an OF node.
+
+Add firmware-node voter lookup, preserve the OF entry point, and require
+a bound matching supplier. Register the guarded non-OF SC7180 fabric
+instances and clean their voter-list membership on removal. The board
+must retain supplier lifetimes and establish device links. These changes
+enable provider discovery; the coordinator still has to create all
+fabrics and request the actual display paths.
 ---
  drivers/interconnect/qcom/bcm-voter.c | 66 +++++++++++++++++++++++++--
  drivers/interconnect/qcom/bcm-voter.h |  1 +

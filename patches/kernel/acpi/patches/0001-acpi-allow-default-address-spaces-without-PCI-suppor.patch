@@ -1,9 +1,17 @@
-From d14e31657472e1f592085741882249e3e6fa87c8 Mon Sep 17 00:00:00 2001
+From 55e4623e3a90abe9cf2c12041786eb443ccdd86e Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:41:38 +0300
 Subject: [PATCH 01/58] acpi: allow default address spaces without PCI support
 
-Port the working TCL ACPI9 implementation to vanilla Linux v7.2.4. Preserve new upstream paths. ARM64 W=1 affected-object build passed; hardware validation on this base remains pending.
+ACPICA includes the PCI configuration address space in its default
+handler list even when the kernel is built without PCI. That
+configuration cannot supply the corresponding PCI handler.
+
+Guard the PCI entry with ACPI_PCI_CONFIGURED and reduce
+ACPI_NUM_DEFAULT_SPACES to three when PCI is absent. Keep the count and
+initializer in agreement so the remaining default address spaces can be
+installed during ACPI startup. PCI-enabled builds retain the existing
+four-space list.
 ---
  drivers/acpi/acpica/evhandler.c | 2 ++
  include/acpi/acconfig.h         | 4 ++++

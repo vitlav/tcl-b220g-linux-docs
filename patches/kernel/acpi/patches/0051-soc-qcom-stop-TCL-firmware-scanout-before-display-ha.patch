@@ -1,9 +1,20 @@
-From acab85818fd06e8272f214d246b6549cc2b781f3 Mon Sep 17 00:00:00 2001
+From 782e6b47f39791bb261048181f6c8c955a4be091 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 21:12:49 +0300
 Subject: [PATCH 51/58] soc: qcom: stop TCL firmware scanout before display
  handoff
 
+UEFI may still be scanning out through DPU when Linux replaces the
+display's clock configuration and IOMMU domain. Stopping firmware DMA
+from a later KMS callback is too late because platform DMA attachment
+happens before probe.
+
+Quiesce the firmware DSI interface while the original translation and
+clocks remain intact. Require the staged, unbound TCL DPU and expected
+6.2 hardware revision, clear timing enable, and poll the actual
+interface status for up to 100 ms. Abort handoff on unexpected state or
+timeout; do not attach the new domain after a failed stop. Then continue
+the existing clock and display activation sequence.
 ---
  drivers/soc/qcom/tcl_acpi_display.c | 63 +++++++++++++++++++++++++++++
  1 file changed, 63 insertions(+)

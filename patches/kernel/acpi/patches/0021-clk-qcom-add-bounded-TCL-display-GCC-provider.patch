@@ -1,9 +1,18 @@
-From 046bd8f737a233d7abbec2fcc200c7dc5debd911 Mon Sep 17 00:00:00 2001
+From bb892e826153c838b3df37a8005129c42745970a Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 13:22:06 +0300
 Subject: [PATCH 21/58] clk: qcom: add bounded TCL display GCC provider
 
-Development on top of the validated vanilla 7.2.4 ACPI baseline. Changed ARM64 objects compile with W=1; hardware activation is pending the provider and consumer wiring. Do not treat this as a validated display implementation.
+Display consumers need a small subset of GCC clocks during ACPI handoff,
+but a full DT-described GCC provider is not available. Programming
+unrelated GCC resources would unnecessarily expand the board workaround.
+
+Add a TCL-specific platform provider for the display clock branches and
+their GPLL0 parent. Check the firmware/board context, constrain writable
+register ranges and use the existing firmware PLL state rather than
+introducing a full PLL reinitialization sequence. This is a bounded
+display provider, not a replacement for the complete SC7180 GCC
+topology.
 ---
  drivers/clk/qcom/gcc-sc7180.c | 148 ++++++++++++++++++++++++++++++++++
  1 file changed, 148 insertions(+)

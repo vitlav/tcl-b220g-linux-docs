@@ -1,9 +1,19 @@
-From 7ae6ce17a9406d61380231b4529707ec2ddcce6e Mon Sep 17 00:00:00 2001
+From cbabe075969d8d2efdc0eb699190444682f01a42 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 13:50:44 +0300
 Subject: [PATCH 24/58] soc: qcom: wire diagnostic TCL ACPI display clock
  providers
 
+The ACPI display path needs a board coordinator to construct GCC and
+DISPCC consumers after the existing RPMh suppliers are ready. Generic
+clock-driver support alone does not create those devices.
+
+Add the TCL display glue, its build option, firmware checks and staged
+clock-provider registrations. Resolve RPMh clock/power suppliers,
+establish explicit aliases and retain the dependencies for the staged
+devices. This initial coordinator prepares display clocks only; PHY,
+interconnect, DRM graph and scanout activation are supplied by later
+patches in the series.
 ---
  drivers/soc/qcom/Kconfig                  |  11 ++
  drivers/soc/qcom/Makefile                 |   1 +

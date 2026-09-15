@@ -1,10 +1,20 @@
-From ecc65db07b22a62f2d062c6a9cf0a7e89dfb5795 Mon Sep 17 00:00:00 2001
+From 168a8a9b44d79042211c92254d773a755fc748b8 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:40 +0300
 Subject: [PATCH 09/58] rpmsg: qcom: describe GLINK edges through firmware
  nodes
 
-Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+A GLINK edge created for the ACPI modem needs shared-memory transport
+resources and channel descriptions even though it has no OF node. The
+transport currently assumes OF references when discovering its edge and
+children.
+
+Introduce the firmware-node/resource registration interface and use
+firmware-node child discovery for GLINK edge setup. Pass the
+board-supplied interrupt and signaling references through the SMEM
+transport while retaining the existing OF entry point. This enables
+transport construction; it does not itself enumerate APR audio services
+or replace the upstream channel-removal protocol.
 ---
  drivers/rpmsg/qcom_glink_native.c |  9 ++++---
  drivers/rpmsg/qcom_glink_smem.c   | 45 +++++++++++++++++++++++++------

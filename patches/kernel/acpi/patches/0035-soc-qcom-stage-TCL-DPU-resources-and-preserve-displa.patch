@@ -1,9 +1,20 @@
-From 85fb9250c029f5606616ddb8ba49f6c8c0f5c0ac Mon Sep 17 00:00:00 2001
+From 38efc5e74e397c67794ed6bbba9b482046ac9b36 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 15:07:22 +0300
 Subject: [PATCH 35/58] soc: qcom: stage TCL DPU resources and preserve display
  properties
 
+The coordinator must create the DPU child beneath MDSS with its own
+register windows, interrupt and clock properties. Replacing its software
+node with composite GPU0 attributes loses the description needed by the
+display drivers.
+
+Stage the mdp window at 0xae01000 and vbif at 0xaeb0000, obtain the
+child interrupt from the MDSS IRQ domain, and attach the clock/power
+suppliers. Keep probe blocked until the DSI component graph is complete.
+Route DPU IORT setup through its dedicated stream selection without
+importing composite PASID/stall properties or discarding the software
+node.
 ---
  drivers/acpi/arm64/iort.c           |  8 +--
  drivers/soc/qcom/tcl_acpi_display.c | 87 ++++++++++++++++++++++++++++-

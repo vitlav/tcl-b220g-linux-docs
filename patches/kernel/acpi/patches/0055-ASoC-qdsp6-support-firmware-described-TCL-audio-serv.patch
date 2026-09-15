@@ -1,10 +1,20 @@
-From 747a31b90446b902b3c8784514ca077978c00edd Mon Sep 17 00:00:00 2001
+From f5df9bc2b336db63114a8240d312d048d67b849e Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:02:10 +0300
 Subject: [PATCH 55/58] ASoC: qdsp6: support firmware-described TCL audio
  services
 
-Record the existing TCL ACPI audio integration source. Hardware playback has been observed during development; this source snapshot still requires a complete rebuild and lifecycle regression validation.
+Q6ADM, Q6AFE and Q6ASM expose their child DAIs and clocks through OF
+population. On the ACPI path those services exist under software nodes
+and need explicit child construction and resource checks.
+
+Populate recognized Q6AFE children and the opted-in Q6ASM DAI with
+managed cleanup, parse DAI data through firmware properties, and require
+usable translated DMA for the PCM consumer. Add clock platform matches,
+validate non-OF clock attributes and publish explicit Q6AFE aliases.
+Preserve the OF path and reject incomplete child descriptions. These
+changes register DSP services and their clocks; a machine card and mixer
+routes are still required for audible playback.
 ---
  sound/soc/qcom/qdsp6/q6adm.c              |  3 +-
  sound/soc/qcom/qdsp6/q6afe-clocks.c       |  7 +++

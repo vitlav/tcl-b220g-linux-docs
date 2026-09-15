@@ -1,9 +1,18 @@
-From e29884ba456d67512659bf489bd96090b138c1d2 Mon Sep 17 00:00:00 2001
+From 2649ed949d92e275a2522cd7bc8472b2b3060833 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 11 Sep 2026 11:43:41 +0300
 Subject: [PATCH 12/58] pinctrl: qcom: add bounded TCL ACPI TLMM support
 
-Port the ACPI9 implementation to vanilla v7.2.4. Affected ARM64 objects build with W=1. Keep upstream GLINK endpoint removal and reserved-memory resource handling. Full build and hardware validation are separate gates; this commit does not claim hardware validation.
+ACPI GIO0 describes all SC7180 TLMM tiles with one MMIO window instead
+of the named resources used by DT. The keyboard needs only a bounded
+subset of pins from that controller.
+
+Add per-tile offsets inside a single mapped resource and a guarded TCL
+ACPI probe. Check the B220G identity, GIO0 handle, resource extent and
+summary IRQ before accepting the exact keyboard/I2C GPIO set 32, 33, 115
+and 116. Disable the unavailable PDC wake mapping for this path. This
+initial patch covers normal input interrupts; later series entries
+extend the allowed set for display and touchpad.
 ---
  drivers/pinctrl/qcom/pinctrl-msm.c    | 14 ++++++-
  drivers/pinctrl/qcom/pinctrl-msm.h    |  2 +
