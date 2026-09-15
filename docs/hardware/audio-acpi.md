@@ -39,3 +39,14 @@ both slaves and returned them to `Attached` within four seconds; the ALSA card
 remained registered. The transition is therefore reproducible after PCM use and
 cleared by the existing service lifecycle. Its interrupt source is still not
 identified, so no SoundWire or MBHC workaround is being asserted.
+
+### Targeted TX SCP check
+
+After a short maximum-level playback, a targeted SoundWire debugfs read of the
+TX SCP section found `INT1 (0x40)=0`, `INTSTAT2 (0x42)=0`, and
+`INTSTAT3 (0x43)=0`; `INTMASK1 (0x41)=0x07`. No parity, bus-clash, or
+implementation-defined interrupt bit remained. Both slaves were `Attached`
+after the read and the moderate ALSA profile was restored. The `Alert` is
+therefore transient or already serviced before inspection, rather than a
+pending WCD interrupt. The generating event still needs tracing at the moment
+of the transition.
