@@ -70,3 +70,13 @@ reported raw zero values, while sysfs subsequently showed `Attached` or `Alert`.
 The probe was removed immediately. This is recorded as a timing/index diagnostic
 observation only; it suggests checking `SWRM_MCP_SLV_STATUS` at the qcom driver
 boundary before drawing a hardware conclusion.
+
+### Raw Qualcomm slave-status registers
+
+Read-only Qualcomm SoundWire debugfs reported `SWRM_MCP_SLV_STATUS (0x1090)` as
+`0x00` on RX master and `0x04` on TX master while sysfs reported RX `Attached`
+and TX `Alert`. The published slave state therefore does not match the raw
+master register at that instant. This may be stale enumeration state or a
+status-array/device-ID indexing mismatch between `qcom_swrm_get_device_status()`
+and `sdw_handle_slave_status()`; the mapping must be audited before hardware
+threshold changes.
