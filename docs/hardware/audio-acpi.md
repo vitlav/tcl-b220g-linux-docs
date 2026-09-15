@@ -93,3 +93,7 @@ The candidate patch is stored at
 [`patches/kernel/audio/0006-soundwire-qcom-status-from-device-1.patch`](../../patches/kernel/audio/0006-soundwire-qcom-status-from-device-1.patch).
 It has been published but not yet installed into the running kernel; validation
 requires a rebuilt kernel and reboot.
+
+The patch was checked against the actual TCL kernel checkout and now applies
+cleanly (`git apply --check`); its context was adjusted for the older loop form
+used by this branch. It remains uninstalled and unvalidated at runtime.
