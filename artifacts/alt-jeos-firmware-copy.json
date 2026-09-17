@@ -1,0 +1,26 @@
+{
+  "scope": "Files copied from the working Ubuntu image into ALT-JEOS",
+  "date": "2026-09-17",
+  "destination": "/usr/lib/firmware",
+  "source": "Ubuntu /lib/firmware on tcl-ubuntu",
+  "files": [
+    {"path":"ath10k/WCN3990/hw1.0/board.bin","bytes":26328,"sha256":"e937bf4779ea30d588c3c9dab82913cd9e7fd31faaa45bde76b9fca876c0ad3c","role":"WCN3990 board data"},
+    {"path":"ath10k/WCN3990/hw1.0/firmware-5.bin","bytes":60,"sha256":"fef6539e0127579536bc977be57a90d018b83f2931fedc3a8870fbe38d6c4127","role":"ath10k API 5 firmware"},
+    {"path":"qcom/sc7180/tcl/b220g/qcadsp7180.mbn","bytes":13463676,"sha256":"24d665684966cab76eb0ca58536cd96f9e978267f52ffef1dd300d8e3dfe2860","role":"OEM ADSP audio firmware"},
+    {"path":"qcom/sc7180/tcl/qcmpss7180_nm.mbn","bytes":5057288,"sha256":"9ea0c34b4bcd380aec638135ba0751067a46ae988d207e959d33883430c36ab3","role":"OEM MPSS/WLAN modem firmware"},
+    {"path":"qcom/sc7180/tcl/wlanmdsp.mbn","bytes":3832108,"sha256":"b3213d834d11e602c2422690edf316f8fa786ab2d1a34df60b9f4bf83801fa82","role":"OEM WLAN DSP firmware"},
+    {"path":"qcom/sc7180/tcl/qcdxkmsuc7180.mbn","bytes":14256,"sha256":"34b3a965a2cfd98495f1b2f3f06ff0254032a293a321fd32b21518525a6ac618","role":"OEM GPU microcontroller firmware"},
+    {"path":"regulatory.db","bytes":6380,"sha256":"2fb33ca0074db573e05ef7dd50bb45b63c0ff98b7e852e1105ebad536fae8e6b","role":"wireless regulatory database"},
+    {"path":"regulatory.db.p7s","bytes":1085,"sha256":"c941c08f51c93e46722293b85631604c3740d86c3de0c75f79aef50d2e919179","role":"regulatory database signature"}
+  ],
+  "board_variants": [
+    "qcom/sc7180/tcl/bdwlan.b36", "qcom/sc7180/tcl/bdwlan.b37",
+    "qcom/sc7180/tcl/bdwlan.b46", "qcom/sc7180/tcl/bdwlan.b47",
+    "qcom/sc7180/tcl/bdwlan.b48", "qcom/sc7180/tcl/bdwlan.b59",
+    "qcom/sc7180/tcl/bdwlan.b5b", "qcom/sc7180/tcl/bdwlan.b67",
+    "qcom/sc7180/tcl/bdwlan.b71", "qcom/sc7180/tcl/bdwlan.bin",
+    "qcom/sc7180/tcl/bdwlanu.b59", "qcom/sc7180/tcl/bdwlanu.b5b",
+    "qcom/sc7180/tcl/bdwlanu.b67", "qcom/sc7180/tcl/bdwlanu.bin"
+  ],
+  "status": "All listed files and board variants were copied and read back from ALT-JEOS; hardware retest is pending."
+}

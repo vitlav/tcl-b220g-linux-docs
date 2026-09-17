@@ -67,6 +67,21 @@
 
 [Проверены также все 488 firmware-файлов трёх Qualcomm DEB](../research/firmware-upstream/ubuntu-payload-coverage.md): точных аналогов OEM DSP/MPSS/secure GPU под другими именами не найдено. Вложенные board payload проверены отдельно.
 
+## Что копируется из Ubuntu в ALT-JEOS
+
+17 сентября 2026 года полный доступный в рабочем Ubuntu образе комплект был скопирован в `/usr/lib/firmware` установленной ALT-JEOS. Подробный манифест с размерами и SHA256 находится в [alt-jeos-firmware-copy.json](../artifacts/alt-jeos-firmware-copy.json). Повторная проверка чтением подтвердила OEM MPSS `qcmpss7180_nm.mbn`, ADSP `qcadsp7180.mbn`, WLAN DSP `wlanmdsp.mbn`, GPU `qcdxkmsuc7180.mbn`, два ath10k-файла, `regulatory.db` с подписью и 14 TCL board-вариантов.
+
+| Источник | Есть в стандартном `linux-firmware` / Ubuntu Qualcomm DEB | Нужен отдельный OEM-файл для TCL B220G | Состояние ALT-JEOS |
+|---|---|---|---|
+| WCN3990 ath10k | `ath10k/WCN3990/hw1.0/firmware-5.bin`, generic board payload; API 5 подтверждён | TCL board data (`bdwlan*`, `bdwlanu*`) для калибровки платы | Скопировано |
+| Regulatory | `regulatory.db`, `regulatory.db.p7s` поставляются пакетами wireless-regdb/linux-firmware | Нет | Скопировано; ранее отсутствовало |
+| WLAN/MPSS | Точного `qcom/sc7180/tcl/qcmpss7180_nm.mbn` в проверенных DEB нет | `qcmpss7180_nm.mbn` | Скопировано; требуется для `remoteproc0` |
+| WLAN DSP | Точного `qcom/sc7180/tcl/wlanmdsp.mbn` в проверенных DEB нет | `wlanmdsp.mbn` | Скопировано; OEM версия отличается от upstream |
+| ADSP audio | Точного TCL пути нет | `qcom/sc7180/tcl/b220g/qcadsp7180.mbn` | Скопировано |
+| GPU | Generic A630 SQE/GMU есть, TCL secure image не найден | `qcdxkmsuc7180.mbn` | Скопировано |
+
+Стандартный пакет покрывает общие ath10k/API, regulatory и часть Qualcomm GPU/Venus firmware. Он не заменяет OEM MPSS/ADSP/WLAN DSP и board data этой модели: точные TCL имена отсутствуют в проверенном Ubuntu DEB. Бинарники OEM в репозиторий не включаются; опубликованы только идентификаторы, контрольные суммы и назначение. После следующей загрузки ALT нужно отдельно проверить, что `remoteproc0` находит MPSS, а `cfg80211` принимает regulatory database.
+
 ## Проверка подготовленного каталога
 
 [Инструмент сверки firmware](../tools/README.md) проверяет 25 известных путей по манифестам, включая сжатые файлы, и отдельно сообщает о дополнительных board-вариантах. Он ничего не устанавливает; успешная сверка поднабора не заменяет проверку загрузки оборудования.
