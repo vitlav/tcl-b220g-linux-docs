@@ -23,7 +23,7 @@ DefinitionBlock ("", "SSDT", 2, "TCLLAB", "TCLHW001", 1)
             Package ()
             {
                 Package () { "qcom,msa-fixed-perm", One },
-                Package () { "mac-address", Buffer () { @WLAN_MAC_BYTES@ } }
+                Package () { "mac-address", Package () { @WLAN_MAC_BYTES@ } }
             }
         })
     }

@@ -93,6 +93,12 @@ def render_asl(template: str, mac: bytes) -> str:
     marker = "@WLAN_MAC_BYTES@"
     if template.count(marker) != 1:
         raise DppError(f"ASL template must contain exactly one {marker}")
+    package = f"Package () {{ {marker} }}"
+    if package not in template:
+        raise DppError(
+            "WLAN MAC must be an ACPI Package of integers; "
+            "a Buffer invalidates the standard _DSD property package in Linux"
+        )
     values = ", ".join(f"0x{byte:02X}" for byte in mac)
     return template.replace(marker, values)
 
