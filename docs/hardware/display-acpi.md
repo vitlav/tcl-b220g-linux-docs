@@ -1,6 +1,10 @@
 # Дисплей через ACPI: ресурсы и зависимости Linux
 
-**Текущее подтверждение:** Ubuntu 26.04.1 LTS на ACPI с ядром `7.2.4-tcl-acpi-display1+`, нативный framebuffer `msm-kmsdrmfb`, Weston/Wayland и Adreno. Исходники включены в [ACPI-серию](../../patches/kernel/acpi/README.md); полная пересборка её текущего снимка ещё предстоит. Аппаратное декодирование видео оценивается отдельно от GPU-вывода.
+**Текущее подтверждение:** Ubuntu 26.04.1 LTS и ALT Linux на ACPI с ядром `7.2.4-tcl-acpi-display1+`, нативный framebuffer `msm-kmsdrmfb`, Weston/Wayland и Adreno. Исходники включены в [ACPI-серию](../../patches/kernel/acpi/README.md). Аппаратное декодирование видео оценивается отдельно от GPU-вывода.
+
+Полноэкранный OpenGL-тест `glmark2-wayland` на ALT Linux определил freedreno FD618, OpenGL 4.6 и завершился со скоростью 363 FPS и итоговым score 362 при 1920×1080. Ошибок GPU в журнале ядра и перезапуска Weston во время этого теста не было.
+
+Turnip определяет Adreno 618 и Vulkan 1.3.354, но Wayland swapchain пока не работает: передаётся неподдержанный KMS-формат `XB4H` с modifier `0x500000000000001`. Weston при этой ошибке попадает в assertion выбора overlay plane и перезапускается. Поэтому Vulkan device/driver подтверждены, а Vulkan WSI/scanout — ещё нет.
 
 ## Вывод изображения
 

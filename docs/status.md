@@ -11,7 +11,7 @@
 | [Графика](hardware/display.md) | MSM/DPU + DSI + LT8911EXB handoff, Adreno/Wayland проверены | Ранний KMS проверен; остаются cold-start моста, подсветка и suspend/resume |
 | [Видео](hardware/video.md) | H.264 через Venus проверен; software decode — визуальный контроль | Ошибки unrestricted decode, артефакты/остановка mpv; прочие кодеки не испытаны |
 | [Звук](hardware/audio.md) | WCD9385 variant=5; слышимый DT- и ACPI-playback, ACPI film audio | Штатное power/profile/PA управление, устранение треска при stop, проверка после cold boot |
-| [Камера](hardware/camera.md) | UVC 13d3:784b, живое изображение MJPEG 720p подтверждено пользователем | Измеренные FPS, полный набор режимов, controls и suspend/resume |
+| [Камера](hardware/camera.md) | ALT/ACPI: UVC 13d3:784b, MJPEG 720p30 и полноэкранное живое изображение подтверждены; матрица MJPEG/YUYV и controls считаны | Длительный тест, настройка controls, браузер и suspend/resume |
 | [Микрофон](hardware/audio.md) | ACPI capture PCM работает через временный MultiMedia2 FE | Реальный акустический сигнал и физическая разводка не подтверждены |
 | [EC/батарея](hardware/ec.md) | Чтение состояния, подтверждена зарядка | Стандартный драйвер power_supply/lid |
 | [SAR AW96105](hardware/sensors.md) | Временный IIO-тест дал меняющиеся raw-значения | Питание vcc, постоянный DT/драйвер, назначение электродов |
