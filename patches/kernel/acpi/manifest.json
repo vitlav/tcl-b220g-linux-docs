@@ -1,19 +1,21 @@
 {
   "base_tag": "v7.2.4",
   "base_commit": "5015d0d945b3d3f2b038d2667880d5762f7d9437",
-  "head": "f8c7009045bb8912ee9d160feafa0136fe9da095",
-  "branch": "tcl/acpi-7.2-attributed",
-  "source_tree": "187314ae5214642ccf465aef87b5115c3ae205fb",
-  "patch_count": 37,
+  "head": "a3c9a4a2061280b2915a455fcc1f376aafc270a7",
+  "branch": "tcl/acpi-7.2-attributed-verified",
+  "source_tree": "5113771318d4180c5e04d09a080985ba662f03db",
+  "patch_count": 40,
   "patch_replay": "passed: sequential application to clean base index matches source tree",
-  "full_build": "pending for this exact committed snapshot",
+  "full_build": "passed: make ARCH=arm64 CROSS_COMPILE='ccache aarch64-linux-gnu-' -j32 Image modules",
   "hardware_tested": false,
   "runtime_context": {
     "kernel_release": "7.2.4-tcl-acpi-display1+",
-    "os": "Ubuntu 26.04.1 LTS ARM64",
+    "os": "ALT Linux ARM64; Ubuntu 26.04.1 LTS was tested earlier",
+    "boot_id": "156d3736-65be-48c5-ace8-ae2d4528fe83",
+    "image_sha256": "2ffd7b51d431b9a84c94cc0d651132bb4d5440ed4e33d09a2dc014dc4ac483d9",
     "display": "msm-kmsdrmfb",
     "audio_card": "TCL B220G ACPI Audio",
-    "qualification": "Observed working development system; exact committed-source to installed-binary identity is not yet established."
+    "qualification": "Patches 38-40 were built in the active development tree and hardware-tested: GPU SMMU warning removed; I2C3, BAT0 and ADP1 bind automatically. Exact full-series binary identity remains pending."
   },
   "config_sha256": "2ed1a854ebd8630a55be8a6c5b2896223f10700c10638c9d4e4cee4e4d32eb7d",
   "patches": [
@@ -164,6 +166,24 @@
     {
       "file": "patches/0037-arm64-record-TCL-ACPI-diagnostic-and-display-configu.patch",
       "sha256": "6b1c8e310d6e1e7378854147a100b2a1e640c0097f474ad9ad12c5210dc25252"
+    },
+    {
+      "file": "patches/0038-soc-qcom-avoid-late-PM-domain-reassignment-for-TCL-G.patch",
+      "sha256": "2b888cab5def5a3a344def3587302fda52b48b5a4f6789690fb461d479a20e72"
+    },
+    {
+      "file": "patches/0039-i2c-qcom-prepare-the-TCL-ACPI-EC-bus.patch",
+      "sha256": "3e6df9ab93af252b218213c1348a5049c0ab23bba8890b275753bd7471554ed7"
+    },
+    {
+      "file": "patches/0040-ACPI-AC-defer-probe-until-GenericSerialBus-is-ready.patch",
+      "sha256": "9f0518c98eca9c3cf4d6529a8287df9de68e64b21c8c5cf7036d252dc1f3c2e1"
     }
-  ]
+  ],
+  "build_artifacts": {
+    "image_sha256": "a5fac6a1059cefc8b6634cd867a4baa72e3cdae7fad844d3cca4ae211566bcec",
+    "image_size": 35576320,
+    "module_count": 955,
+    "config_sha256": "2ed1a854ebd8630a55be8a6c5b2896223f10700c10638c9d4e4cee4e4d32eb7d"
+  }
 }

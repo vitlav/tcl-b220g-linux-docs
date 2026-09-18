@@ -1,0 +1,70 @@
+From 4fff76672d04b08ee74b50b0f30cf094b13c2726 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 18 Sep 2026 13:03:55 +0300
+Subject: [PATCH 38/40] soc: qcom: avoid late PM-domain reassignment for TCL
+ GPU SMMU
+
+The TCL GPU coordinator finds the Adreno SMMU only after the arm-smmu driver has bound. pm_genpd_add_device() then changes dev->pm_domain in violation of the driver-core lifetime rule and emits a boot WARNING.
+
+Keep the existing boot-lifetime CX and GCC bus-clock votes, verify that the expected bound SMMU is present, and leave its PM-domain ownership unchanged. This removes the invalid transition without weakening the retained-power bring-up policy.
+
+Signed-off-by: Vitaly Lipatov <lav@etersoft.ru>
+---
+ drivers/soc/qcom/tcl_acpi_gpu.c | 28 +++++++++-------------------
+ 1 file changed, 9 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/soc/qcom/tcl_acpi_gpu.c b/drivers/soc/qcom/tcl_acpi_gpu.c
+index f635863b8..3cc2554a3 100644
+--- a/drivers/soc/qcom/tcl_acpi_gpu.c
++++ b/drivers/soc/qcom/tcl_acpi_gpu.c
+@@ -166,30 +166,20 @@ static int match_adreno_smmu(struct device *dev, const void *unused)
+ 	return res && res->start == 0x5040000 && resource_size(res) == 0x10000;
+ }
+ 
+-static int attach_smmu_domain(struct generic_pm_domain *domain)
++static int verify_adreno_smmu(void)
+ {
+ 	struct device *smmu = bus_find_device(&platform_bus_type, NULL, NULL,
+ 					    match_adreno_smmu);
+-	int ret;
+ 
+ 	if (!smmu)
+ 		return -EPROBE_DEFER;
+-	if (smmu->pm_domain || pm_runtime_enabled(smmu)) {
+-		put_device(smmu);
+-		return -EBUSY;
+-	}
+-	ret = pm_genpd_add_device(domain, smmu);
+-	if (ret) {
+-		put_device(smmu);
+-		return ret;
+-	}
+-	/* CX and the bus clocks are already held on by the coordinator. */
+-	ret = pm_runtime_set_active(smmu);
+-	if (ret)
+-		return ret; /* Retain the attached device, as with other staged failures. */
+-	pm_runtime_enable(smmu);
+-	/* Keep the IORT supplier active throughout this initial bring-up. */
+-	pm_runtime_get_noresume(smmu);
++	/* match_adreno_smmu() deliberately selects an already-bound IORT device.
++	 * Changing its PM domain now violates the driver core lifetime rules and
++	 * triggers dev_pm_domain_set()'s bound-device warning.  The coordinator
++	 * already holds CX and gcc_gpu_memnoc_gfx_clk for the entire boot, so only
++	 * verify that the expected SMMU has completed probe here.
++	 */
++	put_device(smmu);
+ 	return 0;
+ }
+ 
+@@ -225,7 +215,7 @@ static int prepare_domains(void)
+ 	ret = clk_prepare_enable(smmu_bus);
+ 	if (ret)
+ 		return ret;
+-	return attach_smmu_domain(pd->domains[CX_GDSC]);
++	return verify_adreno_smmu();
+ }
+ 
+ static int gmu_dma_probe(struct platform_device *pdev)
+-- 
+2.50.1
+

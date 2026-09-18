@@ -1,6 +1,9 @@
 Base: 5015d0d945b3d3f2b038d2667880d5762f7d9437
-Patches: 37
-Method: sequential git apply --cached --check and git apply --cached in a fresh index
-Replayed and expected tree: 187314ae5214642ccf465aef87b5115c3ae205fb
+Patches: 40
+Method: sequential git apply --cached in a fresh index
+Replayed and expected tree: 5113771318d4180c5e04d09a080985ba662f03db
 Result: PASS
-Attribution split preserves source contents. No new compilation or hardware validation.
+Patches 38-40 were also built together in the active development tree and tested on hardware.
+Clean full build: PASS (Image and 955 modules).
+Image SHA256: a5fac6a1059cefc8b6634cd867a4baa72e3cdae7fad844d3cca4ae211566bcec
+Hardware boot of this exact reduced published snapshot remains pending.

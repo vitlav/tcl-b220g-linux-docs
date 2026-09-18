@@ -35,3 +35,6 @@ ff908987cd63d08fbe247d01e4126e79715471e6 usb: dwc3: add the guarded TCL ACPI hos
 772aa3e9d56c2665e744268206ded975650ce5c5 soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers
 b4900668dec9369cc4fae62bd32152668f2afabb soc: qcom: wire TCL ACPI display and GPU with ordered firmware handoff
 f8c7009045bb8912ee9d160feafa0136fe9da095 arm64: record TCL ACPI diagnostic and display configurations
+4fff76672d04b08ee74b50b0f30cf094b13c2726 soc: qcom: avoid late PM-domain reassignment for TCL GPU SMMU
+a9951c7c919fb364a9738535840477a176805a83 i2c: qcom: prepare the TCL ACPI EC bus
+a3c9a4a2061280b2915a455fcc1f376aafc270a7 ACPI: AC: defer probe until GenericSerialBus is ready

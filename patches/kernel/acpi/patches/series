@@ -35,3 +35,6 @@
 0035-soc-qcom-wire-TCL-ACPI-SMEM-modem-and-WLAN-suppliers.patch
 0036-soc-qcom-wire-TCL-ACPI-display-and-GPU-with-ordered-.patch
 0037-arm64-record-TCL-ACPI-diagnostic-and-display-configu.patch
+0038-soc-qcom-avoid-late-PM-domain-reassignment-for-TCL-G.patch
+0039-i2c-qcom-prepare-the-TCL-ACPI-EC-bus.patch
+0040-ACPI-AC-defer-probe-until-GenericSerialBus-is-ready.patch

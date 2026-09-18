@@ -41,3 +41,6 @@
 | 35 | [soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers](0035-soc-qcom-wire-TCL-ACPI-SMEM-modem-and-WLAN-suppliers.patch) |
 | 36 | [soc: qcom: wire TCL ACPI display and GPU with ordered firmware handoff](0036-soc-qcom-wire-TCL-ACPI-display-and-GPU-with-ordered-.patch) |
 | 37 | [arm64: record TCL ACPI diagnostic and display configurations](0037-arm64-record-TCL-ACPI-diagnostic-and-display-configu.patch) |
+| 38 | [soc: qcom: avoid late PM-domain reassignment for TCL GPU SMMU](0038-soc-qcom-avoid-late-PM-domain-reassignment-for-TCL-G.patch) |
+| 39 | [i2c: qcom: prepare the TCL ACPI EC bus](0039-i2c-qcom-prepare-the-TCL-ACPI-EC-bus.patch) |
+| 40 | [ACPI: AC: defer probe until GenericSerialBus is ready](0040-ACPI-AC-defer-probe-until-GenericSerialBus-is-ready.patch) |

@@ -1,0 +1,30 @@
+From a3c9a4a2061280b2915a455fcc1f376aafc270a7 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 18 Sep 2026 20:52:39 +0300
+Subject: [PATCH 40/40] ACPI: AC: defer probe until GenericSerialBus is ready
+
+An AC adapter backed by a GenericSerialBus operation region can be probed before the corresponding I2C adapter has installed its address-space handler. In that case evaluating _PSR fails with AE_NOT_EXIST and the platform device remains permanently unbound.
+
+Return -EPROBE_DEFER for this specific ACPICA status so the driver core retries the adapter after the serial-bus controller binds. Keep the existing -ENODEV result for permanent firmware errors.
+
+Signed-off-by: Vitaly Lipatov <lav@etersoft.ru>
+---
+ drivers/acpi/ac.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index f19d6dd43..f07ac866b 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -70,6 +70,8 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
+ 				"Error reading AC Adapter state: %s\n",
+ 				acpi_format_exception(status));
+ 		ac->state = ACPI_AC_STATUS_UNKNOWN;
++		if (status == AE_NOT_EXIST)
++			return -EPROBE_DEFER;
+ 		return -ENODEV;
+ 	}
+ 
+-- 
+2.50.1
+
