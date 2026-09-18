@@ -4,6 +4,16 @@
 
 Полноэкранный OpenGL-тест `glmark2-wayland` на ALT Linux определил freedreno FD618, OpenGL 4.6 и завершился со скоростью 363 FPS и итоговым score 362 при 1920×1080. Ошибок GPU в журнале ядра и перезапуска Weston во время этого теста не было.
 
+Полный журнал загрузки выявил две ошибки порядка и владения ресурсами. Первая
+native modeset выдаёт `disp_cc_mdss_pclk0_clk_src: rcg didn't update its
+configuration`, после чего framebuffer и Weston всё же работают. Это
+неустранённая проблема firmware-to-Linux clock handoff; её нельзя считать
+безвредной только по наличию изображения. Вторая трассировка возникала из-за
+попытки поздно назначить power-domain уже привязанному Adreno SMMU. Код
+исправлен: координатор сохраняет boot-lifetime CX/bus-clock votes, проверяет
+нужный bound SMMU и не меняет его `dev->pm_domain`; аппаратная проверка
+исправленной загрузки ещё не выполнена.
+
 Turnip определяет Adreno 618 и Vulkan 1.3.354, но Wayland swapchain пока не работает: передаётся неподдержанный KMS-формат `XB4H` с modifier `0x500000000000001`. Weston при этой ошибке попадает в assertion выбора overlay plane и перезапускается. Поэтому Vulkan device/driver подтверждены, а Vulkan WSI/scanout — ещё нет.
 
 ## Вывод изображения
@@ -89,12 +99,12 @@ flowchart TB
 
 | Зависимость | Требуемая реализация | Степень подтверждения ACPI |
 |---|---|---|
-| GCC → DISPCC → PHY | Явные clock aliases, поставщики и последовательность probe; late PLL parents PHY | Нативный вывод на оборудовании ещё не подтверждён |
-| Питание PHY | MDSS_GDSC должен быть доступен до чтения PLL; GPU0 не заменяет runtime-PM родителя MDSS | Требование по структуре DT и коду; аппаратная проверка ACPI впереди |
-| DPU/DSI OPP | Согласовывать частоту с CX до включения потребителя | Динамическое управление для ACPI не подтверждено |
-| ICC | Зарегистрировать таблицы пяти контроллеров, BCM voter и получить оба пути с корректными тегами | OF-only lookup сам по себе не обеспечивает ACPI; native path не проверен |
-| IORT | Выбирать входные IDs нужного DMA-движка, а не все mappings GPU0 | OEM mappings разобраны; DMA дисплея через ACPI не проверен |
-| DSI/bridge graph | Связать DPU, DSI, PHY и LT8911EXB, сохранив требования handoff | Работа подтверждена только в DT |
+| GCC → DISPCC → PHY | Явные clock aliases, поставщики и последовательность probe; late PLL parents PHY | Нативный вывод работает; первый PCLK RCG update даёт WARNING |
+| Питание PHY | MDSS_GDSC должен быть доступен до чтения PLL; GPU0 не заменяет runtime-PM родителя MDSS | Начальный запуск подтверждён, dynamic idle/suspend не проверены |
+| DPU/DSI OPP | Согласовывать частоту с CX до включения потребителя | Начальный режим работает; динамические переходы не подтверждены |
+| ICC | Зарегистрировать таблицы пяти контроллеров, BCM voter и получить оба пути с корректными тегами | Оба пути получены, boot bandwidth floor пока удерживается |
+| IORT | Выбирать входные IDs нужного DMA-движка, а не все mappings GPU0 | Display DMA и Adreno работают; suspend/rebind не проверены |
+| DSI/bridge graph | Связать DPU, DSI, PHY и LT8911EXB, сохранив требования handoff | Работает через firmware bridge handoff; cold start/recovery не подтверждены |
 
 OEM IORT для MDP содержит input IDs 0x30000 → Apps SID0x800, 0x30001 → SID0x802, 0xa0000 → SID0x801. Это сведения таблицы; они не означают успешную настройку display DMA в Linux. Не смешивать эти IDs с идентификаторами ICC endpoints. [Исходные mappings](../../research/acpi-audit/iort-mappings/mappings.json).
 

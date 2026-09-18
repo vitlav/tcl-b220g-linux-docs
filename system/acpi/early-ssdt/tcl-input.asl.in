@@ -1,0 +1,78 @@
+DefinitionBlock ("", "SSDT", 2, "TCLLAB", "TCLHW001", 1)
+{
+    External (\_SB.GIO0, DeviceObj)
+    External (\_SB.I2C3, DeviceObj)
+    External (\_SB.I2C5, DeviceObj)
+    External (\_SB.SCM0, DeviceObj)
+    External (\_SB.AMSS.QWLN, DeviceObj)
+    External (\_SB.IC11, DeviceObj)
+    External (\_SB.GPU0, DeviceObj)
+    Scope (\_SB.GPU0)
+    {
+        Name (_CCA, Zero)
+    }
+    Scope (\_SB.SCM0)
+    {
+        Name (_CCA, Zero)
+    }
+    Scope (\_SB.AMSS.QWLN)
+    {
+        Name (_DSD, Package ()
+        {
+            ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package ()
+            {
+                Package () { "qcom,msa-fixed-perm", One },
+                Package () { "mac-address", Buffer () { @WLAN_MAC_BYTES@ } }
+            }
+        })
+    }
+    Scope (\_SB.GIO0)
+    {
+        Name (_DSD, Package ()
+        {
+            ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package ()
+            {
+                Package () { "qcom,tcl-acpi-input", One },
+                Package () { "gpios", Package () { 15, 16, 31, 32, 33, 86, 87, 94, 115, 116, 117 } }
+            }
+        })
+    }
+    Scope (\_SB.I2C3)
+    {
+        Name (_DSD, Package ()
+        {
+            ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package ()
+            {
+                Package () { "qcom,tcl-acpi-ec", One },
+                Package () { "clock-frequency", 400000 }
+            }
+        })
+    }
+    Scope (\_SB.I2C5)
+    {
+        Name (_DSD, Package ()
+        {
+            ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package ()
+            {
+                Package () { "qcom,tcl-acpi-input", One },
+                Package () { "clock-frequency", 400000 }
+            }
+        })
+    }
+    Scope (\_SB.IC11)
+    {
+        Name (_DSD, Package ()
+        {
+            ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package ()
+            {
+                Package () { "qcom,tcl-acpi-display", One },
+                Package () { "clock-frequency", 100000 }
+            }
+        })
+    }
+}

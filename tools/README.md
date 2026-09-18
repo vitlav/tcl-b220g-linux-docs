@@ -1,5 +1,9 @@
 # Проверка набора firmware
 
+`qcom_dpp.py` читает заводские provisioning-данные Qualcomm RWFS и может
+собрать раннюю ACPI SSDT с индивидуальным WLAN MAC. Применение описано в
+[разделе ACPI](../system/acpi/early-ssdt/README.md).
+
 `check-firmware.py` только читает указанный каталог и сравнивает файлы с архивным и установленным поднаборами из `artifacts/firmware-*-manifest.json`. Два манифеста дают 25 уникальных путей: 11 основных эталонов и 14 вариантов OEM board data. Полный MPSS-кандидат без пути установки исключён.
 
 ```sh
