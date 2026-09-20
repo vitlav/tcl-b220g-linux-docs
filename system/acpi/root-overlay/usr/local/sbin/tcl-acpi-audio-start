@@ -31,23 +31,20 @@ fi
 
 # The q6afe clock aliases used by the LPI provider become available only after
 # ADSP has registered its APR services. The pinctrl driver was loaded by the
-# prepare unit; register the board provider now and verify the actual pinmux.
+# prepare unit; register the board provider now.  Do not use a previous dmesg
+# line as a readiness interface: the ring buffer can discard it on a long boot.
+# The bound provider and the five bound consumers below are the live checks.
 modprobe pinctrl_sc7280_lpass_lpi
 modprobe tcl_lpi_provider
 lpi_provider=/sys/bus/platform/devices/tcl-lpi-provider.0
 for attempt in $(seq 1 30); do
-	if [ -L "$lpi_provider/driver" ] &&
-	   dmesg | grep -Fq 'TCL ACPI SoundWire LPI pinmux configured'; then
+	if [ -L "$lpi_provider/driver" ]; then
 		break
 	fi
 	sleep 1
 done
 [ -L "$lpi_provider/driver" ] || {
 	echo "TCL ACPI SoundWire LPI provider did not bind" >&2
-	exit 1
-}
-dmesg | grep -Fq 'TCL ACPI SoundWire LPI pinmux configured' || {
-	echo "TCL ACPI SoundWire LPI pinmux was not configured" >&2
 	exit 1
 }
 
