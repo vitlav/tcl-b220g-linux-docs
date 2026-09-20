@@ -6,7 +6,7 @@
   "source_tree": "421527cafce1057aab76eba45bd499987af37b32",
   "patch_count": 42,
   "patch_replay": "passed: all 42 patches apply sequentially to the clean base; resulting tree 421527cafce1057aab76eba45bd499987af37b32",
-  "full_build": "passed: make ARCH=arm64 CROSS_COMPILE='ccache aarch64-linux-gnu-' -j32 W=1 Image modules; exact 42-patch tree, standard3 config",
+  "full_build": "passed for this exact tree, but hardware boot stopped during early ACPI initialization; the series is not yet equivalent to the working standard3 source tree",
   "hardware_tested": false,
   "runtime_context": {
     "kernel_release": "7.2.4-tcl-acpi-standard3+",
@@ -15,7 +15,7 @@
     "image_sha256": "2ffd7b51d431b9a84c94cc0d651132bb4d5440ed4e33d09a2dc014dc4ac483d9",
     "display": "msm-kmsdrmfb",
     "audio_card": "TCL B220G ACPI Audio",
-    "qualification": "Patches 41-42 were built with W=1 and tested on hardware: VA/RX/TX and SoundWire fully unloaded and reprobed without PM, Oops, trace or refcount warnings; both codecs reattached and audible stereo playback was confirmed. Q6AFE devote opcode 0x100f6 remains unresolved. The exact 42-patch source tree now has a complete standard3 Image/modules build; booting that complete Image remains pending."
+    "qualification": "Patches 41-42 were built with W=1 and tested on hardware in the working standard3 tree: VA/RX/TX and SoundWire fully unloaded and reprobed without PM, Oops, trace or refcount warnings; both codecs reattached and audible stereo playback was confirmed. Q6AFE devote opcode 0x100f6 remains unresolved. A complete build of this manifest tree succeeded, but its separate series42 Image stopped during early ACPI initialization. Direct comparison found 47 source files differing from the working standard3 tree, so this manifest does not yet describe a standalone bootable source series."
   },
   "config_sha256": "4d84de41cf6c1d1fe0bf965dc5b289391af0940e6213e5d6401f1f6e3d15e3f2",
   "patches": [
