@@ -8,10 +8,32 @@ static const struct software_node *glink_node, *apr_node, *q6afe_node;
 static const struct software_node *rx_master_node, *tx_master_node;
 static struct platform_device *codec;
 static struct property_entry codec_props[4];
-static struct software_node codec_node = {
-	.name = "tcl-acpi-wcd9385-test",
-	.properties = codec_props,
-};
+
+static void tcl_acpi_wcd_put_lookup_nodes(void)
+{
+	if (tx_node)
+		fwnode_handle_put(software_node_fwnode(tx_node));
+	if (rx_node)
+		fwnode_handle_put(software_node_fwnode(rx_node));
+	if (tx_master_node)
+		fwnode_handle_put(software_node_fwnode(tx_master_node));
+	if (rx_master_node)
+		fwnode_handle_put(software_node_fwnode(rx_master_node));
+	if (q6afe_node)
+		fwnode_handle_put(software_node_fwnode(q6afe_node));
+	if (apr_node)
+		fwnode_handle_put(software_node_fwnode(apr_node));
+	if (glink_node)
+		fwnode_handle_put(software_node_fwnode(glink_node));
+
+	rx_node = NULL;
+	tx_node = NULL;
+	rx_master_node = NULL;
+	tx_master_node = NULL;
+	q6afe_node = NULL;
+	apr_node = NULL;
+	glink_node = NULL;
+}
 
 static int __init tcl_acpi_wcd_init(void)
 {
@@ -40,40 +62,24 @@ static int __init tcl_acpi_wcd_init(void)
 	codec_props[1] = PROPERTY_ENTRY_REF("qcom,rx-device", rx_node);
 	codec_props[2] = PROPERTY_ENTRY_REF("qcom,tx-device", tx_node);
 	codec_props[3] = (struct property_entry) { };
-	ret = software_node_register(&codec_node);
-	if (ret)
-		goto no_nodes;
-	info.fwnode = software_node_fwnode(&codec_node);
+	/*
+	 * Let the platform device own the aggregate software node.  The
+	 * referenced RX/TX nodes are owned by tcl_acpi_audio; properties only
+	 * need their stable software_node identities, not our lookup references.
+	 */
+	info.properties = codec_props;
 	codec = platform_device_register_full(&info);
 	if (IS_ERR(codec)) {
 		ret = PTR_ERR(codec);
 		codec = NULL;
-		software_node_unregister(&codec_node);
 		goto no_nodes;
 	}
-	fwnode_handle_put(software_node_fwnode(glink_node));
-	fwnode_handle_put(software_node_fwnode(apr_node));
-	fwnode_handle_put(software_node_fwnode(q6afe_node));
-	fwnode_handle_put(software_node_fwnode(rx_master_node));
-	fwnode_handle_put(software_node_fwnode(tx_master_node));
+	tcl_acpi_wcd_put_lookup_nodes();
 	pr_info("TCL ACPI WCD9385 aggregate test device registered\n");
 	return 0;
 
 no_nodes:
-	if (tx_node)
-		fwnode_handle_put(software_node_fwnode(tx_node));
-	if (rx_node)
-		fwnode_handle_put(software_node_fwnode(rx_node));
-	if (tx_master_node)
-		fwnode_handle_put(software_node_fwnode(tx_master_node));
-	if (rx_master_node)
-		fwnode_handle_put(software_node_fwnode(rx_master_node));
-	if (q6afe_node)
-		fwnode_handle_put(software_node_fwnode(q6afe_node));
-	if (apr_node)
-		fwnode_handle_put(software_node_fwnode(apr_node));
-	if (glink_node)
-		fwnode_handle_put(software_node_fwnode(glink_node));
+	tcl_acpi_wcd_put_lookup_nodes();
 	return ret ?: -ENODEV;
 }
 
@@ -81,9 +87,6 @@ static void __exit tcl_acpi_wcd_exit(void)
 {
 	if (codec)
 		platform_device_unregister(codec);
-	software_node_unregister(&codec_node);
-	fwnode_handle_put(software_node_fwnode(tx_node));
-	fwnode_handle_put(software_node_fwnode(rx_node));
 }
 
 module_init(tcl_acpi_wcd_init);
