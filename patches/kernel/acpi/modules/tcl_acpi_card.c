@@ -2,6 +2,7 @@
 #include <dt-bindings/sound/qcom,q6afe.h>
 #include <dt-bindings/sound/qcom,q6dsp-lpass-ports.h>
 #include <linux/delay.h>
+#include <linux/bitmap.h>
 #include <linux/gpio/consumer.h>
 #include <linux/gpio/machine.h>
 #include <linux/module.h>
@@ -69,8 +70,8 @@ static int tcl_speaker_pa_event(struct snd_soc_dapm_widget *widget,
 {
 	struct snd_soc_card *card = snd_soc_dapm_to_card(widget->dapm);
 	struct tcl_card_data *data = snd_soc_card_get_drvdata(card);
+	DECLARE_BITMAP(values, 2);
 	int value, ret;
-	unsigned int i;
 
 	if (event == SND_SOC_DAPM_POST_PMU)
 		value = 1;
@@ -82,11 +83,13 @@ static int tcl_speaker_pa_event(struct snd_soc_dapm_widget *widget,
 	if (!data->speaker_pa || data->speaker_pa->ndescs != 2)
 		return -ENODEV;
 
-	for (i = 0; i < data->speaker_pa->ndescs; i++) {
-		ret = gpiod_set_value_cansleep(data->speaker_pa->desc[i], value);
-		if (ret)
-			return ret;
-	}
+	if (value)
+		bitmap_fill(values, data->speaker_pa->ndescs);
+	else
+		bitmap_zero(values, data->speaker_pa->ndescs);
+	ret = gpiod_multi_set_value_cansleep(data->speaker_pa, values);
+	if (ret)
+		return ret;
 	dev_info(card->dev, "TCL_DAPM_PA GPIO46/47=%s event=%x\n",
 		 value ? "high" : "low", event);
 	usleep_range(5000, 6000);
@@ -302,4 +305,4 @@ static void __exit tcl_card_exit(void)
 module_init(tcl_card_init);
 module_exit(tcl_card_exit);
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("TCL B220G ACPI WCD9385 playback card with DAPM-controlled speaker PA");
+MODULE_DESCRIPTION("TCL B220G ACPI WCD9385 audio card with DAPM-controlled speaker PA");
