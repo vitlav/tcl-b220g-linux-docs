@@ -13,6 +13,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/property.h>
 #include <dt-bindings/power/qcom-rpmpd.h>
+#include <dt-bindings/sound/qcom,q6asm.h>
 
 static struct acpi_device *adsp, *glnk;
 static struct device *pd, *cc, *apcs, *qmp;
@@ -148,7 +149,7 @@ static const struct software_node asm_dai_node = {
 };
 static const struct property_entry asm_pcm_props[] = {
 	PROPERTY_ENTRY_U32("reg", 0),
-	PROPERTY_ENTRY_U32("direction", 2), { }
+	PROPERTY_ENTRY_U32("direction", Q6ASM_DAI_TX_RX), { }
 };
 static const struct software_node asm_pcm_node = {
 	.name = "dai-0", .parent = &asm_dai_node, .properties = asm_pcm_props,
