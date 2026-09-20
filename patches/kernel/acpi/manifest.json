@@ -6,7 +6,7 @@
   "source_tree": "421527cafce1057aab76eba45bd499987af37b32",
   "patch_count": 42,
   "patch_replay": "passed: all 42 patches apply sequentially to the clean base; resulting tree 421527cafce1057aab76eba45bd499987af37b32",
-  "full_build": "patches 1-40: full Image/modules build passed; patches 41-42: ARM64 W=1 LPASS macro module build passed with exact 7.2.4-tcl-acpi-standard3+ vermagic",
+  "full_build": "passed: make ARCH=arm64 CROSS_COMPILE='ccache aarch64-linux-gnu-' -j32 W=1 Image modules; exact 42-patch tree, standard3 config",
   "hardware_tested": false,
   "runtime_context": {
     "kernel_release": "7.2.4-tcl-acpi-standard3+",
@@ -15,9 +15,9 @@
     "image_sha256": "2ffd7b51d431b9a84c94cc0d651132bb4d5440ed4e33d09a2dc014dc4ac483d9",
     "display": "msm-kmsdrmfb",
     "audio_card": "TCL B220G ACPI Audio",
-    "qualification": "Patches 41-42 were built with W=1 and tested on hardware: VA/RX/TX and SoundWire fully unloaded and reprobed without PM, Oops, trace or refcount warnings; both codecs reattached and audible stereo playback was confirmed. Q6AFE devote opcode 0x100f6 remains unresolved. Exact full-series binary identity remains pending."
+    "qualification": "Patches 41-42 were built with W=1 and tested on hardware: VA/RX/TX and SoundWire fully unloaded and reprobed without PM, Oops, trace or refcount warnings; both codecs reattached and audible stereo playback was confirmed. Q6AFE devote opcode 0x100f6 remains unresolved. The exact 42-patch source tree now has a complete standard3 Image/modules build; booting that complete Image remains pending."
   },
-  "config_sha256": "2ed1a854ebd8630a55be8a6c5b2896223f10700c10638c9d4e4cee4e4d32eb7d",
+  "config_sha256": "4d84de41cf6c1d1fe0bf965dc5b289391af0940e6213e5d6401f1f6e3d15e3f2",
   "patches": [
     {
       "file": "patches/0001-ACPI-omit-PCI-default-address-space-when-PCI-is-disa.patch",
@@ -189,9 +189,9 @@
     }
   ],
   "build_artifacts": {
-    "image_sha256": "a5fac6a1059cefc8b6634cd867a4baa72e3cdae7fad844d3cca4ae211566bcec",
-    "image_size": 35576320,
-    "module_count": 955,
-    "config_sha256": "2ed1a854ebd8630a55be8a6c5b2896223f10700c10638c9d4e4cee4e4d32eb7d"
+    "image_sha256": "b7daaf79ed7672a74d93efc5ab2b8e64e2b95deb220afc87473a2c5583d74394",
+    "image_size": 35928576,
+    "module_count": 956,
+    "config_sha256": "05dabf25fb6e0bd88539c0cfedf40d2f53f4bbcc5fb3cfd592b1850fd259fe9e"
   }
 }
