@@ -44,3 +44,5 @@
 | 38 | [soc: qcom: avoid late PM-domain reassignment for TCL GPU SMMU](0038-soc-qcom-avoid-late-PM-domain-reassignment-for-TCL-G.patch) |
 | 39 | [i2c: qcom: prepare the TCL ACPI EC bus](0039-i2c-qcom-prepare-the-TCL-ACPI-EC-bus.patch) |
 | 40 | [ACPI: AC: defer probe until GenericSerialBus is ready](0040-ACPI-AC-defer-probe-until-GenericSerialBus-is-ready.patch) |
+| 41 | [ASoC: lpass: balance runtime PM during driver removal](0041-ASoC-lpass-balance-runtime-PM-during-driver-removal.patch) |
+| 42 | [ASoC: lpass-va: avoid self-reference through fsgen clock](0042-ASoC-lpass-va-avoid-self-reference-through-fsgen-clo.patch) |

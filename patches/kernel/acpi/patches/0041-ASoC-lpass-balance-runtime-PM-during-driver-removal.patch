@@ -1,0 +1,149 @@
+From ab63d6c99219ada851b88fd9c367dd3963f40f60 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Sun, 20 Sep 2026 19:57:32 +0300
+Subject: [PATCH 1/2] ASoC: lpass: balance runtime PM during driver removal
+
+The RX, TX and VA macro probes enable runtime PM, but their remove callbacks leave it enabled and unconditionally disable clocks that runtime suspend may already have gated. Rebinding a suspended macro therefore reports an unbalanced pm_runtime_enable and risks mismatched clock prepare counts.
+
+Disable runtime PM before teardown, distinguish suspended and active devices before disabling runtime-managed clocks, mark the removed device suspended, and balance late probe failures after the MCLK provider is registered. This allows the three macros to be removed and reprobed from their normal suspended state without PM warnings.
+---
+ sound/soc/codecs/lpass-rx-macro.c | 21 +++++++++++++++------
+ sound/soc/codecs/lpass-tx-macro.c | 19 ++++++++++++++-----
+ sound/soc/codecs/lpass-va-macro.c | 24 +++++++++++++++++-------
+ 3 files changed, 46 insertions(+), 18 deletions(-)
+
+diff --git a/sound/soc/codecs/lpass-rx-macro.c b/sound/soc/codecs/lpass-rx-macro.c
+index a1c8ac048..3c38a9180 100644
+--- a/sound/soc/codecs/lpass-rx-macro.c
++++ b/sound/soc/codecs/lpass-rx-macro.c
+@@ -3924,8 +3924,10 @@ static int rx_macro_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(dev);
+ 
+ 	ret = rx_macro_register_mclk_output(rx);
+-	if (ret)
++	if (ret) {
++		pm_runtime_disable(dev);
+ 		goto err_clkout;
++	}
+ 
+ 	return 0;
+ 
+@@ -3945,13 +3947,20 @@ static int rx_macro_probe(struct platform_device *pdev)
+ 
+ static void rx_macro_remove(struct platform_device *pdev)
+ {
+-	struct rx_macro *rx = dev_get_drvdata(&pdev->dev);
+-
+-	clk_disable_unprepare(rx->mclk);
+-	clk_disable_unprepare(rx->npl);
+-	clk_disable_unprepare(rx->fsgen);
++	struct device *dev = &pdev->dev;
++	struct rx_macro *rx = dev_get_drvdata(dev);
++	bool suspended;
++
++	pm_runtime_disable(dev);
++	suspended = pm_runtime_status_suspended(dev);
++	if (!suspended) {
++		clk_disable_unprepare(rx->fsgen);
++		clk_disable_unprepare(rx->npl);
++		clk_disable_unprepare(rx->mclk);
++	}
+ 	clk_disable_unprepare(rx->macro);
+ 	clk_disable_unprepare(rx->dcodec);
++	pm_runtime_set_suspended(dev);
+ }
+ 
+ static const struct of_device_id rx_macro_dt_match[] = {
+diff --git a/sound/soc/codecs/lpass-tx-macro.c b/sound/soc/codecs/lpass-tx-macro.c
+index 875f9de6b..e68cc80a8 100644
+--- a/sound/soc/codecs/lpass-tx-macro.c
++++ b/sound/soc/codecs/lpass-tx-macro.c
+@@ -2377,8 +2377,10 @@ static int tx_macro_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(dev);
+ 
+ 	ret = tx_macro_register_mclk_output(tx);
+-	if (ret)
++	if (ret) {
++		pm_runtime_disable(dev);
+ 		goto err_clkout;
++	}
+ 
+ 	return 0;
+ 
+@@ -2400,13 +2402,20 @@ static int tx_macro_probe(struct platform_device *pdev)
+ 
+ static void tx_macro_remove(struct platform_device *pdev)
+ {
+-	struct tx_macro *tx = dev_get_drvdata(&pdev->dev);
++	struct device *dev = &pdev->dev;
++	struct tx_macro *tx = dev_get_drvdata(dev);
++	bool suspended;
+ 
++	pm_runtime_disable(dev);
++	suspended = pm_runtime_status_suspended(dev);
+ 	clk_disable_unprepare(tx->macro);
+ 	clk_disable_unprepare(tx->dcodec);
+-	clk_disable_unprepare(tx->mclk);
+-	clk_disable_unprepare(tx->npl);
+-	clk_disable_unprepare(tx->fsgen);
++	if (!suspended) {
++		clk_disable_unprepare(tx->fsgen);
++		clk_disable_unprepare(tx->npl);
++		clk_disable_unprepare(tx->mclk);
++	}
++	pm_runtime_set_suspended(dev);
+ 
+ 	lpass_macro_pds_exit(tx->pds);
+ }
+diff --git a/sound/soc/codecs/lpass-va-macro.c b/sound/soc/codecs/lpass-va-macro.c
+index 3e25844d8..594951eb0 100644
+--- a/sound/soc/codecs/lpass-va-macro.c
++++ b/sound/soc/codecs/lpass-va-macro.c
+@@ -1699,12 +1699,15 @@ static int va_macro_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(dev);
+ 
+ 	ret = va_macro_register_fsgen_output(va);
+-	if (ret)
++	if (ret) {
++		pm_runtime_disable(dev);
+ 		goto err_clkout;
++	}
+ 
+ 	va->fsgen = devm_clk_hw_get_clk(dev, &va->hw, "fsgen");
+ 	if (IS_ERR(va->fsgen)) {
+ 		ret = PTR_ERR(va->fsgen);
++		pm_runtime_disable(dev);
+ 		goto err_clkout;
+ 	}
+ 
+@@ -1727,14 +1730,21 @@ static int va_macro_probe(struct platform_device *pdev)
+ 
+ static void va_macro_remove(struct platform_device *pdev)
+ {
+-	struct va_macro *va = dev_get_drvdata(&pdev->dev);
++	struct device *dev = &pdev->dev;
++	struct va_macro *va = dev_get_drvdata(dev);
++	bool suspended;
+ 
+-	if (va->has_npl_clk)
+-		clk_disable_unprepare(va->npl);
++	pm_runtime_disable(dev);
++	suspended = pm_runtime_status_suspended(dev);
++	if (!suspended) {
++		if (va->has_npl_clk)
++			clk_disable_unprepare(va->npl);
+ 
+-	clk_disable_unprepare(va->mclk);
+-	clk_disable_unprepare(va->dcodec);
+-	clk_disable_unprepare(va->macro);
++		clk_disable_unprepare(va->mclk);
++		clk_disable_unprepare(va->dcodec);
++		clk_disable_unprepare(va->macro);
++	}
++	pm_runtime_set_suspended(dev);
+ 
+ 	lpass_macro_pds_exit(va->pds);
+ }
+-- 
+2.50.1
+

@@ -38,3 +38,5 @@ f8c7009045bb8912ee9d160feafa0136fe9da095 arm64: record TCL ACPI diagnostic and d
 4fff76672d04b08ee74b50b0f30cf094b13c2726 soc: qcom: avoid late PM-domain reassignment for TCL GPU SMMU
 a9951c7c919fb364a9738535840477a176805a83 i2c: qcom: prepare the TCL ACPI EC bus
 a3c9a4a2061280b2915a455fcc1f376aafc270a7 ACPI: AC: defer probe until GenericSerialBus is ready
+ab63d6c99219ada851b88fd9c367dd3963f40f60 ASoC: lpass: balance runtime PM during driver removal
+9e958581e9553507fb5997d0a5828f528677e225 ASoC: lpass-va: avoid self-reference through fsgen clock

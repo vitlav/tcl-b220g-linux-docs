@@ -38,3 +38,5 @@
 0038-soc-qcom-avoid-late-PM-domain-reassignment-for-TCL-G.patch
 0039-i2c-qcom-prepare-the-TCL-ACPI-EC-bus.patch
 0040-ACPI-AC-defer-probe-until-GenericSerialBus-is-ready.patch
+0041-ASoC-lpass-balance-runtime-PM-during-driver-removal.patch
+0042-ASoC-lpass-va-avoid-self-reference-through-fsgen-clo.patch

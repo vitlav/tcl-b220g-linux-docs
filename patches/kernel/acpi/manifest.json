@@ -1,21 +1,21 @@
 {
   "base_tag": "v7.2.4",
   "base_commit": "5015d0d945b3d3f2b038d2667880d5762f7d9437",
-  "head": "a3c9a4a2061280b2915a455fcc1f376aafc270a7",
+  "head": "e33e4379a0a1019f3a9dd7f28fba82b97ace5f1c",
   "branch": "tcl/acpi-7.2-attributed-verified",
-  "source_tree": "5113771318d4180c5e04d09a080985ba662f03db",
-  "patch_count": 40,
-  "patch_replay": "passed: sequential application to clean base index matches source tree",
-  "full_build": "passed: make ARCH=arm64 CROSS_COMPILE='ccache aarch64-linux-gnu-' -j32 Image modules",
+  "source_tree": "421527cafce1057aab76eba45bd499987af37b32",
+  "patch_count": 42,
+  "patch_replay": "passed: all 42 patches apply sequentially to the clean base; resulting tree 421527cafce1057aab76eba45bd499987af37b32",
+  "full_build": "patches 1-40: full Image/modules build passed; patches 41-42: ARM64 W=1 LPASS macro module build passed with exact 7.2.4-tcl-acpi-standard3+ vermagic",
   "hardware_tested": false,
   "runtime_context": {
-    "kernel_release": "7.2.4-tcl-acpi-display1+",
-    "os": "ALT Linux ARM64; Ubuntu 26.04.1 LTS was tested earlier",
-    "boot_id": "156d3736-65be-48c5-ace8-ae2d4528fe83",
+    "kernel_release": "7.2.4-tcl-acpi-standard3+",
+    "os": "ALT Linux ARM64",
+    "boot_id": "9962bcc5-df95-44ab-aabb-0e314e5b5169",
     "image_sha256": "2ffd7b51d431b9a84c94cc0d651132bb4d5440ed4e33d09a2dc014dc4ac483d9",
     "display": "msm-kmsdrmfb",
     "audio_card": "TCL B220G ACPI Audio",
-    "qualification": "Patches 38-40 were built in the active development tree and hardware-tested: GPU SMMU warning removed; I2C3, BAT0 and ADP1 bind automatically. Exact full-series binary identity remains pending."
+    "qualification": "Patches 41-42 were built with W=1 and tested on hardware: VA/RX/TX and SoundWire fully unloaded and reprobed without PM, Oops, trace or refcount warnings; both codecs reattached and audible stereo playback was confirmed. Q6AFE devote opcode 0x100f6 remains unresolved. Exact full-series binary identity remains pending."
   },
   "config_sha256": "2ed1a854ebd8630a55be8a6c5b2896223f10700c10638c9d4e4cee4e4d32eb7d",
   "patches": [
@@ -161,7 +161,7 @@
     },
     {
       "file": "patches/0036-soc-qcom-wire-TCL-ACPI-display-and-GPU-with-ordered-.patch",
-      "sha256": "9aecd12fd032ce95cd1fff20d0cabece5251822d7b1e57d3f2f275ca8d981c14"
+      "sha256": "2af9f6b367b5cc040d76ccfabf04f10a802bdd5f2adc985f2d522fb9d5918ecf"
     },
     {
       "file": "patches/0037-arm64-record-TCL-ACPI-diagnostic-and-display-configu.patch",
@@ -178,6 +178,14 @@
     {
       "file": "patches/0040-ACPI-AC-defer-probe-until-GenericSerialBus-is-ready.patch",
       "sha256": "9f0518c98eca9c3cf4d6529a8287df9de68e64b21c8c5cf7036d252dc1f3c2e1"
+    },
+    {
+      "file": "patches/0041-ASoC-lpass-balance-runtime-PM-during-driver-removal.patch",
+      "sha256": "cbd67f911d49b5b0ef27f6866d2780577e535b0ec4b7600302f4dcf77064929c"
+    },
+    {
+      "file": "patches/0042-ASoC-lpass-va-avoid-self-reference-through-fsgen-clo.patch",
+      "sha256": "14f40c75fb2727f6649be1c97fc6781e34863eaa78e35353abc8ba960328c0aa"
     }
   ],
   "build_artifacts": {
