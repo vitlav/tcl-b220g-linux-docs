@@ -4,7 +4,7 @@
   "qualified_patch_commit": "46d886cb48beca4ef8dd077b2f8c5e740624634c",
   "result_tree": "55d4a4c9b30bcb75b33ea189aa97ab7a8271f33f",
   "candidate_tree": "09c317ba33ba4023cbfcf896ec1d208f09919892",
-  "status": "series contains only hardware-qualified LPI runtime PM; Q6AFE and VA candidates are retained outside series because TCL ADSP firmware rejects vote opcode 0x100f4",
+  "status": "series contains only hardware-qualified LPI runtime PM; Q6AFE and VA candidates remain outside series because early vote and late devote fail and hot-reprobe cleanup is unbalanced",
   "patches": [
     {
       "file": "0001-lpass-va-macro-disable-clocks-in-suspend.patch",
@@ -32,5 +32,5 @@
     "2637dc2cbba04da60fce3156902ba0611a4b30a8",
     "dfa7b00cc17dbb0a3767a8eee5eeb116f50267ff"
   ],
-  "q6afe_hardware_result": "VA macro requested block 3 with opcode 0x100f4. TCL ADSP returned APR_BASIC_RSP_RESULT status 0x16 (Unknown cmd), and VA probe timed out. This is not a compact successful vote reply, so patches 0002 and 0004 do not make hardware voting usable on this firmware."
+  "q6afe_hardware_result": "Early VA block-3 opcode 0x100f4 returned APR_BASIC_RSP_RESULT status 0x16 and timed out. After APR readiness RX/TX/VA were bound and playback worked, but late RX/TX removal produced two Unknown cmd 0x100f6 devote replies; VA remained in use and RX/TX reprobe logged Unbalanced pm_runtime_enable. This is not a qualified vote/devote lifecycle."
 }
