@@ -1,0 +1,29 @@
+From 1ff2b85bda64458b1dea89916de56fdae7e75d4b Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Wed, 16 Sep 2026 00:41:50 +0300
+Subject: [PATCH 45/70] ufs: platform: configure ACPI IORT before host init
+
+---
+ drivers/ufs/host/ufshcd-pltfrm.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/ufs/host/ufshcd-pltfrm.c b/drivers/ufs/host/ufshcd-pltfrm.c
+index d1eac5f93..292a33740 100644
+--- a/drivers/ufs/host/ufshcd-pltfrm.c
++++ b/drivers/ufs/host/ufshcd-pltfrm.c
+@@ -505,6 +505,15 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
+ 	int irq, err;
+ 	struct device *dev = &pdev->dev;
+ 
++	/* ACPI IORT names the B220G UFS stream with input ID 0x81030000.
++	 * Apply it at the point where the UFS host is actually initialised;
++	 * OEM platform enumeration may have run before the final driver name
++	 * and otherwise leaves this client outside the Apps SMMU domain. */
++	if (has_acpi_companion(dev)) {
++		u32 input_id = 0x81030000;
++		acpi_dma_configure_id(dev, DEV_DMA_COHERENT, &input_id);
++	}
++
+ 	mmio_base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(mmio_base))
+ 		return PTR_ERR(mmio_base);

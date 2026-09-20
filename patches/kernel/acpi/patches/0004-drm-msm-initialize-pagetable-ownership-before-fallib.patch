@@ -1,7 +1,7 @@
-From 5641cc7220c6fe127a1b38956278af814eef5204 Mon Sep 17 00:00:00 2001
+From 8e3bfed1e954e0e57027fb6ae65bac7b590d5457 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 04/37] drm/msm: initialize pagetable ownership before fallible
+Subject: [PATCH 04/70] drm/msm: initialize pagetable ownership before fallible
  allocation
 
 Pagetable allocation and cleanup may invoke TLB callbacks before
@@ -18,7 +18,7 @@ GPU recovery coverage.
  1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/msm/msm_iommu.c b/drivers/gpu/drm/msm/msm_iommu.c
-index 897e42c8d5c847031197088796aa2af890749678..b01ef287083262bc1c0ee28e805107498d74b06a 100644
+index 897e42c8d..b01ef2870 100644
 --- a/drivers/gpu/drm/msm/msm_iommu.c
 +++ b/drivers/gpu/drm/msm/msm_iommu.c
 @@ -453,7 +453,7 @@ static void msm_iommu_tlb_flush_all(void *cookie)

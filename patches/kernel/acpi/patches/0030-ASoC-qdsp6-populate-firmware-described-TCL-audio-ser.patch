@@ -1,7 +1,7 @@
-From b12dca4e0800d976f7c68c466362812fdd3d10f0 Mon Sep 17 00:00:00 2001
+From 12ae46fa1362c0d96d660d41de15cebb9c43c0af Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 30/37] ASoC: qdsp6: populate firmware-described TCL audio
+Subject: [PATCH 30/70] ASoC: qdsp6: populate firmware-described TCL audio
  services
 
 Q6ADM, Q6AFE and Q6ASM expose their child DAIs and clocks through OF
@@ -25,7 +25,7 @@ routes are still required for audible playback.
  6 files changed, 235 insertions(+), 25 deletions(-)
 
 diff --git a/sound/soc/qcom/qdsp6/q6adm.c b/sound/soc/qcom/qdsp6/q6adm.c
-index db0ae71f29831fbbd04d68cdf0551523d4ea231d..fda64156da010c3148104430dc3e98b3c654b92d 100644
+index db0ae71f2..fda64156d 100644
 --- a/sound/soc/qcom/qdsp6/q6adm.c
 +++ b/sound/soc/qcom/qdsp6/q6adm.c
 @@ -584,7 +584,8 @@ static int q6adm_probe(struct apr_device *adev)
@@ -39,7 +39,7 @@ index db0ae71f29831fbbd04d68cdf0551523d4ea231d..fda64156da010c3148104430dc3e98b3
  
  #ifdef CONFIG_OF
 diff --git a/sound/soc/qcom/qdsp6/q6afe-clocks.c b/sound/soc/qcom/qdsp6/q6afe-clocks.c
-index 84b9018c36bab39d214a7392cfee0900db07a820..7095d41eeae10b5600a166b084546d44971147a1 100644
+index 84b9018c3..7095d41ee 100644
 --- a/sound/soc/qcom/qdsp6/q6afe-clocks.c
 +++ b/sound/soc/qcom/qdsp6/q6afe-clocks.c
 @@ -107,7 +107,14 @@ static const struct of_device_id q6afe_clock_device_id[] = {
@@ -58,7 +58,7 @@ index 84b9018c36bab39d214a7392cfee0900db07a820..7095d41eeae10b5600a166b084546d44
  		.name = "q6afe-clock",
  		.of_match_table = of_match_ptr(q6afe_clock_device_id),
 diff --git a/sound/soc/qcom/qdsp6/q6afe.c b/sound/soc/qcom/qdsp6/q6afe.c
-index 40237267fda051b07043ff2a9437ab33aba18361..d28ffeede9dc3969791b2893ec5847f34dfb155d 100644
+index 40237267f..d28ffeede 100644
 --- a/sound/soc/qcom/qdsp6/q6afe.c
 +++ b/sound/soc/qcom/qdsp6/q6afe.c
 @@ -13,6 +13,7 @@
@@ -158,7 +158,7 @@ index 40237267fda051b07043ff2a9437ab33aba18361..d28ffeede9dc3969791b2893ec5847f3
  
  #ifdef CONFIG_OF
 diff --git a/sound/soc/qcom/qdsp6/q6asm-dai.c b/sound/soc/qcom/qdsp6/q6asm-dai.c
-index 4f09fdd409058475589a0fa9a7629d3fef029e0b..51bf0968ab3e9e211e1faacbd66e5b0ba5c72a83 100644
+index 4f09fdd40..51bf0968a 100644
 --- a/sound/soc/qcom/qdsp6/q6asm-dai.c
 +++ b/sound/soc/qcom/qdsp6/q6asm-dai.c
 @@ -7,6 +7,8 @@
@@ -282,7 +282,7 @@ index 4f09fdd409058475589a0fa9a7629d3fef029e0b..51bf0968ab3e9e211e1faacbd66e5b0b
  		.name = "q6asm-dai",
  		.of_match_table = of_match_ptr(q6asm_dai_device_id),
 diff --git a/sound/soc/qcom/qdsp6/q6asm.c b/sound/soc/qcom/qdsp6/q6asm.c
-index de0bd8fd08eeb84777e0127f2fe0ba7c5729782d..13ee91767588eb05d83a29f605a74c8282ff5b18 100644
+index de0bd8fd0..13ee91767 100644
 --- a/sound/soc/qcom/qdsp6/q6asm.c
 +++ b/sound/soc/qcom/qdsp6/q6asm.c
 @@ -10,6 +10,9 @@
@@ -345,7 +345,7 @@ index de0bd8fd08eeb84777e0127f2fe0ba7c5729782d..13ee91767588eb05d83a29f605a74c82
  
  #ifdef CONFIG_OF
 diff --git a/sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c b/sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c
-index 03838582aeade389d9a2d90cf9f03fad835f0733..f826596bf2aec2875748e862e43e95a473e35ad0 100644
+index 03838582a..f826596bf 100644
 --- a/sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c
 +++ b/sound/soc/qcom/qdsp6/q6dsp-lpass-clocks.c
 @@ -4,9 +4,13 @@

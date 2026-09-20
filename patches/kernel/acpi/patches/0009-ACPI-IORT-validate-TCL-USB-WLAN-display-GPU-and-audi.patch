@@ -1,7 +1,7 @@
-From 054da3f8ddcbf20248205b15c387ab6df22f33fd Mon Sep 17 00:00:00 2001
+From a2d2b0a35223ad24e5d94610d8076acd5c1497a4 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 09/37] ACPI: IORT: validate TCL USB WLAN display GPU and audio
+Subject: [PATCH 09/70] ACPI: IORT: validate TCL USB WLAN display GPU and audio
  DMA mappings
 
 The OEM IORT describes composite devices, whereas Linux uses separate
@@ -29,7 +29,7 @@ hardware initialization remain separate prerequisites.
  5 files changed, 476 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index af7a9b2fd5bc2cc05b1ea4328dcc485367413d02..aea32b51ad512486f4dae7aa53dbdd9be6335e5c 100644
+index af7a9b2fd..aea32b51a 100644
 --- a/drivers/acpi/arm64/iort.c
 +++ b/drivers/acpi/arm64/iort.c
 @@ -12,6 +12,7 @@
@@ -491,7 +491,7 @@ index af7a9b2fd5bc2cc05b1ea4328dcc485367413d02..aea32b51ad512486f4dae7aa53dbdd9b
  		if (!err)
  			iort_named_component_init(dev, node);
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 9a7ac2eb9ce0b8475e499e87832b8400d2d8913e..945e1d8694dc4ade7a74a65f479d3b0a3b2784c7 100644
+index 9a7ac2eb9..945e1d869 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
 @@ -1599,6 +1599,15 @@ int acpi_dma_get_range(struct device *dev, const struct bus_dma_region **map)
@@ -568,7 +568,7 @@ index 9a7ac2eb9ce0b8475e499e87832b8400d2d8913e..945e1d8694dc4ade7a74a65f479d3b0a
  		dev_dbg(dev, "Adding to IOMMU failed: %d\n", ret);
  
 diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index fb9120b0bcfe0e7dd9dfc0d29b91e0ad40a01440..6111e5fe561b0828cde00f3387ee405446c704d6 100644
+index fb9120b0b..6111e5fe5 100644
 --- a/drivers/base/platform.c
 +++ b/drivers/base/platform.c
 @@ -1481,11 +1481,49 @@ static int platform_dma_configure(struct device *dev)
@@ -622,7 +622,7 @@ index fb9120b0bcfe0e7dd9dfc0d29b91e0ad40a01440..6111e5fe561b0828cde00f3387ee4054
  	if (ret)
  		arch_teardown_dma_ops(dev);
 diff --git a/drivers/iommu/iommu-priv.h b/drivers/iommu/iommu-priv.h
-index aaffad5854fc9a8004ecd2ba2738f10c44c9a7b0..2c4d5dde72f0d400bd7ef22779b3cffb91444689 100644
+index aaffad585..2c4d5dde7 100644
 --- a/drivers/iommu/iommu-priv.h
 +++ b/drivers/iommu/iommu-priv.h
 @@ -28,7 +28,6 @@ static inline const struct iommu_ops *iommu_fwspec_ops(struct iommu_fwspec *fwsp
@@ -634,7 +634,7 @@ index aaffad5854fc9a8004ecd2ba2738f10c44c9a7b0..2c4d5dde72f0d400bd7ef22779b3cffb
  int iommu_device_register_bus(struct iommu_device *iommu,
  			      const struct iommu_ops *ops,
 diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-index ac43b8b93f14aa4853e794eec5e6ca39d1eac0f1..50b799110471009815c88ac80e8e3fcbf3a1f025 100644
+index ac43b8b93..50b799110 100644
 --- a/include/linux/iommu.h
 +++ b/include/linux/iommu.h
 @@ -1175,6 +1175,8 @@ struct iommu_mm_data {

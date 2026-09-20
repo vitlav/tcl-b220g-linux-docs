@@ -1,7 +1,7 @@
-From e585a48f92685447f21cb1f81fb1f57f0be520c5 Mon Sep 17 00:00:00 2001
+From a7d8dd07b2beb7822b280a2bfc178c709669466c Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 08/37] ACPI: resolve namespace devices and physical companions
+Subject: [PATCH 08/70] ACPI: resolve namespace devices and physical companions
  uniformly
 
 Supplemental devices can be parented by a raw ACPI namespace device or
@@ -19,7 +19,7 @@ implemented separately.
  2 files changed, 25 insertions(+)
 
 diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index a30a904f6535f4025790a83457aff92d8f0c60be..13e58a1724ac6029f1384f64e31e4578b73bdad2 100644
+index a30a904f6..13e58a172 100644
 --- a/drivers/acpi/bus.c
 +++ b/drivers/acpi/bus.c
 @@ -1042,6 +1042,24 @@ static bool __acpi_match_device(const struct acpi_device *device,
@@ -48,7 +48,7 @@ index a30a904f6535f4025790a83457aff92d8f0c60be..13e58a1724ac6029f1384f64e31e4578
   * acpi_match_acpi_device - Match an ACPI device against a given list of ACPI IDs
   * @ids: Array of struct acpi_device_id objects to match against.
 diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 60ab50cb8930c45c5b629e6d0d0f59b2c498d9e6..eb381f7b5b19cdf7bb35bc9dc7399ead14bad1b9 100644
+index 60ab50cb8..eb381f7b5 100644
 --- a/include/linux/acpi.h
 +++ b/include/linux/acpi.h
 @@ -741,6 +741,8 @@ extern int acpi_nvs_register(__u64 start, __u64 size);

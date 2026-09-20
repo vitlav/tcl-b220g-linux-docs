@@ -1,7 +1,8 @@
-From 9e958581e9553507fb5997d0a5828f528677e225 Mon Sep 17 00:00:00 2001
+From e1ed7e410745e41bb597aedff062eefbfbe0256d Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Sun, 20 Sep 2026 19:57:32 +0300
-Subject: [PATCH 2/2] ASoC: lpass-va: avoid self-reference through fsgen clock
+Subject: [PATCH 69/70] ASoC: lpass-va: avoid self-reference through fsgen
+ clock
 
 VA registers fsgen as its own clock provider, then devm_clk_hw_get_clk() keeps a consumer reference to that provider for the complete device lifetime. The reference pins snd-soc-lpass-va-macro, so modprobe -r cannot reach the driver remove callback even after the ASoC card and dependent SoundWire devices are removed.
 
@@ -65,6 +66,3 @@ index 594951eb0..20d782ce9 100644
  	return 0;
  
  err_clkout:
--- 
-2.50.1
-

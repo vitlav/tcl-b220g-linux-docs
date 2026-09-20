@@ -1,7 +1,7 @@
-From a3c9a4a2061280b2915a455fcc1f376aafc270a7 Mon Sep 17 00:00:00 2001
+From c597bce1dd9f60c23fa06ce2292213186fceb268 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 18 Sep 2026 20:52:39 +0300
-Subject: [PATCH 40/40] ACPI: AC: defer probe until GenericSerialBus is ready
+Subject: [PATCH 54/70] ACPI: AC: defer probe until GenericSerialBus is ready
 
 An AC adapter backed by a GenericSerialBus operation region can be probed before the corresponding I2C adapter has installed its address-space handler. In that case evaluating _PSR fails with AE_NOT_EXIST and the platform device remains permanently unbound.
 
@@ -25,6 +25,3 @@ index f19d6dd43..f07ac866b 100644
  		return -ENODEV;
  	}
  
--- 
-2.50.1
-

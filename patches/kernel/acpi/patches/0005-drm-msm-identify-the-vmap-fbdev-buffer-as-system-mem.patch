@@ -1,7 +1,7 @@
-From dd1179d19e3deb406d1fe098cac7c9e0eab3d603 Mon Sep 17 00:00:00 2001
+From e578075b56a9d925764c17f230463d3dfbfec660 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 05/37] drm/msm: identify the vmap fbdev buffer as system
+Subject: [PATCH 05/70] drm/msm: identify the vmap fbdev buffer as system
  memory
 
 MSM fbdev obtains its framebuffer address by mapping GEM-backed
@@ -17,7 +17,7 @@ allocation, panel mode or DMA mapping.
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/gpu/drm/msm/msm_fbdev.c b/drivers/gpu/drm/msm/msm_fbdev.c
-index fd19995b12b585ed9aaf907513703f024a08c7cc..7c159fb8f1955ebd7cae011e0eca320dfaa5b2cd 100644
+index fd19995b1..7c159fb8f 100644
 --- a/drivers/gpu/drm/msm/msm_fbdev.c
 +++ b/drivers/gpu/drm/msm/msm_fbdev.c
 @@ -140,6 +140,8 @@ int msm_fbdev_driver_fbdev_probe(struct drm_fb_helper *helper,

@@ -1,19 +1,21 @@
-From 283c8d3f8579db2d3698b1e2c668a62e04a7090a Mon Sep 17 00:00:00 2001
+From 0ed33f966f35363c12e7259d40c51f2e70813364 Mon Sep 17 00:00:00 2001
 From: Nikita Travkin <nikita@trvn.ru>
-Date: Thu, 11 Apr 2024 22:35:49 +0500
-Subject: [PATCH 14/16] ASoC: codecs: lpass-va-macro: Disable all clocks in
- suspend
+Date: Tue, 15 Sep 2026 13:12:07 +0300
+Subject: [PATCH 37/70] ASoC: lpass-va-macro: balance clocks across runtime
+ suspend/resume
 
-Signed-off-by: Nikita Travkin <nikita@trvn.ru>
+Preserve the original qc7 clock suspend/resume fix unchanged. This is an optional PM candidate and does not establish TCL runtime PM correctness.
+
+Original-commit: 283c8d3f8579db2d3698b1e2c668a62e04a7090a
 ---
  sound/soc/codecs/lpass-va-macro.c | 14 ++++++++++++++
  1 file changed, 14 insertions(+)
 
 diff --git a/sound/soc/codecs/lpass-va-macro.c b/sound/soc/codecs/lpass-va-macro.c
-index c781da4762407e..74d29b985e91fc 100644
+index 5ef7993c7..3e25844d8 100644
 --- a/sound/soc/codecs/lpass-va-macro.c
 +++ b/sound/soc/codecs/lpass-va-macro.c
-@@ -1685,6 +1685,8 @@ static int __maybe_unused va_macro_runtime_suspend(struct device *dev)
+@@ -1750,6 +1750,8 @@ static int va_macro_runtime_suspend(struct device *dev)
  		clk_disable_unprepare(va->npl);
  
  	clk_disable_unprepare(va->mclk);
@@ -22,7 +24,7 @@ index c781da4762407e..74d29b985e91fc 100644
  
  	return 0;
  }
-@@ -1694,6 +1696,18 @@ static int __maybe_unused va_macro_runtime_resume(struct device *dev)
+@@ -1759,6 +1761,18 @@ static int va_macro_runtime_resume(struct device *dev)
  	struct va_macro *va = dev_get_drvdata(dev);
  	int ret;
  
@@ -41,4 +43,3 @@ index c781da4762407e..74d29b985e91fc 100644
  	ret = clk_prepare_enable(va->mclk);
  	if (ret) {
  		dev_err(va->dev, "unable to prepare mclk\n");
-

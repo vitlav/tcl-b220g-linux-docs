@@ -1,7 +1,7 @@
-From 70cde4b2cf5359025c7dceffc1cf0c3193318c36 Mon Sep 17 00:00:00 2001
+From 4b0ec98d47a21b6c47d2df53c2b3448cbf20d824 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 18/37] wifi: ath10k: validate TCL ACPI SNOC resources before
+Subject: [PATCH 18/70] wifi: ath10k: validate TCL ACPI SNOC resources before
  probe
 
 ath10k SNOC must bind to the board-created WCN3990 device and obtain MSA
@@ -20,7 +20,7 @@ separate requirements.
  2 files changed, 35 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/net/wireless/ath/ath10k/qmi.c b/drivers/net/wireless/ath/ath10k/qmi.c
-index 0d74548a5f349a045ac0401ce419deeee77b9aa9..02088be9707db19e1a80acfb0467859422a5d379 100644
+index 0d74548a5..02088be97 100644
 --- a/drivers/net/wireless/ath/ath10k/qmi.c
 +++ b/drivers/net/wireless/ath/ath10k/qmi.c
 @@ -4,6 +4,7 @@
@@ -45,7 +45,7 @@ index 0d74548a5f349a045ac0401ce419deeee77b9aa9..02088be9707db19e1a80acfb04678594
  
  	ret = qmi_handle_init(&qmi->qmi_hdl,
 diff --git a/drivers/net/wireless/ath/ath10k/snoc.c b/drivers/net/wireless/ath/ath10k/snoc.c
-index 3106502275781d32d17a45a661362206144df6b3..4e54430f4bc5378610c57ed48f663072bb25c5d7 100644
+index 310650227..4e54430f4 100644
 --- a/drivers/net/wireless/ath/ath10k/snoc.c
 +++ b/drivers/net/wireless/ath/ath10k/snoc.c
 @@ -1358,9 +1358,9 @@ static void ath10k_snoc_quirks_init(struct ath10k *ar)

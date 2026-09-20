@@ -1,7 +1,7 @@
-From 772aa3e9d56c2665e744268206ded975650ce5c5 Mon Sep 17 00:00:00 2001
+From 4c6d9fecedc9ad306a2fb154eb3864291aa9c1f0 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 35/37] soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers
+Subject: [PATCH 35/70] soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers
 
 The Qualcomm driver adaptations require concrete board devices for the
 OEM SMEM and modem/WLAN resources.
@@ -22,7 +22,7 @@ userspace firmware/network services remain required.
  create mode 100644 drivers/soc/qcom/tcl_acpi_wifi.c
 
 diff --git a/drivers/soc/qcom/Kconfig b/drivers/soc/qcom/Kconfig
-index 2caadbbcf8307ff94f5afbdd1481e5e5e291749f..f142fe4d60478e5cb4be811eaf2b7fb2da334556 100644
+index 2caadbbcf..f142fe4d6 100644
 --- a/drivers/soc/qcom/Kconfig
 +++ b/drivers/soc/qcom/Kconfig
 @@ -304,3 +304,16 @@ config QCOM_UBWC_CONFIG
@@ -43,7 +43,7 @@ index 2caadbbcf8307ff94f5afbdd1481e5e5e291749f..f142fe4d60478e5cb4be811eaf2b7fb2
 +	depends on ACPI && EFI && ARCH_QCOM && QCOM_RPMH && QCOM_SMEM
 +	depends on QCOM_RPMHPD && COMMON_CLK_QCOM && REGULATOR
 diff --git a/drivers/soc/qcom/Makefile b/drivers/soc/qcom/Makefile
-index b7f1d2a5736748b8772c090fd24462fa91f321c6..b4419f49f18ce70164d3173aebb8e459184b282f 100644
+index b7f1d2a57..b4419f49f 100644
 --- a/drivers/soc/qcom/Makefile
 +++ b/drivers/soc/qcom/Makefile
 @@ -40,3 +40,7 @@ qcom_ice-objs			+= ice.o
@@ -56,7 +56,7 @@ index b7f1d2a5736748b8772c090fd24462fa91f321c6..b4419f49f18ce70164d3173aebb8e459
 +obj-$(CONFIG_QCOM_TCL_ACPI_WIFI) += tcl_acpi_wifi.o
 diff --git a/drivers/soc/qcom/tcl_acpi_smem.c b/drivers/soc/qcom/tcl_acpi_smem.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..3ccd77099bdf9f04f8960b73be2c243bba105b41
+index 000000000..3ccd77099
 --- /dev/null
 +++ b/drivers/soc/qcom/tcl_acpi_smem.c
 @@ -0,0 +1,89 @@
@@ -151,7 +151,7 @@ index 0000000000000000000000000000000000000000..3ccd77099bdf9f04f8960b73be2c243b
 +MODULE_DESCRIPTION("TCL diagnostic ACPI SMEM/TCSR board glue");
 diff --git a/drivers/soc/qcom/tcl_acpi_wifi.c b/drivers/soc/qcom/tcl_acpi_wifi.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..3091b3a3ec916351407d85380bda77769b5d8d4d
+index 000000000..3091b3a3e
 --- /dev/null
 +++ b/drivers/soc/qcom/tcl_acpi_wifi.c
 @@ -0,0 +1,500 @@

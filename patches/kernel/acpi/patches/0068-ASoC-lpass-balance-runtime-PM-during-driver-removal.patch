@@ -1,7 +1,7 @@
-From ab63d6c99219ada851b88fd9c367dd3963f40f60 Mon Sep 17 00:00:00 2001
+From c686451c7addce6f60d5ec853c4d2223afbfdb99 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Sun, 20 Sep 2026 19:57:32 +0300
-Subject: [PATCH 1/2] ASoC: lpass: balance runtime PM during driver removal
+Subject: [PATCH 68/70] ASoC: lpass: balance runtime PM during driver removal
 
 The RX, TX and VA macro probes enable runtime PM, but their remove callbacks leave it enabled and unconditionally disable clocks that runtime suspend may already have gated. Rebinding a suspended macro therefore reports an unbalanced pm_runtime_enable and risks mismatched clock prepare counts.
 
@@ -144,6 +144,3 @@ index 3e25844d8..594951eb0 100644
  
  	lpass_macro_pds_exit(va->pds);
  }
--- 
-2.50.1
-

@@ -1,7 +1,7 @@
-From 30ca50654d6a2a6898fe874c3d67ea16aa9a4b8b Mon Sep 17 00:00:00 2001
+From d7e326790a5aa6521c38510b5010cef26d3cb7fa Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:41 +0300
-Subject: [PATCH 01/37] ACPI: omit PCI default address space when PCI is
+Subject: [PATCH 01/70] ACPI: omit PCI default address space when PCI is
  disabled
 
 ACPICA includes the PCI configuration address space in its default
@@ -19,7 +19,7 @@ four-space list.
  2 files changed, 6 insertions(+)
 
 diff --git a/drivers/acpi/acpica/evhandler.c b/drivers/acpi/acpica/evhandler.c
-index d9a3b1ca5b9ccf4f85052b778e0027634f023ed1..11020d7399d59f29bae66cc64725efea3c285b19 100644
+index d9a3b1ca5..11020d739 100644
 --- a/drivers/acpi/acpica/evhandler.c
 +++ b/drivers/acpi/acpica/evhandler.c
 @@ -26,7 +26,9 @@ acpi_ev_install_handler(acpi_handle obj_handle,
@@ -33,7 +33,7 @@ index d9a3b1ca5b9ccf4f85052b778e0027634f023ed1..11020d7399d59f29bae66cc64725efea
  };
  
 diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index 6bce050f042106f6b75238fc90a2b9869d4a5f0a..3d29bc1478be4b20d9ad3c37005d86e1d5732e0d 100644
+index 6bce050f0..3d29bc147 100644
 --- a/include/acpi/acconfig.h
 +++ b/include/acpi/acconfig.h
 @@ -161,7 +161,11 @@

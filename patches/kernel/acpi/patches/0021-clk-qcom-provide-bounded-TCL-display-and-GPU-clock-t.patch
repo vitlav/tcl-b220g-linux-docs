@@ -1,7 +1,7 @@
-From e36a3033e473b19401a110324a0e7079064adcee Mon Sep 17 00:00:00 2001
+From 668279f21b6bd73692142b49237743dc16f7d49c Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 21/37] clk: qcom: provide bounded TCL display and GPU clock
+Subject: [PATCH 21/70] clk: qcom: provide bounded TCL display and GPU clock
  trees
 
 The ACPI display/GPU devices need explicit GCC, DISPCC, GPUCC and GDSC
@@ -28,7 +28,7 @@ replacement for the SoC DT clock topology.
  create mode 100644 include/linux/platform_data/qcom-tcl-clkdev.h
 
 diff --git a/drivers/clk/qcom/common.c b/drivers/clk/qcom/common.c
-index eec369d2173b5ce24bc1ca860d2ac1bbdce04524..6785672b1475bfde109f926860dfcd5dd2fa2426 100644
+index eec369d21..6785672b1 100644
 --- a/drivers/clk/qcom/common.c
 +++ b/drivers/clk/qcom/common.c
 @@ -1,4 +1,5 @@
@@ -103,7 +103,7 @@ index eec369d2173b5ce24bc1ca860d2ac1bbdce04524..6785672b1475bfde109f926860dfcd5d
  	ret = qcom_cc_icc_register(dev, desc);
  
 diff --git a/drivers/clk/qcom/common.h b/drivers/clk/qcom/common.h
-index 6f2406f8839e8f432ef34ce32c930cf045f6ae7a..59065eceaddea7c5ba0b0443b21be4948e4694a3 100644
+index 6f2406f88..59065ecea 100644
 --- a/drivers/clk/qcom/common.h
 +++ b/drivers/clk/qcom/common.h
 @@ -35,6 +35,7 @@ struct qcom_cc_driver_data {
@@ -123,7 +123,7 @@ index 6f2406f8839e8f432ef34ce32c930cf045f6ae7a..59065eceaddea7c5ba0b0443b21be494
  };
  
 diff --git a/drivers/clk/qcom/dispcc-sc7180.c b/drivers/clk/qcom/dispcc-sc7180.c
-index ae98fe4dcfb2b777e016cfe0de1149a02df9d9bc..2dd1227f583af0591f1cd4d198c8d3107dc00abd 100644
+index ae98fe4dc..2dd1227f5 100644
 --- a/drivers/clk/qcom/dispcc-sc7180.c
 +++ b/drivers/clk/qcom/dispcc-sc7180.c
 @@ -3,6 +3,10 @@
@@ -243,7 +243,7 @@ index ae98fe4dcfb2b777e016cfe0de1149a02df9d9bc..2dd1227f583af0591f1cd4d198c8d310
  		.name = "sc7180-dispcc",
  		.of_match_table = disp_cc_sc7180_match_table,
 diff --git a/drivers/clk/qcom/gcc-sc7180.c b/drivers/clk/qcom/gcc-sc7180.c
-index 4a49ad7a9e5be670abb04e6f04dd652109f0893a..b4e39c8ff0e9f2349d8702499f10fc30c93af6a3 100644
+index 4a49ad7a9..b4e39c8ff 100644
 --- a/drivers/clk/qcom/gcc-sc7180.c
 +++ b/drivers/clk/qcom/gcc-sc7180.c
 @@ -3,6 +3,10 @@
@@ -472,7 +472,7 @@ index 4a49ad7a9e5be670abb04e6f04dd652109f0893a..b4e39c8ff0e9f2349d8702499f10fc30
  		.name = "gcc-sc7180",
  		.of_match_table = gcc_sc7180_match_table,
 diff --git a/drivers/clk/qcom/gdsc.c b/drivers/clk/qcom/gdsc.c
-index ee5f86ca50cb77372da9fd51590b846d66274b28..fa732b1f204be0ce50697213d378e0f47f3c573f 100644
+index ee5f86ca5..fa732b1f2 100644
 --- a/drivers/clk/qcom/gdsc.c
 +++ b/drivers/clk/qcom/gdsc.c
 @@ -594,6 +594,26 @@ int gdsc_register(struct gdsc_desc *desc,
@@ -515,7 +515,7 @@ index ee5f86ca50cb77372da9fd51590b846d66274b28..fa732b1f204be0ce50697213d378e0f4
  	of_genpd_del_provider(dev->of_node);
  }
 diff --git a/drivers/clk/qcom/gdsc.h b/drivers/clk/qcom/gdsc.h
-index 92ff6bcce7b1c18a38b38dfa881b6a4e04f43aba..c1000bf129e99f05311ce9b1a818d32667c95f80 100644
+index 92ff6bcce..c1000bf12 100644
 --- a/drivers/clk/qcom/gdsc.h
 +++ b/drivers/clk/qcom/gdsc.h
 @@ -86,6 +86,7 @@ struct gdsc_desc {
@@ -527,7 +527,7 @@ index 92ff6bcce7b1c18a38b38dfa881b6a4e04f43aba..c1000bf129e99f05311ce9b1a818d326
  
  #ifdef CONFIG_QCOM_GDSC
 diff --git a/drivers/clk/qcom/gpucc-sc7180.c b/drivers/clk/qcom/gpucc-sc7180.c
-index b14a53db55fd1a0767fd008ae67d329836bceacb..cc671b8ecd6b151628e16e123f0c49d004754150 100644
+index b14a53db5..cc671b8ec 100644
 --- a/drivers/clk/qcom/gpucc-sc7180.c
 +++ b/drivers/clk/qcom/gpucc-sc7180.c
 @@ -3,6 +3,10 @@
@@ -634,7 +634,7 @@ index b14a53db55fd1a0767fd008ae67d329836bceacb..cc671b8ecd6b151628e16e123f0c49d0
  		.name = "sc7180-gpucc",
 diff --git a/include/linux/platform_data/qcom-tcl-clkdev.h b/include/linux/platform_data/qcom-tcl-clkdev.h
 new file mode 100644
-index 0000000000000000000000000000000000000000..152f7b8e79a2a99e84ca925c11c3329f814ce54b
+index 000000000..152f7b8e7
 --- /dev/null
 +++ b/include/linux/platform_data/qcom-tcl-clkdev.h
 @@ -0,0 +1,66 @@

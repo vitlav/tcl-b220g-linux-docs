@@ -10,6 +10,7 @@ obj-m += tcl_acpi_card.o
 obj-m += tcl_acpi_audio_power_hold.o
 obj-m += tcl_acpi_codec_reset_hold.o
 obj-m += tcl_lpi_provider.o
+ccflags-y += -I$(KERNEL_SRC)/source/sound/soc/qcom
 ccflags-y += -I$(KERNEL_SRC)/sound/soc/qcom
 else
 .PHONY: all clean

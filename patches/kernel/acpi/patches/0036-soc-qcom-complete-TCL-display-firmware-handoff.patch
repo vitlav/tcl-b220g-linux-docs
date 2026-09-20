@@ -1,28 +1,9 @@
-From b4900668dec9369cc4fae62bd32152668f2afabb Mon Sep 17 00:00:00 2001
+From 2778d32283f82c1efa4c4d7ab71814a1dbdc40d5 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
-Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 36/37] soc: qcom: wire TCL ACPI display and GPU with ordered
- firmware handoff
+Date: Sun, 20 Sep 2026 22:09:34 +0300
+Subject: [PATCH 36/70] soc: qcom: complete TCL display firmware handoff
 
-Generic driver adaptations do not instantiate the supplemental Linux
-devices or establish their supplier lifetimes from the OEM composite
-ACPI description.
-
-Add the coupled display and GPU coordinators with their build option.
-Construct explicit resource/property graphs and hold consumers unbound
-until clocks, power domains, interrupts and interconnect paths are
-ready. Reuse the ACPI EDP1 bridge client and install the final secondary
-graph. Keep complete clock aliases and validated parent identities from
-the start.
-
-Before display clock/IOMMU handoff, stop firmware scanout and poll
-interface status; abort on failure. Adopt and disable the byte, byte
-interface and pixel branches left enabled by firmware before changing
-their shared DSI VCO. Attach the Adreno SMMU power
-supplier before GPU startup. The coordinator owns staged resources for
-their consumer lifetimes; independent bridge cold initialization and
-complete unload/suspend handling remain outside this implementation.
-Audio machine-card and power/reset providers remain external modules.
+Wire the ACPI display and GPU graph, quiesce firmware scanout before DPU/IOMMU attachment, adopt and enable the required firmware DSI clock branches through CCF, and remove temporary clock-state diagnostics. The resulting implementation contains the hardware-qualified handoff without preserving intermediate logging experiments.
 ---
  drivers/soc/qcom/Kconfig                  |  15 +
  drivers/soc/qcom/Makefile                 |   2 +
@@ -35,7 +16,7 @@ Audio machine-card and power/reset providers remain external modules.
  create mode 100644 drivers/soc/qcom/tcl_acpi_gpu.c
 
 diff --git a/drivers/soc/qcom/Kconfig b/drivers/soc/qcom/Kconfig
-index f142fe4d60478e5cb4be811eaf2b7fb2da334556..876f89e5c72136a7ac60420d9795818de008c133 100644
+index f142fe4d6..876f89e5c 100644
 --- a/drivers/soc/qcom/Kconfig
 +++ b/drivers/soc/qcom/Kconfig
 @@ -317,3 +317,18 @@ config QCOM_TCL_ACPI_WIFI
@@ -58,7 +39,7 @@ index f142fe4d60478e5cb4be811eaf2b7fb2da334556..876f89e5c72136a7ac60420d9795818d
 +	  scanout. The coordinator retains resources for the diagnostic boot;
 +	  unloading and manual supplier unbinding are not supported.
 diff --git a/drivers/soc/qcom/Makefile b/drivers/soc/qcom/Makefile
-index b4419f49f18ce70164d3173aebb8e459184b282f..180f302443f1c9c49b65a49f3642be6228840b7a 100644
+index b4419f49f..180f30244 100644
 --- a/drivers/soc/qcom/Makefile
 +++ b/drivers/soc/qcom/Makefile
 @@ -44,3 +44,5 @@ obj-$(CONFIG_QCOM_UBWC_CONFIG) += ubwc_config.o
@@ -69,7 +50,7 @@ index b4419f49f18ce70164d3173aebb8e459184b282f..180f302443f1c9c49b65a49f3642be62
 +obj-$(CONFIG_QCOM_TCL_ACPI_DISPLAY) += tcl_acpi_gpu.o
 diff --git a/drivers/soc/qcom/tcl_acpi_display.c b/drivers/soc/qcom/tcl_acpi_display.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..c168e801d307ba5725401f2da6b7a1622377e90b
+index 000000000..934e0dbb4
 --- /dev/null
 +++ b/drivers/soc/qcom/tcl_acpi_display.c
 @@ -0,0 +1,966 @@
@@ -1041,7 +1022,7 @@ index 0000000000000000000000000000000000000000..c168e801d307ba5725401f2da6b7a162
 +MODULE_SOFTDEP("pre: msm tcl_acpi_wifi tcl-lt8911-handoff");
 diff --git a/drivers/soc/qcom/tcl_acpi_display_stage.h b/drivers/soc/qcom/tcl_acpi_display_stage.h
 new file mode 100644
-index 0000000000000000000000000000000000000000..cb3ad84492578e6ae700dd03cdf77503644b36a3
+index 000000000..cb3ad8449
 --- /dev/null
 +++ b/drivers/soc/qcom/tcl_acpi_display_stage.h
 @@ -0,0 +1,170 @@
@@ -1217,7 +1198,7 @@ index 0000000000000000000000000000000000000000..cb3ad84492578e6ae700dd03cdf77503
 +#endif
 diff --git a/drivers/soc/qcom/tcl_acpi_gpu.c b/drivers/soc/qcom/tcl_acpi_gpu.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..f635863b8ccd2e5034d82e270c4e5fe81649c52a
+index 000000000..f635863b8
 --- /dev/null
 +++ b/drivers/soc/qcom/tcl_acpi_gpu.c
 @@ -0,0 +1,354 @@

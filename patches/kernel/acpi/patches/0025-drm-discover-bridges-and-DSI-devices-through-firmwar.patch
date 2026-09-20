@@ -1,7 +1,7 @@
-From af291499a718fa98913a55f8e5ad2a8057c32819 Mon Sep 17 00:00:00 2001
+From 01ff5820569e5ef2bde6d2286ee38ebde52b3300 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 25/37] drm: discover bridges and DSI devices through firmware
+Subject: [PATCH 25/70] drm: discover bridges and DSI devices through firmware
  nodes
 
 Software-node display graphs need to identify DRM bridges and MIPI DSI
@@ -21,7 +21,7 @@ graph plumbing; it does not initialize a physical bridge or panel.
  4 files changed, 36 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_bridge.c b/drivers/gpu/drm/drm_bridge.c
-index 687b36eea0c703062a6847a7f0da23b41eaee175..4df889653634110f3dda79fc11c3defe2e00fcbc 100644
+index 687b36eea..4df889653 100644
 --- a/drivers/gpu/drm/drm_bridge.c
 +++ b/drivers/gpu/drm/drm_bridge.c
 @@ -1515,6 +1515,22 @@ void drm_bridge_hpd_notify(struct drm_bridge *bridge,
@@ -48,7 +48,7 @@ index 687b36eea0c703062a6847a7f0da23b41eaee175..4df889653634110f3dda79fc11c3defe
  /**
   * of_drm_find_and_get_bridge - find the bridge corresponding to the device
 diff --git a/drivers/gpu/drm/drm_mipi_dsi.c b/drivers/gpu/drm/drm_mipi_dsi.c
-index 3ac1dd5ad640a982d4da691f833be51bc238e1a7..8eb487db355f329fcdbe3594ab1e433d43343eba 100644
+index 3ac1dd5ad..8eb487db3 100644
 --- a/drivers/gpu/drm/drm_mipi_dsi.c
 +++ b/drivers/gpu/drm/drm_mipi_dsi.c
 @@ -328,6 +328,22 @@ struct mipi_dsi_host *of_find_mipi_dsi_host_by_node(struct device_node *node)
@@ -75,7 +75,7 @@ index 3ac1dd5ad640a982d4da691f833be51bc238e1a7..8eb487db355f329fcdbe3594ab1e433d
  {
  	struct device_node *node;
 diff --git a/include/drm/drm_bridge.h b/include/drm/drm_bridge.h
-index 4ba3a5deef9a60b31c261a46bc44d6f771eaabdb..1f8f10066f855d453ac66d232f20dd81a61d6950 100644
+index 4ba3a5dee..1f8f10066 100644
 --- a/include/drm/drm_bridge.h
 +++ b/include/drm/drm_bridge.h
 @@ -1108,6 +1108,8 @@ struct drm_bridge {
@@ -96,7 +96,7 @@ index 4ba3a5deef9a60b31c261a46bc44d6f771eaabdb..1f8f10066f855d453ac66d232f20dd81
  int drm_bridge_attach(struct drm_encoder *encoder, struct drm_bridge *bridge,
  		      struct drm_bridge *previous,
 diff --git a/include/drm/drm_mipi_dsi.h b/include/drm/drm_mipi_dsi.h
-index b429acde4f71a3b6b9dd51291baa7cc39b8aaed8..d4b2317d7517ea76560de02626a507c80de7f439 100644
+index b429acde4..d4b2317d7 100644
 --- a/include/drm/drm_mipi_dsi.h
 +++ b/include/drm/drm_mipi_dsi.h
 @@ -111,6 +111,7 @@ struct mipi_dsi_host {

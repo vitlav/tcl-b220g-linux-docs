@@ -1,0 +1,265 @@
+From 36e9e72f4aed2ac03be9189afe0d38ce28782e48 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Fri, 18 Sep 2026 10:28:01 +0300
+Subject: [PATCH 49/70] media: qcom: support firmware-described SC7180 Venus
+
+Let the Venus core consume named platform resources when no device-tree node exists. The board coordinator can now supply the reserved firmware window, ICC paths, clock aliases and proxy power-domain devices, while decoder and encoder children are registered as platform devices. The established DT enumeration and power-domain path remain unchanged.
+---
+ drivers/media/platform/qcom/venus/core.c      | 82 +++++++++++++++++--
+ drivers/media/platform/qcom/venus/core.h      |  2 +
+ drivers/media/platform/qcom/venus/firmware.c  | 14 +++-
+ .../media/platform/qcom/venus/pm_helpers.c    | 25 ++++++
+ include/linux/platform_data/qcom-tcl-acpi.h   |  7 ++
+ 5 files changed, 121 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+index 243e342b0..7bd1dfbd6 100644
+--- a/drivers/media/platform/qcom/venus/core.c
++++ b/drivers/media/platform/qcom/venus/core.c
+@@ -14,6 +14,8 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/platform_device.h>
++#include <linux/platform_data/qcom-tcl-acpi.h>
++#include <linux/property.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/pm_domain.h>
+@@ -377,6 +379,12 @@ static int venus_add_dynamic_nodes(struct venus_core *core)
+ static void venus_remove_dynamic_nodes(struct venus_core *core) {}
+ #endif
+ 
++static struct platform_device *venus_register_codec(struct device *parent, const char *name)
++{
++	return platform_device_register_data(parent, name, PLATFORM_DEVID_NONE,
++					     NULL, 0);
++}
++
+ static int venus_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -393,19 +401,41 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (IS_ERR(core->base))
+ 		return PTR_ERR(core->base);
+ 
+-	core->video_path = devm_of_icc_get(dev, "video-mem");
++	if (device_property_read_bool(dev, "qcom,tcl-acpi-video"))
++		core->video_path = icc_get(dev, "qxm_venus0@tcl-sc7180-mnoc",
++					   "ebi@tcl-sc7180-mc");
++	else
++		core->video_path = devm_of_icc_get(dev, "video-mem");
+ 	if (IS_ERR(core->video_path))
+ 		return PTR_ERR(core->video_path);
++	if (!dev->of_node) {
++		ret = devm_add_action_or_reset(dev, (void (*)(void *))icc_put,
++					       core->video_path);
++		if (ret)
++			return ret;
++	}
+ 
+-	core->cpucfg_path = devm_of_icc_get(dev, "cpu-cfg");
++	if (device_property_read_bool(dev, "qcom,tcl-acpi-video"))
++		core->cpucfg_path = icc_get(dev, "acm_apps0@tcl-sc7180-gnoc",
++					    "qhs_venus_cfg@tcl-sc7180-cnoc");
++	else
++		core->cpucfg_path = devm_of_icc_get(dev, "cpu-cfg");
+ 	if (IS_ERR(core->cpucfg_path))
+ 		return PTR_ERR(core->cpucfg_path);
++	if (!dev->of_node) {
++		ret = devm_add_action_or_reset(dev, (void (*)(void *))icc_put,
++					       core->cpucfg_path);
++		if (ret)
++			return ret;
++	}
+ 
+ 	core->irq = platform_get_irq(pdev, 0);
+ 	if (core->irq < 0)
+ 		return core->irq;
+ 
+ 	core->res = of_device_get_match_data(dev);
++	if (!core->res && platform_get_device_id(pdev))
++		core->res = (const void *)platform_get_device_id(pdev)->driver_data;
+ 	if (!core->res)
+ 		return -ENODEV;
+ 
+@@ -480,15 +510,32 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_core_deinit;
+ 
+-	if (core->res->dec_nodename || core->res->enc_nodename) {
++	if (dev->of_node && (core->res->dec_nodename || core->res->enc_nodename)) {
+ 		ret = venus_add_dynamic_nodes(core);
+ 		if (ret)
+ 			goto err_core_deinit;
+ 	}
+ 
+-	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+-	if (ret)
+-		goto err_remove_dynamic_nodes;
++	if (dev->of_node) {
++		ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
++		if (ret)
++			goto err_remove_dynamic_nodes;
++	} else {
++		core->dec_pdev = venus_register_codec(dev, "qcom-venus-decoder");
++		if (IS_ERR(core->dec_pdev)) {
++			ret = PTR_ERR(core->dec_pdev);
++			core->dec_pdev = NULL;
++			goto err_remove_dynamic_nodes;
++		}
++		core->enc_pdev = venus_register_codec(dev, "qcom-venus-encoder");
++		if (IS_ERR(core->enc_pdev)) {
++			ret = PTR_ERR(core->enc_pdev);
++			core->enc_pdev = NULL;
++			platform_device_unregister(core->dec_pdev);
++			core->dec_pdev = NULL;
++			goto err_remove_dynamic_nodes;
++		}
++	}
+ 
+ 	ret = venus_enumerate_codecs(core, VIDC_SESSION_TYPE_DEC);
+ 	if (ret)
+@@ -509,7 +556,14 @@ static int venus_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_of_depopulate:
+-	of_platform_depopulate(dev);
++	if (dev->of_node) {
++		of_platform_depopulate(dev);
++	} else {
++		platform_device_unregister(core->enc_pdev);
++		platform_device_unregister(core->dec_pdev);
++		core->enc_pdev = NULL;
++		core->dec_pdev = NULL;
++	}
+ err_remove_dynamic_nodes:
+ 	venus_remove_dynamic_nodes(core);
+ err_core_deinit:
+@@ -546,7 +600,12 @@ static void venus_remove(struct platform_device *pdev)
+ 	WARN_ON(ret);
+ 
+ 	venus_shutdown(core);
+-	of_platform_depopulate(dev);
++	if (dev->of_node) {
++		of_platform_depopulate(dev);
++	} else {
++		platform_device_unregister(core->enc_pdev);
++		platform_device_unregister(core->dec_pdev);
++	}
+ 
+ 	venus_firmware_deinit(core);
+ 
+@@ -1188,9 +1247,16 @@ static const struct of_device_id venus_dt_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, venus_dt_match);
+ 
++static const struct platform_device_id venus_platform_ids[] = {
++	{ "tcl-sc7180-venus", (kernel_ulong_t)&sc7180_res },
++	{ }
++};
++MODULE_DEVICE_TABLE(platform, venus_platform_ids);
++
+ static struct platform_driver qcom_venus_driver = {
+ 	.probe = venus_probe,
+ 	.remove = venus_remove,
++	.id_table = venus_platform_ids,
+ 	.driver = {
+ 		.name = "qcom-venus",
+ 		.of_match_table = venus_dt_match,
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index 46705a666..be499b756 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -216,6 +216,8 @@ struct venus_core {
+ 	struct device *dev;
+ 	struct device *dev_dec;
+ 	struct device *dev_enc;
++	struct platform_device *dec_pdev;
++	struct platform_device *enc_pdev;
+ 	unsigned int use_tz;
+ 	struct video_firmware {
+ 		struct device *dev;
+diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+index 1de743671..66ac0b5c7 100644
+--- a/drivers/media/platform/qcom/venus/firmware.c
++++ b/drivers/media/platform/qcom/venus/firmware.c
+@@ -92,7 +92,19 @@ static int venus_load_fw(struct venus_core *core, const char *fwname,
+ 	*mem_size = 0;
+ 
+ 	dev = core->dev;
+-	ret = of_reserved_mem_region_to_resource(dev->of_node, 0, &res);
++	if (dev->of_node) {
++		ret = of_reserved_mem_region_to_resource(dev->of_node, 0, &res);
++	} else {
++		struct resource *fw = platform_get_resource_byname(to_platform_device(dev),
++								 IORESOURCE_MEM, "firmware");
++
++		if (fw) {
++			res = *fw;
++			ret = 0;
++		} else {
++			ret = -ENOENT;
++		}
++	}
+ 	if (ret) {
+ 		dev_err(dev, "failed to lookup reserved memory-region\n");
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/qcom/venus/pm_helpers.c b/drivers/media/platform/qcom/venus/pm_helpers.c
+index be1cbd5cf..bfbe0dd4e 100644
+--- a/drivers/media/platform/qcom/venus/pm_helpers.c
++++ b/drivers/media/platform/qcom/venus/pm_helpers.c
+@@ -11,6 +11,8 @@
+ #include <linux/pm_domain.h>
+ #include <linux/pm_opp.h>
+ #include <linux/pm_runtime.h>
++#include <linux/platform_data/qcom-tcl-acpi.h>
++#include <linux/property.h>
+ #include <linux/reset.h>
+ #include <linux/types.h>
+ #include <media/v4l2-mem2mem.h>
+@@ -1026,6 +1028,29 @@ static int vcodec_domains_get_v4(struct venus_core *core)
+ 		.num_pd_names = res->opp_pmdomain_num,
+ 		.pd_flags = PD_FLAG_DEV_LINK_ON | PD_FLAG_REQUIRED_OPP,
+ 	};
++	const struct qcom_tcl_venus_data *tcl = dev_get_platdata(dev);
++
++	if (device_property_read_bool(dev, "qcom,tcl-acpi-video")) {
++		if (!tcl || !tcl->venus_pd || !tcl->vcodec0_pd || !tcl->cx_pd)
++			return -EINVAL;
++		core->pmdomains = devm_kzalloc(dev, sizeof(*core->pmdomains), GFP_KERNEL);
++		core->opp_pmdomain = devm_kzalloc(dev, sizeof(*core->opp_pmdomain), GFP_KERNEL);
++		if (!core->pmdomains || !core->opp_pmdomain)
++			return -ENOMEM;
++		core->pmdomains->pd_devs = devm_kcalloc(dev, 2,
++							sizeof(struct device *),
++							GFP_KERNEL);
++		core->opp_pmdomain->pd_devs =
++			devm_kcalloc(dev, 1, sizeof(struct device *), GFP_KERNEL);
++		if (!core->pmdomains->pd_devs || !core->opp_pmdomain->pd_devs)
++			return -ENOMEM;
++		core->pmdomains->pd_devs[0] = tcl->venus_pd;
++		core->pmdomains->pd_devs[1] = tcl->vcodec0_pd;
++		core->pmdomains->num_pds = 2;
++		core->opp_pmdomain->pd_devs[0] = tcl->cx_pd;
++		core->opp_pmdomain->num_pds = 1;
++		return 0;
++	}
+ 
+ 	if (!res->vcodec_pmdomains_num)
+ 		goto skip_pmdomains;
+diff --git a/include/linux/platform_data/qcom-tcl-acpi.h b/include/linux/platform_data/qcom-tcl-acpi.h
+index 13dc3f9a0..221155eee 100644
+--- a/include/linux/platform_data/qcom-tcl-acpi.h
++++ b/include/linux/platform_data/qcom-tcl-acpi.h
+@@ -27,4 +27,11 @@ struct qcom_tcl_regulator_data {
+ 	unsigned int count;
+ };
+ 
++/* Board-owned proxy devices must outlive the Venus consumer. */
++struct qcom_tcl_venus_data {
++	struct device *venus_pd;
++	struct device *vcodec0_pd;
++	struct device *cx_pd;
++};
++
+ #endif

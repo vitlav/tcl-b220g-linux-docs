@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <linux/clk.h>
+#include <linux/platform_data/qcom-tcl-clkdev.h>
 #include <linux/dmi.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -37,19 +38,17 @@ static const struct resource lpi_resources[] = {
 static struct platform_device *lpi_pdev;
 static struct clk *lpi_core_clk;
 static struct clk *lpi_audio_clk;
-static bool lpi_core_enabled;
-static bool lpi_audio_enabled;
+static struct clk_lookup *lpi_core_lookup;
+static struct clk_lookup *lpi_audio_lookup;
 
-static void lpi_clks_disable(void)
+static void lpi_clks_drop(void)
 {
-	if (lpi_audio_enabled) {
-		clk_disable_unprepare(lpi_audio_clk);
-		lpi_audio_enabled = false;
-	}
-	if (lpi_core_enabled) {
-		clk_disable_unprepare(lpi_core_clk);
-		lpi_core_enabled = false;
-	}
+	if (lpi_audio_lookup)
+		clkdev_drop(lpi_audio_lookup);
+	if (lpi_core_lookup)
+		clkdev_drop(lpi_core_lookup);
+	lpi_audio_lookup = NULL;
+	lpi_core_lookup = NULL;
 }
 
 static void lpi_clks_put(void)
@@ -90,33 +89,39 @@ static int __init tcl_lpi_provider_init(void)
 		lpi_core_clk = NULL;
 		return ret;
 	}
-	ret = clk_prepare_enable(lpi_core_clk);
-	if (ret)
+	/* The pinctrl driver owns enable/disable through runtime PM. */
+	lpi_core_lookup = qcom_tcl_clkdev_lookup(__clk_get_hw(lpi_core_clk),
+					      "core", "tcl-lpi-provider.0");
+	if (IS_ERR(lpi_core_lookup)) {
+		ret = PTR_ERR(lpi_core_lookup);
+		lpi_core_lookup = NULL;
 		goto err_clks;
-	lpi_core_enabled = true;
-	ret = clk_prepare_enable(lpi_audio_clk);
-	if (ret)
-		goto err_clks;
-	lpi_audio_enabled = true;
+	}
+	lpi_audio_lookup = qcom_tcl_clkdev_lookup(__clk_get_hw(lpi_audio_clk),
+					       "audio", "tcl-lpi-provider.0");
+	if (IS_ERR(lpi_audio_lookup)) {
+		ret = PTR_ERR(lpi_audio_lookup);
+		lpi_audio_lookup = NULL;
+		goto err_lookups;
+	}
 
 	ret = software_node_register(&lpi_node);
 	if (ret)
-		goto err_enabled_clks;
+		goto err_lookups;
 	info.fwnode = software_node_fwnode(&lpi_node);
 	lpi_pdev = platform_device_register_full(&info);
 	if (IS_ERR(lpi_pdev)) {
 		ret = PTR_ERR(lpi_pdev);
 		lpi_pdev = NULL;
 		software_node_unregister(&lpi_node);
-		goto err_enabled_clks;
+		goto err_lookups;
 	}
 
-	lpi_clks_disable();
 	pr_info("TCL B220G ACPI LPASS LPI pinctrl provider registered\n");
 	return 0;
 
-err_enabled_clks:
-	lpi_clks_disable();
+err_lookups:
+	lpi_clks_drop();
 err_clks:
 	lpi_clks_put();
 	return ret;
@@ -126,6 +131,7 @@ static void __exit tcl_lpi_provider_exit(void)
 {
 	platform_device_unregister(lpi_pdev);
 	software_node_unregister(&lpi_node);
+	lpi_clks_drop();
 	lpi_clks_put();
 }
 

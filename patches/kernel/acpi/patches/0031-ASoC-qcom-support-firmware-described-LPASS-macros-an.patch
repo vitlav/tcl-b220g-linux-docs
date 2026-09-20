@@ -1,7 +1,7 @@
-From d3faa8e98f91e2b7482acbd18e7eb190fd2360d3 Mon Sep 17 00:00:00 2001
+From 2d3dc3b991040d7359642730f69a4998c80ffd40 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 31/37] ASoC: qcom: support firmware-described LPASS macros and
+Subject: [PATCH 31/70] ASoC: qcom: support firmware-described LPASS macros and
  SoundWire pins
 
 The supplemental LPASS RX/TX/VA macros and LPI pin controller need
@@ -23,7 +23,7 @@ ordering, and microphone routing remains unqualified.
  5 files changed, 155 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/pinctrl/qcom/pinctrl-lpass-lpi.c b/drivers/pinctrl/qcom/pinctrl-lpass-lpi.c
-index 5fd4a4eba654de5efacd7aa9ee3f1d59cf60c8c9..c21bde46377d5241159c2e02f042166cfe8e03bf 100644
+index 5fd4a4eba..c21bde463 100644
 --- a/drivers/pinctrl/qcom/pinctrl-lpass-lpi.c
 +++ b/drivers/pinctrl/qcom/pinctrl-lpass-lpi.c
 @@ -510,8 +510,15 @@ int lpi_pinctrl_probe(struct platform_device *pdev)
@@ -143,7 +143,7 @@ index 5fd4a4eba654de5efacd7aa9ee3f1d59cf60c8c9..c21bde46377d5241159c2e02f042166c
  	ret = devm_gpiochip_add_data(dev, &pctrl->chip, pctrl);
  	if (ret) {
 diff --git a/drivers/pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c b/drivers/pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c
-index a61df10d46cb3a952bdc2fbc45776290b86d5c19..54790cd3c8542a73e1a1ee5ab7d1a69e314ed5f5 100644
+index a61df10d4..54790cd3c 100644
 --- a/drivers/pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c
 +++ b/drivers/pinctrl/qcom/pinctrl-sc7280-lpass-lpi.c
 @@ -141,6 +141,12 @@ static const struct of_device_id lpi_pinctrl_of_match[] = {
@@ -168,7 +168,7 @@ index a61df10d46cb3a952bdc2fbc45776290b86d5c19..54790cd3c8542a73e1a1ee5ab7d1a69e
  	.remove = lpi_pinctrl_remove,
  };
 diff --git a/sound/soc/codecs/lpass-rx-macro.c b/sound/soc/codecs/lpass-rx-macro.c
-index 6233aa9f5bc6d86d48d793ebcbea3e6ed9edbbb6..a1c8ac0486be31eeb3d94ea8eea2aba233932de8 100644
+index 6233aa9f5..a1c8ac048 100644
 --- a/sound/soc/codecs/lpass-rx-macro.c
 +++ b/sound/soc/codecs/lpass-rx-macro.c
 @@ -15,6 +15,7 @@
@@ -220,7 +220,7 @@ index 6233aa9f5bc6d86d48d793ebcbea3e6ed9edbbb6..a1c8ac0486be31eeb3d94ea8eea2aba2
  		.name = "rx_macro",
  		.of_match_table = rx_macro_dt_match,
 diff --git a/sound/soc/codecs/lpass-tx-macro.c b/sound/soc/codecs/lpass-tx-macro.c
-index 0cbf50647ff57c294e00d687eacf4675cbd221d9..875f9de6b43671dcdbab97d0f290e689368d3d52 100644
+index 0cbf50647..875f9de6b 100644
 --- a/sound/soc/codecs/lpass-tx-macro.c
 +++ b/sound/soc/codecs/lpass-tx-macro.c
 @@ -13,6 +13,7 @@
@@ -271,7 +271,7 @@ index 0cbf50647ff57c294e00d687eacf4675cbd221d9..875f9de6b43671dcdbab97d0f290e689
  		.name = "tx_macro",
  		.of_match_table = tx_macro_dt_match,
 diff --git a/sound/soc/codecs/lpass-va-macro.c b/sound/soc/codecs/lpass-va-macro.c
-index 58a5798823d7fde1299ee2ee939ee39733548507..5ef7993c7cd95f4a1bc24bd7c3d1aeb59cb1f64c 100644
+index 58a579882..5ef7993c7 100644
 --- a/sound/soc/codecs/lpass-va-macro.c
 +++ b/sound/soc/codecs/lpass-va-macro.c
 @@ -8,6 +8,8 @@

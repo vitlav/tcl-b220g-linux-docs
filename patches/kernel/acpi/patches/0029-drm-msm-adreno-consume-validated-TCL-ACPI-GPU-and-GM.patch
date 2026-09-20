@@ -1,7 +1,7 @@
-From e41be53ab51187a1722f985a5f06a4e3f7dd8f6f Mon Sep 17 00:00:00 2001
+From 0989963c688fd3a0eb9427bf5bfc297e58ac5a47 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 29/37] drm/msm/adreno: consume validated TCL ACPI GPU and GMU
+Subject: [PATCH 29/70] drm/msm/adreno: consume validated TCL ACPI GPU and GMU
  resources
 
 The OEM composite GPU device must be represented as separate Adreno and
@@ -24,7 +24,7 @@ GPU rendering and does not implement hardware video decoding.
  create mode 100644 drivers/gpu/drm/msm/adreno/tcl_acpi.h
 
 diff --git a/drivers/gpu/drm/msm/adreno/a6xx_gmu.c b/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
-index 2e5d7b53a0c380c664a1bd66eb7e51be8a151b93..5e8f020d1e9605577729cd6305f5268fb9f7f3b8 100644
+index 2e5d7b53a..5e8f020d1 100644
 --- a/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
 +++ b/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
 @@ -1,6 +1,7 @@
@@ -266,7 +266,7 @@ index 2e5d7b53a0c380c664a1bd66eb7e51be8a151b93..5e8f020d1e9605577729cd6305f5268f
  	put_device(gmu->dev);
  
 diff --git a/drivers/gpu/drm/msm/adreno/a6xx_gpu.c b/drivers/gpu/drm/msm/adreno/a6xx_gpu.c
-index 8b3bb2fd433bab983a701823a46fb1553fa32825..1cf7d6579803d9d51ff80527f70c0ce9cd27bd7a 100644
+index 8b3bb2fd4..1cf7d6579 100644
 --- a/drivers/gpu/drm/msm/adreno/a6xx_gpu.c
 +++ b/drivers/gpu/drm/msm/adreno/a6xx_gpu.c
 @@ -2,6 +2,7 @@
@@ -309,7 +309,7 @@ index 8b3bb2fd433bab983a701823a46fb1553fa32825..1cf7d6579803d9d51ff80527f70c0ce9
  	if (is_a7xx || !a6xx_gpu->have_mmu500)
  		a6xx_gpu->cx_misc_mmio = msm_ioremap(pdev, "cx_mem");
 diff --git a/drivers/gpu/drm/msm/adreno/adreno_device.c b/drivers/gpu/drm/msm/adreno/adreno_device.c
-index 7f20320ef66af3a17e69ca327c6f8b2a873d6741..695b1692821b61b32d84443a0adfa5be8ede399b 100644
+index 7f20320ef..695b16928 100644
 --- a/drivers/gpu/drm/msm/adreno/adreno_device.c
 +++ b/drivers/gpu/drm/msm/adreno/adreno_device.c
 @@ -6,6 +6,7 @@
@@ -378,7 +378,7 @@ index 7f20320ef66af3a17e69ca327c6f8b2a873d6741..695b1692821b61b32d84443a0adfa5be
  	.remove = adreno_remove,
  	.shutdown = adreno_shutdown,
 diff --git a/drivers/gpu/drm/msm/adreno/adreno_gpu.c b/drivers/gpu/drm/msm/adreno/adreno_gpu.c
-index c62c45bb0ddbba7d396f2f32afc5ff5cce2ffe75..05d7ebb5399b7303e3d3d918fd36f5cb15117fcf 100644
+index c62c45bb0..05d7ebb53 100644
 --- a/drivers/gpu/drm/msm/adreno/adreno_gpu.c
 +++ b/drivers/gpu/drm/msm/adreno/adreno_gpu.c
 @@ -6,6 +6,7 @@
@@ -439,7 +439,7 @@ index c62c45bb0ddbba7d396f2f32afc5ff5cce2ffe75..05d7ebb5399b7303e3d3d918fd36f5cb
  		if (adreno_is_a2xx(adreno_gpu)) {
 diff --git a/drivers/gpu/drm/msm/adreno/tcl_acpi.h b/drivers/gpu/drm/msm/adreno/tcl_acpi.h
 new file mode 100644
-index 0000000000000000000000000000000000000000..104f8c7cca1c1acad35a2649c18740c826d35f43
+index 000000000..104f8c7cc
 --- /dev/null
 +++ b/drivers/gpu/drm/msm/adreno/tcl_acpi.h
 @@ -0,0 +1,40 @@

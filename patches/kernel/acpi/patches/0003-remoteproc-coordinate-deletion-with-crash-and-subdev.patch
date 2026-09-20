@@ -1,7 +1,7 @@
-From 6d1c4f42896a36db1a996b7dad46e0655346afe2 Mon Sep 17 00:00:00 2001
+From 1c36ac00c23c0c32ac568269ca8666338d5ea5c5 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 03/37] remoteproc: coordinate deletion with crash and
+Subject: [PATCH 03/70] remoteproc: coordinate deletion with crash and
  subdevice shutdown
 
 Remoteproc deletion can overlap crash reporting/recovery and subdevice
@@ -22,7 +22,7 @@ generally qualified lifecycle fix.
  2 files changed, 64 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index f003be006b1bf86b4ebbbd479c908ee3e6ee9238..2067b30d8649861c5bfa56740d5b06572797c9cf 100644
+index f003be006..2067b30d8 100644
 --- a/drivers/remoteproc/remoteproc_core.c
 +++ b/drivers/remoteproc/remoteproc_core.c
 @@ -1099,6 +1099,8 @@ static int rproc_start_subdevices(struct rproc *rproc)
@@ -202,7 +202,7 @@ index f003be006b1bf86b4ebbbd479c908ee3e6ee9238..2067b30d8649861c5bfa56740d5b0657
  EXPORT_SYMBOL(rproc_report_crash);
  
 diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 7c1546d48008258c5c87936c0ce9fe1ec61d1382..d26441ca5acf116f1a5e8b94953436fa0cd745ae 100644
+index 7c1546d48..d26441ca5 100644
 --- a/include/linux/remoteproc.h
 +++ b/include/linux/remoteproc.h
 @@ -43,6 +43,8 @@

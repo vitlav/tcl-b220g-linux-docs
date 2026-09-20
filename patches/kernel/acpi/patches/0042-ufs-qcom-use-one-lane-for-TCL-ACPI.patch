@@ -1,0 +1,52 @@
+From 75f1edd67612673a27ce522ee175500b9ab03c8b Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 23:46:54 +0300
+Subject: [PATCH 42/70] ufs: qcom: use one lane for TCL ACPI
+
+---
+ drivers/ufs/host/ufs-qcom.c      | 5 +++++
+ drivers/ufs/host/ufshcd-pltfrm.c | 8 ++++++++
+ 2 files changed, 13 insertions(+)
+
+diff --git a/drivers/ufs/host/ufs-qcom.c b/drivers/ufs/host/ufs-qcom.c
+index 5b9b2b230..0f98eef0d 100644
+--- a/drivers/ufs/host/ufs-qcom.c
++++ b/drivers/ufs/host/ufs-qcom.c
+@@ -1382,6 +1382,11 @@ static void ufs_qcom_set_host_params(struct ufs_hba *hba)
+ 	struct ufs_host_params *host_params = &host->host_params;
+ 
+ 	ufshcd_init_host_params(host_params);
++	/* B220G is wired for a single UFS lane.  The ACPI description does not
++	 * carry the DT lane-count property, so override the generic two-lane
++	 * default for this firmware path. */
++	if (has_acpi_companion(hba->dev))
++		host_params->tx_lanes = host_params->rx_lanes = 1;
+ 
+ 	/* This driver only supports symmetic gear setting i.e., hs_tx_gear == hs_rx_gear */
+ 	host_params->hs_tx_gear = host_params->hs_rx_gear = ufs_qcom_get_hs_gear(hba);
+diff --git a/drivers/ufs/host/ufshcd-pltfrm.c b/drivers/ufs/host/ufshcd-pltfrm.c
+index c2dafb583..d1eac5f93 100644
+--- a/drivers/ufs/host/ufshcd-pltfrm.c
++++ b/drivers/ufs/host/ufshcd-pltfrm.c
+@@ -14,6 +14,7 @@
+ #include <linux/pm_opp.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/of.h>
++#include <linux/acpi.h>
+ 
+ #include <ufs/ufshcd.h>
+ #include "ufshcd-pltfrm.h"
+@@ -200,6 +201,13 @@ static void ufshcd_init_lanes_per_dir(struct ufs_hba *hba)
+ 	struct device *dev = hba->dev;
+ 	int ret;
+ 
++	/* The B220G ACPI firmware omits the DT lanes-per-direction property;
++	 * its UFS wiring has one lane per direction. */
++	if (has_acpi_companion(dev)) {
++		hba->lanes_per_direction = 1;
++		return;
++	}
++
+ 	ret = of_property_read_u32(dev->of_node, "lanes-per-direction",
+ 		&hba->lanes_per_direction);
+ 	if (ret) {

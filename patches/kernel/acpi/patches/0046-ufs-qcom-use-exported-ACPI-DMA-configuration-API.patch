@@ -1,0 +1,23 @@
+From 8713c8e886ca7361f96e2e9433610fa1c489ef25 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Wed, 16 Sep 2026 01:07:33 +0300
+Subject: [PATCH 46/70] ufs: qcom: use exported ACPI DMA configuration API
+
+---
+ drivers/ufs/host/ufs-qcom.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/ufs/host/ufs-qcom.c b/drivers/ufs/host/ufs-qcom.c
+index 2502db52a..058cdaedb 100644
+--- a/drivers/ufs/host/ufs-qcom.c
++++ b/drivers/ufs/host/ufs-qcom.c
+@@ -2987,8 +2987,7 @@ static int ufs_qcom_probe(struct platform_device *pdev)
+ 	 * ID used by the DT node so the Apps SMMU attaches this client. */
+ 	if (has_acpi_companion(dev)) {
+ 		u32 input_id = 0x81030000;
+-		acpi_dma_configure_id(dev, acpi_get_dma_attr(to_acpi_device_node(dev_fwnode(dev))),
+-				      &input_id);
++		acpi_dma_configure_id(dev, DEV_DMA_COHERENT, &input_id);
+ 	}
+ 
+ 	if (drvdata && drvdata->vops)

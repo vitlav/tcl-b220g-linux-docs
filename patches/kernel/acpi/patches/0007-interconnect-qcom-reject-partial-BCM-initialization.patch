@@ -1,7 +1,7 @@
-From 49dfa20cac70917d6aa7105002af87ac52f8199b Mon Sep 17 00:00:00 2001
+From 3eb90cc583544e53c5e5cad6b71a039679cdf783 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 07/37] interconnect: qcom: reject partial BCM initialization
+Subject: [PATCH 07/70] interconnect: qcom: reject partial BCM initialization
 
 BCM initialization can leave a nonzero address marking an incompletely
 initialized object, and the RPMh interconnect probe previously ignored
@@ -18,7 +18,7 @@ instead of treating the provider as ready.
  1 file changed, 20 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/interconnect/qcom/icc-rpmh.c b/drivers/interconnect/qcom/icc-rpmh.c
-index 3b445acefece7f1b3620ad921617694d2105e37f..3b4c5abb9fab72c93b9889e331dd01b27d35175b 100644
+index 3b445acef..3b4c5abb9 100644
 --- a/drivers/interconnect/qcom/icc-rpmh.c
 +++ b/drivers/interconnect/qcom/icc-rpmh.c
 @@ -148,14 +148,15 @@ int qcom_icc_bcm_init(struct qcom_icc_bcm *bcm, struct device *dev)

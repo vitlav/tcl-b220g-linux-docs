@@ -1,7 +1,7 @@
-From 65745ca21cd9422d85b60992c56a78a9d7f4b54c Mon Sep 17 00:00:00 2001
+From 2d4779e768bdb43aa914c9d0f348309b2c677162 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 32/37] soundwire: enumerate TCL firmware nodes and handle
+Subject: [PATCH 32/70] soundwire: enumerate TCL firmware nodes and handle
  controller rebinding
 
 The supplemental SoundWire masters describe port configuration and codec
@@ -24,7 +24,7 @@ establish the cause of the observed TX Alert.
  4 files changed, 148 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/soundwire/bus.c b/drivers/soundwire/bus.c
-index a1e8f87a93993bd2727dcc59eeb12bbe41275a62..3b289c94216b39a03e35faca1cd318803cac9f66 100644
+index a1e8f87a9..3b289c942 100644
 --- a/drivers/soundwire/bus.c
 +++ b/drivers/soundwire/bus.c
 @@ -29,6 +29,8 @@ static int sdw_get_id(struct sdw_bus *bus)
@@ -53,7 +53,7 @@ index a1e8f87a93993bd2727dcc59eeb12bbe41275a62..3b289c94216b39a03e35faca1cd31880
  		return ret;
  	}
 diff --git a/drivers/soundwire/bus.h b/drivers/soundwire/bus.h
-index 8115c64dd48e2fd767121724e92813deb81f5da9..6487913222b9355796232ceef6ea7606e98c6c7d 100644
+index 8115c64dd..648791322 100644
 --- a/drivers/soundwire/bus.h
 +++ b/drivers/soundwire/bus.h
 @@ -19,6 +19,7 @@ static inline int sdw_acpi_find_slaves(struct sdw_bus *bus)
@@ -65,7 +65,7 @@ index 8115c64dd48e2fd767121724e92813deb81f5da9..6487913222b9355796232ceef6ea7606
  			  u64 addr, struct sdw_slave_id *id);
  int sdw_slave_add(struct sdw_bus *bus, struct sdw_slave_id *id,
 diff --git a/drivers/soundwire/qcom.c b/drivers/soundwire/qcom.c
-index 3d8f5a81eff19511d80e33c76f54972691ccf530..f628c70bbd12c28649aa14b705aad36e0c370835 100644
+index 3d8f5a81e..f628c70bb 100644
 --- a/drivers/soundwire/qcom.c
 +++ b/drivers/soundwire/qcom.c
 @@ -10,6 +10,7 @@
@@ -292,7 +292,7 @@ index 3d8f5a81eff19511d80e33c76f54972691ccf530..f628c70bbd12c28649aa14b705aad36e
  	.remove = qcom_swrm_remove,
  	.driver = {
 diff --git a/drivers/soundwire/slave.c b/drivers/soundwire/slave.c
-index e0c49cbcb1bab45e7dbe7c8cb8abcc13c4708fb6..b8ed01260ed626e9c39bc52cd8f148bc2345bd80 100644
+index e0c49cbcb..b8ed01260 100644
 --- a/drivers/soundwire/slave.c
 +++ b/drivers/soundwire/slave.c
 @@ -3,6 +3,7 @@

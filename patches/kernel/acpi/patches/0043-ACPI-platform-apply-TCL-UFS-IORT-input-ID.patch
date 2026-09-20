@@ -1,0 +1,27 @@
+From e2b705fb5c77bd687008fc37b8c5aecefd7ef0f4 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Wed, 16 Sep 2026 00:09:50 +0300
+Subject: [PATCH 43/70] ACPI: platform: apply TCL UFS IORT input ID
+
+---
+ drivers/base/platform.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index 6111e5fe5..8122884bc 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -1480,7 +1480,12 @@ static int platform_dma_configure(struct device *dev)
+ 		ret = of_dma_configure(dev, to_of_node(fwnode), true);
+ 	} else if (is_acpi_device_node(fwnode)) {
+ 		attr = acpi_get_dma_attr(to_acpi_device_node(fwnode));
+-		ret = acpi_dma_configure(dev, attr);
++		if (!strcmp(acpi_device_hid(to_acpi_device_node(fwnode)), "QCOM24A5")) {
++			u32 input_id = 0x81030000;
++			ret = acpi_dma_configure_id(dev, attr, &input_id);
++		} else {
++			ret = acpi_dma_configure(dev, attr);
++		}
+ 	} else if (dev_name(dev) && !strcmp(dev_name(dev), "tcl-sc7180-dpu") &&
+ 		   device_property_read_bool(dev, "qcom,tcl-acpi-display")) {
+ 		struct acpi_device *adev;

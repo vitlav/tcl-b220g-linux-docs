@@ -1,7 +1,7 @@
-From d0ea9ffc6342a3b7a4f1aea299c279c41feb1f7e Mon Sep 17 00:00:00 2001
+From 8f66b28926c6bc9474adc6b696dd9d46b32e878b Mon Sep 17 00:00:00 2001
 From: Stephen Boyd <swboyd@chromium.org>
 Date: Wed, 27 Mar 2024 13:27:37 -0700
-Subject: [PATCH 22/37] clk: qcom: dispcc-sc7180: stop firmware rotator clock
+Subject: [PATCH 22/70] clk: qcom: dispcc-sc7180: stop firmware rotator clock
  for TCL ACPI
 
 The SC7180 firmware can leave disp_cc_mdss_rot_clk running from
@@ -27,7 +27,7 @@ adaptation by the original author.
  1 file changed, 9 insertions(+)
 
 diff --git a/drivers/clk/qcom/dispcc-sc7180.c b/drivers/clk/qcom/dispcc-sc7180.c
-index 2dd1227f583af0591f1cd4d198c8d3107dc00abd..850cfcf0b58b0dd0a4a2e29ebba5063c22c223c1 100644
+index 2dd1227f5..850cfcf0b 100644
 --- a/drivers/clk/qcom/dispcc-sc7180.c
 +++ b/drivers/clk/qcom/dispcc-sc7180.c
 @@ -771,6 +771,15 @@ static int disp_cc_sc7180_probe(struct platform_device *pdev)

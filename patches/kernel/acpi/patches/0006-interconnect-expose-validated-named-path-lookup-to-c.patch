@@ -1,7 +1,7 @@
-From 5b55e0ebbe1d77006cef0c88c26840f5a868a6e1 Mon Sep 17 00:00:00 2001
+From b615a41638372b5fa7db47c4013735066b32c475 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:42 +0300
-Subject: [PATCH 06/37] interconnect: expose validated named path lookup to
+Subject: [PATCH 06/70] interconnect: expose validated named path lookup to
  consumers
 
 Non-OF platform consumers need to request an interconnect path by its
@@ -21,7 +21,7 @@ registered.
  3 files changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/interconnect/core.c b/drivers/interconnect/core.c
-index 4aa991a54101832c6126155196c0541edb0eb870..5d7c7de457c03094ff8fc76f00f3ef0c12cc8e6e 100644
+index 4aa991a54..5d7c7de45 100644
 --- a/drivers/interconnect/core.c
 +++ b/drivers/interconnect/core.c
 @@ -624,6 +624,9 @@ struct icc_path *icc_get(struct device *dev, const char *src, const char *dst)
@@ -43,7 +43,7 @@ index 4aa991a54101832c6126155196c0541edb0eb870..5d7c7de457c03094ff8fc76f00f3ef0c
  /**
   * icc_set_tag() - set an optional tag on a path
 diff --git a/drivers/interconnect/internal.h b/drivers/interconnect/internal.h
-index 3b9d50589c01a799ebf11446ce6122257c1f72ea..a28e73225fedbb80051de580e04ba9839d7607a2 100644
+index 3b9d50589..a28e73225 100644
 --- a/drivers/interconnect/internal.h
 +++ b/drivers/interconnect/internal.h
 @@ -41,7 +41,6 @@ struct icc_path {
@@ -55,7 +55,7 @@ index 3b9d50589c01a799ebf11446ce6122257c1f72ea..a28e73225fedbb80051de580e04ba983
  
  #endif
 diff --git a/include/linux/interconnect.h b/include/linux/interconnect.h
-index 75a32ad0482e2368de6bceef4ef795a7da775bc8..8d2526967d2afe0ec684bf35710a43ee9caeac13 100644
+index 75a32ad04..8d2526967 100644
 --- a/include/linux/interconnect.h
 +++ b/include/linux/interconnect.h
 @@ -43,6 +43,7 @@ struct icc_bulk_data {

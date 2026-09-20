@@ -1,0 +1,141 @@
+From 18456080a6178b100acd1d110c13e801fd131aab Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Sun, 20 Sep 2026 22:10:05 +0300
+Subject: [PATCH 62/70] remoteproc: qcom: use generic TCL ACPI PAS resources
+
+Resolve PAS resources from firmware properties, remove the obsolete board platform-data path, and retain the bounded diagnostic fallback needed by the verified TCL firmware description.
+---
+ drivers/remoteproc/qcom_common.c   | 30 +++++++++++++++++++++++-------
+ drivers/remoteproc/qcom_common.h   |  6 +++---
+ drivers/remoteproc/qcom_q6v5.c     |  6 ++----
+ drivers/remoteproc/qcom_q6v5_pas.c |  9 ++++++---
+ 4 files changed, 34 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/remoteproc/qcom_common.c b/drivers/remoteproc/qcom_common.c
+index ecde6b260..b5a6bc298 100644
+--- a/drivers/remoteproc/qcom_common.c
++++ b/drivers/remoteproc/qcom_common.c
+@@ -258,10 +258,26 @@ void qcom_add_glink_subdev(struct rproc *rproc, struct qcom_rproc_glink *glink,
+ 			   const char *ssr_name)
+ {
+ 	struct device *dev = &rproc->dev;
+-
+-	glink->node = of_get_child_by_name(dev->parent->of_node, "glink-edge");
+-	if (!glink->node)
+-		return;
++	struct fwnode_handle *fwnode;
++	int irq;
++
++	if (dev->parent->of_node) {
++		glink->node = of_get_child_by_name(dev->parent->of_node,
++						   "glink-edge");
++		if (!glink->node)
++			return;
++	} else {
++		fwnode = device_get_named_child_node(dev->parent, "glink-edge");
++		if (!fwnode)
++			return;
++		irq = fwnode_irq_get_byname(dev_fwnode(dev->parent), "glink");
++		if (irq < 0) {
++			fwnode_handle_put(fwnode);
++			return;
++		}
++		glink->fwnode = fwnode;
++		glink->irq = irq;
++	}
+ 
+ 	glink->ssr_name = kstrdup_const(ssr_name, GFP_KERNEL);
+ 	if (!glink->ssr_name)
+@@ -290,9 +306,9 @@ EXPORT_SYMBOL_GPL(qcom_add_glink_subdev);
+  * Return: 0 on success, a negative error code on failure.
+  */
+ int qcom_add_glink_subdev_fwnode(struct rproc *rproc,
+-			       struct qcom_rproc_glink *glink,
+-			       const char *ssr_name,
+-			       struct fwnode_handle *fwnode, int irq)
++				 struct qcom_rproc_glink *glink,
++				 const char *ssr_name,
++				 struct fwnode_handle *fwnode, int irq)
+ {
+ 	if (!fwnode || !ssr_name || irq <= 0)
+ 		return irq < 0 ? irq : -EINVAL;
+diff --git a/drivers/remoteproc/qcom_common.h b/drivers/remoteproc/qcom_common.h
+index 89bf65188..c74c035a0 100644
+--- a/drivers/remoteproc/qcom_common.h
++++ b/drivers/remoteproc/qcom_common.h
+@@ -52,9 +52,9 @@ void qcom_minidump(struct rproc *rproc, unsigned int minidump_id,
+ void qcom_add_glink_subdev(struct rproc *rproc, struct qcom_rproc_glink *glink,
+ 			   const char *ssr_name);
+ int qcom_add_glink_subdev_fwnode(struct rproc *rproc,
+-			       struct qcom_rproc_glink *glink,
+-			       const char *ssr_name,
+-			       struct fwnode_handle *fwnode, int irq);
++				 struct qcom_rproc_glink *glink,
++				 const char *ssr_name,
++				 struct fwnode_handle *fwnode, int irq);
+ void qcom_remove_glink_subdev(struct rproc *rproc, struct qcom_rproc_glink *glink);
+ 
+ int qcom_register_dump_segments(struct rproc *rproc, const struct firmware *fw);
+diff --git a/drivers/remoteproc/qcom_q6v5.c b/drivers/remoteproc/qcom_q6v5.c
+index 8ddc733be..65a815c72 100644
+--- a/drivers/remoteproc/qcom_q6v5.c
++++ b/drivers/remoteproc/qcom_q6v5.c
+@@ -8,7 +8,6 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+-#include <linux/property.h>
+ #include <linux/interconnect.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+@@ -347,9 +346,8 @@ int qcom_q6v5_init(struct qcom_q6v5 *q6v5, struct platform_device *pdev,
+ 		return load_state ? -ENOMEM : -EINVAL;
+ 	}
+ 
+-	/* The TCL SC7180 MPSS DT has no interconnect path to vote on. */
+-	if (!pdev->dev.of_node &&
+-	    device_property_read_bool(&pdev->dev, "qcom,tcl-no-interconnect"))
++	/* Generic firmware nodes do not yet have an interconnect consumer API. */
++	if (!pdev->dev.of_node)
+ 		q6v5->path = NULL;
+ 	else
+ 		q6v5->path = devm_of_icc_get(&pdev->dev, NULL);
+diff --git a/drivers/remoteproc/qcom_q6v5_pas.c b/drivers/remoteproc/qcom_q6v5_pas.c
+index 92cc5d7c4..0ed5fabe5 100644
+--- a/drivers/remoteproc/qcom_q6v5_pas.c
++++ b/drivers/remoteproc/qcom_q6v5_pas.c
+@@ -576,7 +576,7 @@ static int qcom_pas_pds_attach(struct device *dev, struct device **devs, char **
+ 	int ret;
+ 	int i;
+ 
+-	if (!dev->of_node) {
++	if (dev_get_platdata(dev)) {
+ 		const struct qcom_tcl_pas_data *data = dev_get_platdata(dev);
+ 
+ 		if (!data || !data->proxy_pds[0] || !data->proxy_pds[1])
+@@ -645,6 +645,9 @@ static int qcom_pas_alloc_memory_region(struct qcom_pas *pas)
+ 			return -EOPNOTSUPP;
+ 		acpi_res = platform_get_resource_byname(to_platform_device(pas->dev),
+ 						   IORESOURCE_MEM, "firmware");
++		if (!acpi_res)
++			acpi_res = platform_get_resource(to_platform_device(pas->dev),
++							 IORESOURCE_MEM, 0);
+ 		if (!acpi_res || !resource_size(acpi_res))
+ 			return -EINVAL;
+ 		pas->mem_phys = pas->mem_reloc = acpi_res->start;
+@@ -804,13 +807,13 @@ static int qcom_pas_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	rproc->has_iommu = of_property_present(pdev->dev.of_node, "iommus");
++	rproc->has_iommu = device_property_present(&pdev->dev, "iommus");
+ 	rproc->auto_boot = desc->auto_boot;
+ 	rproc_coredump_set_elf_info(rproc, ELFCLASS32, EM_NONE);
+ 
+ 	pas = rproc->priv;
+ 	pas->dev = &pdev->dev;
+-	pas->board_proxy_pds = !pdev->dev.of_node;
++	pas->board_proxy_pds = !!dev_get_platdata(&pdev->dev);
+ 	pas->rproc = rproc;
+ 	pas->minidump_id = desc->minidump_id;
+ 	pas->pas_id = desc->pas_id;

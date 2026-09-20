@@ -1,9 +1,9 @@
 Base: 5015d0d945b3d3f2b038d2667880d5762f7d9437
-Patches: 40
-Method: sequential git apply --cached in a fresh index
-Replayed and expected tree: 5113771318d4180c5e04d09a080985ba662f03db
+Patches: 70
+Method: sequential git am from patches/series in an independent clean worktree
+Replayed and expected tree: 885e8419bbeebe4f34b47d7e692311e301004167
 Result: PASS
-Patches 38-40 were also built together in the active development tree and tested on hardware.
-Clean full build: PASS (Image and 955 modules).
-Image SHA256: a5fac6a1059cefc8b6634cd867a4baa72e3cdae7fad844d3cca4ae211566bcec
-Hardware boot of this exact reduced published snapshot remains pending.
+Qualified kernel release: 7.2.4-tcl-acpi-repro1+
+Image SHA256: 7ec21e0297f9bff7b19aa9ff205a5b597c596ac3accc5c26dcaf93be9362d2ec
+Hardware result: UFS root, Wi-Fi, internal input, USB camera, eDP/DPU, Adreno, pstore and audible stereo playback passed.
+External modules: all six sources built with W=1 for the exact release; vermagic matched.

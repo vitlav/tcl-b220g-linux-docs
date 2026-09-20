@@ -1,7 +1,7 @@
-From fd5dadf53220128f14a3e190a2c9dd2c5cfd5cdc Mon Sep 17 00:00:00 2001
+From 600e746e453f1666165b3fe4b8c9b95a14a0050e Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:41 +0300
-Subject: [PATCH 02/37] software node: guard unnamed nodes during graph
+Subject: [PATCH 02/70] software node: guard unnamed nodes during graph
  traversal
 
 Software-node graph traversal assumes port and endpoint nodes always
@@ -18,7 +18,7 @@ a replacement for the board's endpoint properties.
  1 file changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 869228a65cb365567ddac7db6ad7b8743e0dbca9..e3a38067be8ddcac80b93dd411bdebae5b497b9c 100644
+index 869228a65..e3a38067b 100644
 --- a/drivers/base/swnode.c
 +++ b/drivers/base/swnode.c
 @@ -598,7 +598,8 @@ swnode_graph_find_next_port(const struct fwnode_handle *parent,

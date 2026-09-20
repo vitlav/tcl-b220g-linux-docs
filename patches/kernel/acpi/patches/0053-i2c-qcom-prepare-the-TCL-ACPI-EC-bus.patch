@@ -1,7 +1,7 @@
-From a9951c7c919fb364a9738535840477a176805a83 Mon Sep 17 00:00:00 2001
+From 1c0532120ae203c9984f1ebdbe8e685233e222a6 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Fri, 18 Sep 2026 13:03:55 +0300
-Subject: [PATCH 39/40] i2c: qcom: prepare the TCL ACPI EC bus
+Subject: [PATCH 53/70] i2c: qcom: prepare the TCL ACPI EC bus
 
 Allow the board SSDT to select the OEM I2C3 controller at 0x888000 and configure its known SC7180 qup02_i2c pins GPIO15/16.
 
@@ -151,6 +151,3 @@ index 5d04178ad..658ec6b8a 100644
  	else
  		return -EINVAL;
  	if (device_property_read_u16_array(&pdev->dev, "gpios", pins, count) ||
--- 
-2.50.1
-

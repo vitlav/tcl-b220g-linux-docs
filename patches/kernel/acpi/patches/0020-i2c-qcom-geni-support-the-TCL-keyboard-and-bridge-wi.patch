@@ -1,7 +1,7 @@
-From 146f10158551b9fcdb6aabe08827c80d1601a209 Mon Sep 17 00:00:00 2001
+From e34a6bde5b9d558974a77811f146c89321e40a94 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 20/37] i2c: qcom-geni: support the TCL keyboard and bridge
+Subject: [PATCH 20/70] i2c: qcom-geni: support the TCL keyboard and bridge
  without a QUP wrapper
 
 The ACPI keyboard and bridge I2C controllers lack the Linux QUP wrapper
@@ -18,7 +18,7 @@ wrapper version or enable GPI DMA.
  1 file changed, 165 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-qcom-geni.c b/drivers/i2c/busses/i2c-qcom-geni.c
-index d2f5055b0b108648b1efcb15cd3d1243cdfd5c91..3f608954edebf02cca6003f1bda51f7b863317d6 100644
+index d2f5055b0..3f608954e 100644
 --- a/drivers/i2c/busses/i2c-qcom-geni.c
 +++ b/drivers/i2c/busses/i2c-qcom-geni.c
 @@ -3,6 +3,11 @@

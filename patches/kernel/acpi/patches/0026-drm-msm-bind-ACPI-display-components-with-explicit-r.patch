@@ -1,7 +1,7 @@
-From f584de7cda116851a97b46f11ae422e443567603 Mon Sep 17 00:00:00 2001
+From d1f2fddd4cc4e33dd480795b88ddfcef7572dfcc Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 26/37] drm/msm: bind ACPI display components with explicit
+Subject: [PATCH 26/70] drm/msm: bind ACPI display components with explicit
  resources and OPPs
 
 The supplemental MDSS/DPU hierarchy has no OF component graph, clock
@@ -24,7 +24,7 @@ parts of the graph.
  5 files changed, 341 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/gpu/drm/msm/disp/dpu1/dpu_kms.c b/drivers/gpu/drm/msm/disp/dpu1/dpu_kms.c
-index da3556eb6ecc25a53440787dd35ab79f7e887545..80bd82d055d9a658130be18a6aba10b32022d355 100644
+index da3556eb6..80bd82d05 100644
 --- a/drivers/gpu/drm/msm/disp/dpu1/dpu_kms.c
 +++ b/drivers/gpu/drm/msm/disp/dpu1/dpu_kms.c
 @@ -9,6 +9,8 @@
@@ -205,7 +205,7 @@ index da3556eb6ecc25a53440787dd35ab79f7e887545..80bd82d055d9a658130be18a6aba10b3
  	.remove = dpu_dev_remove,
  	.shutdown = msm_kms_shutdown,
 diff --git a/drivers/gpu/drm/msm/msm_drv.c b/drivers/gpu/drm/msm/msm_drv.c
-index 32d5ebea2596f20b0160570632513d29ec23af4d..24e39b02648607e54cb33ea4f1ccf42c3b644350 100644
+index 32d5ebea2..24e39b026 100644
 --- a/drivers/gpu/drm/msm/msm_drv.c
 +++ b/drivers/gpu/drm/msm/msm_drv.c
 @@ -9,6 +9,7 @@
@@ -307,7 +307,7 @@ index 32d5ebea2596f20b0160570632513d29ec23af4d..24e39b02648607e54cb33ea4f1ccf42c
  	if (!np)
  		return 0;
 diff --git a/drivers/gpu/drm/msm/msm_drv.h b/drivers/gpu/drm/msm/msm_drv.h
-index 3787db8770adae74b6149b708d59739afad3af79..340af1ce0f3eec590dc44cdcac5192e09c40293e 100644
+index 3787db877..340af1ce0 100644
 --- a/drivers/gpu/drm/msm/msm_drv.h
 +++ b/drivers/gpu/drm/msm/msm_drv.h
 @@ -452,6 +452,7 @@ static inline void msm_rd_debugfs_cleanup(struct msm_drm_private *priv) {}
@@ -328,7 +328,7 @@ index 3787db8770adae74b6149b708d59739afad3af79..340af1ce0f3eec590dc44cdcac5192e0
  static inline void msm_rmw(void __iomem *addr, u32 mask, u32 or)
  {
 diff --git a/drivers/gpu/drm/msm/msm_io_utils.c b/drivers/gpu/drm/msm/msm_io_utils.c
-index a6efe1eac271219419eafdd80bce5aba67b4fbea..be1e2d7b5d3043adb508e81ae2a4c36529d96f9e 100644
+index a6efe1eac..be1e2d7b5 100644
 --- a/drivers/gpu/drm/msm/msm_io_utils.c
 +++ b/drivers/gpu/drm/msm/msm_io_utils.c
 @@ -7,6 +7,7 @@
@@ -458,7 +458,7 @@ index a6efe1eac271219419eafdd80bce5aba67b4fbea..be1e2d7b5d3043adb508e81ae2a4c365
 +	return ret ? ERR_PTR(ret) : path;
 +}
 diff --git a/drivers/gpu/drm/msm/msm_mdss.c b/drivers/gpu/drm/msm/msm_mdss.c
-index 9087c4b290dba55822dbbce3b14d868e9f5790a7..7e9075086dfd44943d1678ae99af404d809ed223 100644
+index 9087c4b29..7e9075086 100644
 --- a/drivers/gpu/drm/msm/msm_mdss.c
 +++ b/drivers/gpu/drm/msm/msm_mdss.c
 @@ -3,6 +3,8 @@

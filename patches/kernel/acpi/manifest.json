@@ -1,197 +1,302 @@
 {
-  "base_tag": "v7.2.4",
   "base_commit": "5015d0d945b3d3f2b038d2667880d5762f7d9437",
-  "head": "e33e4379a0a1019f3a9dd7f28fba82b97ace5f1c",
-  "branch": "tcl/acpi-7.2-attributed-verified",
-  "source_tree": "421527cafce1057aab76eba45bd499987af37b32",
-  "patch_count": 42,
-  "patch_replay": "passed: all 42 patches apply sequentially to the clean base; resulting tree 421527cafce1057aab76eba45bd499987af37b32",
-  "full_build": "passed for this exact tree, but hardware boot stopped during early ACPI initialization; the series is not yet equivalent to the working standard3 source tree",
-  "hardware_tested": false,
-  "runtime_context": {
-    "kernel_release": "7.2.4-tcl-acpi-standard3+",
-    "os": "ALT Linux ARM64",
-    "boot_id": "9962bcc5-df95-44ab-aabb-0e314e5b5169",
-    "image_sha256": "2ffd7b51d431b9a84c94cc0d651132bb4d5440ed4e33d09a2dc014dc4ac483d9",
-    "display": "msm-kmsdrmfb",
-    "audio_card": "TCL B220G ACPI Audio",
-    "qualification": "Patches 41-42 were built with W=1 and tested on hardware in the working standard3 tree: VA/RX/TX and SoundWire fully unloaded and reprobed without PM, Oops, trace or refcount warnings; both codecs reattached and audible stereo playback was confirmed. Q6AFE devote opcode 0x100f6 remains unresolved. A complete build of this manifest tree succeeded, but its separate series42 Image stopped during early ACPI initialization. Direct comparison found 47 source files differing from the working standard3 tree, so this manifest does not yet describe a standalone bootable source series."
+  "source_commit": "9e958581e9553507fb5997d0a5828f528677e225",
+  "source_tree": "885e8419bbeebe4f34b47d7e692311e301004167",
+  "patch_count": 70,
+  "patch_replay": "passed: all 70 curated patches apply sequentially to the clean base and reproduce source_tree exactly",
+  "hardware_qualification": {
+    "kernel_release": "7.2.4-tcl-acpi-repro1+",
+    "image_sha256": "7ec21e0297f9bff7b19aa9ff205a5b597c596ac3accc5c26dcaf93be9362d2ec",
+    "boot_id": "9d681993-cc37-4768-8f64-96b5a95dd5b4",
+    "result": "booted UFS root with Wi-Fi, internal input, USB camera, eDP/DPU, Adreno and ramoops/pstore; matching runtime-PM LPI provider restored both SoundWire slaves and user-confirmed audible playback",
+    "known_limitations": "Q6AFE vote/devote firmware replies remain unresolved; system suspend/resume and repeated cold boots remain unqualified"
   },
-  "config_sha256": "4d84de41cf6c1d1fe0bf965dc5b289391af0940e6213e5d6401f1f6e3d15e3f2",
   "patches": [
     {
-      "file": "patches/0001-ACPI-omit-PCI-default-address-space-when-PCI-is-disa.patch",
-      "sha256": "3e285d478368f9a248d7e32674edf23aededbc97556175c900a82c14985f6979"
+      "file": "0001-ACPI-omit-PCI-default-address-space-when-PCI-is-disa.patch",
+      "sha256": "9f9568793bdfa1f7804ef7162015883d33c088ea3f9bd3ae2c19a1b8bb146b20"
     },
     {
-      "file": "patches/0002-software-node-guard-unnamed-nodes-during-graph-trave.patch",
-      "sha256": "0cee497966044cd4063db587636df0bd36d05aa3d5cf5d6e89779d2233669f4c"
+      "file": "0002-software-node-guard-unnamed-nodes-during-graph-trave.patch",
+      "sha256": "c881e55f37af5e48f0337e2dc9068ee4f1bf5a1865d47ca7ce9d3efefe327e87"
     },
     {
-      "file": "patches/0003-remoteproc-coordinate-deletion-with-crash-and-subdev.patch",
-      "sha256": "0ed564ed0aafb2b46b51776c56291fa92d3d424ca7765f86444c109bbc49fb56"
+      "file": "0003-remoteproc-coordinate-deletion-with-crash-and-subdev.patch",
+      "sha256": "a6b9134cd3c01336f6e9b59bc2547eb288437f59d8b41493b00c0d53d6cb7428"
     },
     {
-      "file": "patches/0004-drm-msm-initialize-pagetable-ownership-before-fallib.patch",
-      "sha256": "4360191c5c173df546265bd9fb6ef2fe5ee0a25eb3d4a44125fac6a230e1766f"
+      "file": "0004-drm-msm-initialize-pagetable-ownership-before-fallib.patch",
+      "sha256": "bc142f53092b7a3b2d19353440e0d62adf809f0fec5c8c43a10162d82ef4fa0d"
     },
     {
-      "file": "patches/0005-drm-msm-identify-the-vmap-fbdev-buffer-as-system-mem.patch",
-      "sha256": "fbe7b78b70b7bd8b19da325349ed13b221697e13933d07599918b35372dd4ebb"
+      "file": "0005-drm-msm-identify-the-vmap-fbdev-buffer-as-system-mem.patch",
+      "sha256": "3904a7702ee604aeec2e254c2c7f1dcfd8df6bd6acb9601e74c9fe0caf5cb435"
     },
     {
-      "file": "patches/0006-interconnect-expose-validated-named-path-lookup-to-c.patch",
-      "sha256": "3216efd120777328d70993168a17324bfb46cfc18d1721dbd73897f26e3f90e3"
+      "file": "0006-interconnect-expose-validated-named-path-lookup-to-c.patch",
+      "sha256": "65665097332d722dc0e708c758549cd406497b6f0e18c19eba391a47c186eae3"
     },
     {
-      "file": "patches/0007-interconnect-qcom-reject-partial-BCM-initialization.patch",
-      "sha256": "bd2189ab2dcfc8c182e068a9c1bbcafae632f2ebdf1f2fbe4ef764d9a9d81ed9"
+      "file": "0007-interconnect-qcom-reject-partial-BCM-initialization.patch",
+      "sha256": "e32b4dd8684bfd262ba7dd4208efee48bda86bb2c79a6030e303692dcfd96b7b"
     },
     {
-      "file": "patches/0008-ACPI-resolve-namespace-devices-and-physical-companio.patch",
-      "sha256": "aeb15d9ef082818b03b5d00de1916eae220496af4a718ecdb90c96b5fa9b2221"
+      "file": "0008-ACPI-resolve-namespace-devices-and-physical-companio.patch",
+      "sha256": "8b71b5f41f28fb7f4a5c48802a43b8eaf4ec126d1d55f9f17ac5f8d3fd0ef6af"
     },
     {
-      "file": "patches/0009-ACPI-IORT-validate-TCL-USB-WLAN-display-GPU-and-audi.patch",
-      "sha256": "6b5b6badfa949eca49645e70d46a62fa921f33bf9517882efc168dcc7893d496"
+      "file": "0009-ACPI-IORT-validate-TCL-USB-WLAN-display-GPU-and-audi.patch",
+      "sha256": "16abc96d375e8895e9488a6778ce27a3a7aa5cbbb1a704df3442c43f914961a1"
     },
     {
-      "file": "patches/0010-firmware-qcom-initialize-SCM-and-its-reset-controlle.patch",
-      "sha256": "91e030afe1d3674ea66ea93a5cf3c2635ae99c8bdea962aad7e18cb983a03581"
+      "file": "0010-firmware-qcom-initialize-SCM-and-its-reset-controlle.patch",
+      "sha256": "c6ab7e697956dd35b506bbffe86a4b505270aa272c634be08047cfd51b32aec6"
     },
     {
-      "file": "patches/0011-iommu-arm-smmu-select-and-power-the-TCL-Qualcomm-imp.patch",
-      "sha256": "64dc26af25877d7c1c494edf4b3c3669c9220c89ac89ddaab1578610fba24e9c"
+      "file": "0011-iommu-arm-smmu-select-and-power-the-TCL-Qualcomm-imp.patch",
+      "sha256": "4dab1a12b89a749c21ed3ee65ba5a3e12d49bb33ed8a96635f33627b8c887766"
     },
     {
-      "file": "patches/0012-soc-qcom-define-board-owned-ACPI-PAS-and-regulator-r.patch",
-      "sha256": "05197e8a45562c557d5487698cb35e99d5760a19e172765e912205b21dfd8b15"
+      "file": "0012-soc-qcom-define-board-owned-ACPI-PAS-and-regulator-r.patch",
+      "sha256": "aedaefc023e3caffffc90806801df55868d24288decee55fec82b27cf0ee3a88"
     },
     {
-      "file": "patches/0013-soc-qcom-describe-SMEM-locks-mailboxes-and-SMP2P-wit.patch",
-      "sha256": "6634ec9a98cde275386d9a29038f33cbb30d026a9e3ca40bdc13415a2eac4a52"
+      "file": "0013-soc-qcom-describe-SMEM-locks-mailboxes-and-SMP2P-wit.patch",
+      "sha256": "0a2a6adac15ba88860c0fc43d0f4c690a7644232a2f8e73c53bfc4c15e4c7e2f"
     },
     {
-      "file": "patches/0014-soc-qcom-support-ACPI-RPMh-AOSS-and-memory-suppliers.patch",
-      "sha256": "91cece069bfc05256d3f1bf7c0e67617b12bbd678da0355047875239d64ed01d"
+      "file": "0014-soc-qcom-support-ACPI-RPMh-AOSS-and-memory-suppliers.patch",
+      "sha256": "aabd10664f69d0a00b92fb383731285a6142ceb330b3f9f703e7dbea38a494e2"
     },
     {
-      "file": "patches/0015-rpmsg-qcom-construct-GLINK-transports-and-channels-f.patch",
-      "sha256": "cbfd900c54ea179dae1de6bff336c82aea1b21fece3693cfd47b6445a48eb487"
+      "file": "0015-rpmsg-qcom-construct-GLINK-transports-and-channels-f.patch",
+      "sha256": "7956b11b5651e5524743954b7d5ea1bd11634f59c45535b0716b71c5a41a3718"
     },
     {
-      "file": "patches/0016-remoteproc-qcom-support-firmware-described-TCL-modem.patch",
-      "sha256": "6f926727f0bb3ddb65d2626d1129df1936fd7a34b239789d3f35669ecd2556ce"
+      "file": "0016-remoteproc-qcom-support-firmware-described-TCL-modem.patch",
+      "sha256": "014b277ada5414da59e23e7eb0a4059a19e48d25846bd3544f906219546e0908"
     },
     {
-      "file": "patches/0017-soc-qcom-enumerate-APR-services-from-firmware-nodes.patch",
-      "sha256": "d9d71d9c8bbaec4a628c5a6d229a8a7ab4b620bbf4669b5cb21a9945dec7e087"
+      "file": "0017-soc-qcom-enumerate-APR-services-from-firmware-nodes.patch",
+      "sha256": "7d183e1d7e5ea3ce713fe76ba2f57e01ef220e34a32270d0853f03467374ab3f"
     },
     {
-      "file": "patches/0018-wifi-ath10k-validate-TCL-ACPI-SNOC-resources-before-.patch",
-      "sha256": "141804848587cc631ab2c7d18380de5896e8b2d8c1392f1819fdded4d0faf688"
+      "file": "0018-wifi-ath10k-validate-TCL-ACPI-SNOC-resources-before-.patch",
+      "sha256": "03398aa7e45454ce2fd689d9a25e495908789dea95497603d7c188b32ea1356c"
     },
     {
-      "file": "patches/0019-pinctrl-qcom-describe-bounded-TCL-ACPI-input-and-spe.patch",
-      "sha256": "78e1ee1903511a878ccc1107eda34d2f434aa86e9b6ef3ad7c4c82ea6925dcdd"
+      "file": "0019-pinctrl-qcom-describe-bounded-TCL-ACPI-input-and-spe.patch",
+      "sha256": "9c2307628417a074ad0ec3a026b720131cd6866e037140178c77f5df49f01f2c"
     },
     {
-      "file": "patches/0020-i2c-qcom-geni-support-the-TCL-keyboard-and-bridge-wi.patch",
-      "sha256": "c9482f9860355d94a83d165b7cab10c194753ba7622c436ff6bc0ef5d22e7e65"
+      "file": "0020-i2c-qcom-geni-support-the-TCL-keyboard-and-bridge-wi.patch",
+      "sha256": "b2b970e083d2feb9554751aae3f07d574f5e53ad0d6db75b0ad7d2dadb22d57f"
     },
     {
-      "file": "patches/0021-clk-qcom-provide-bounded-TCL-display-and-GPU-clock-t.patch",
-      "sha256": "188adbe0de92ae4cb2fa271793f3a3a2779977e546339336a4087756ac59d7ae"
+      "file": "0021-clk-qcom-provide-bounded-TCL-display-and-GPU-clock-t.patch",
+      "sha256": "c71220316d21ccf5cfc4e69cba9b6823d02d18d31dee7f9a94660960291ce771"
     },
     {
-      "file": "patches/0022-clk-qcom-dispcc-sc7180-stop-firmware-rotator-clock-f.patch",
-      "sha256": "dbd52511a2e15bca1ece10381e88171b45f6ba0b1c52e8b4a5f71f3b4394ed00"
+      "file": "0022-clk-qcom-dispcc-sc7180-stop-firmware-rotator-clock-f.patch",
+      "sha256": "57aa22fb27001b293949620b8db9bea010c69267745448ef15a8920a09c43e98"
     },
     {
-      "file": "patches/0023-interconnect-qcom-support-firmware-described-TCL-fab.patch",
-      "sha256": "648457e2d1549ed45d28cf0e8ac5995aa02da348076d27bb29982424e45a162d"
+      "file": "0023-interconnect-qcom-support-firmware-described-TCL-fab.patch",
+      "sha256": "c82ba308c744d835e4c801196f5b140a98f25e9d2d98627e7f7582abea642749"
     },
     {
-      "file": "patches/0024-soc-qcom-select-SC7180-UBWC-parameters-on-TCL-ACPI.patch",
-      "sha256": "7c9d0e1af74f915efe0dbace1cd8d41f71f79db67c03c39a2ed8773f8c92b504"
+      "file": "0024-soc-qcom-select-SC7180-UBWC-parameters-on-TCL-ACPI.patch",
+      "sha256": "0dda085f905e4c027788c483056c6d49f707a94fd73e9af8bac89fe54bba9b23"
     },
     {
-      "file": "patches/0025-drm-discover-bridges-and-DSI-devices-through-firmwar.patch",
-      "sha256": "3f9b2c2feb9d3ddba95061ad38f32ebe7d21e0edd884ed1288d0b9621c4c6a56"
+      "file": "0025-drm-discover-bridges-and-DSI-devices-through-firmwar.patch",
+      "sha256": "240d5b0d1d7d1aa3bac643d0c11d97a227d6c21d6a0065409ec4997648cbf9ef"
     },
     {
-      "file": "patches/0026-drm-msm-bind-ACPI-display-components-with-explicit-r.patch",
-      "sha256": "e33e95c8c82f3a033a38eb6d6c2da38effb4fa569db8771a7c911b9d7dc0b231"
+      "file": "0026-drm-msm-bind-ACPI-display-components-with-explicit-r.patch",
+      "sha256": "65ebae30f12571f6cc2af1b3cc65e1f1a93207dd723c01dafea846859cbcabde"
     },
     {
-      "file": "patches/0027-drm-msm-dsi-support-the-TCL-firmware-described-host-.patch",
-      "sha256": "a447c77ff504cd8f0b9c9ae109cf7251478fcd8f5bf71af60a999255861a48fa"
+      "file": "0027-drm-msm-dsi-support-the-TCL-firmware-described-host-.patch",
+      "sha256": "26db9f88f7d73758b9425be501eada0e590ffb1f3b94f17f19d82d7fc599bd7f"
     },
     {
-      "file": "patches/0028-drm-bridge-support-the-existing-TCL-LT8911-ACPI-hand.patch",
-      "sha256": "ef43e43b0dfd3155343e54b3adeaa648024a7caf84b297fea5d171716f8df9e6"
+      "file": "0028-drm-bridge-support-the-existing-TCL-LT8911-ACPI-hand.patch",
+      "sha256": "d590f74480a410dfd403824960090f9754453abd2756a9268912a07c03bdac47"
     },
     {
-      "file": "patches/0029-drm-msm-adreno-consume-validated-TCL-ACPI-GPU-and-GM.patch",
-      "sha256": "8bbecefd1b3d1ac72d5414ee7eb16055912ddeccc68e7083e29191a7844dd566"
+      "file": "0029-drm-msm-adreno-consume-validated-TCL-ACPI-GPU-and-GM.patch",
+      "sha256": "55c50b1da5dec26d3d62191979ffe170d00328e25084edb880c46c9b191d9c77"
     },
     {
-      "file": "patches/0030-ASoC-qdsp6-populate-firmware-described-TCL-audio-ser.patch",
-      "sha256": "9e7383a9d7301d57ebf77ced26b34da6362eb9b2e195ef5b8ede2400fc7dc7ff"
+      "file": "0030-ASoC-qdsp6-populate-firmware-described-TCL-audio-ser.patch",
+      "sha256": "78a2a7343e567bf2a0c8841149aed75d5acfb183753dbd11960ffee182771c11"
     },
     {
-      "file": "patches/0031-ASoC-qcom-support-firmware-described-LPASS-macros-an.patch",
-      "sha256": "91a40cb0101d7c889a7ee6c69fe1e3d420ad29c3be8ae9b9f75a640f6fa56f1b"
+      "file": "0031-ASoC-qcom-support-firmware-described-LPASS-macros-an.patch",
+      "sha256": "21c7aba78d6675f97eec701018d9a21393286ff410a70222b7968f6ab7552145"
     },
     {
-      "file": "patches/0032-soundwire-enumerate-TCL-firmware-nodes-and-handle-co.patch",
-      "sha256": "d828f2ab0a570c109f87a5457c01577a748963204c0426d9a5449eb4f6bcfc6f"
+      "file": "0032-soundwire-enumerate-TCL-firmware-nodes-and-handle-co.patch",
+      "sha256": "7cffbe84852dc892a8ba374d0074c67cec024fb1e5b9f2c73d44668b0cc93241"
     },
     {
-      "file": "patches/0033-ASoC-wcd938x-bind-TCL-firmware-nodes-and-clean-aggre.patch",
-      "sha256": "4d73493a2d8d512ea745d46828cbd9290d167110427c57383fac0e799a87f07b"
+      "file": "0033-ASoC-wcd938x-bind-TCL-firmware-nodes-and-clean-aggre.patch",
+      "sha256": "b5299720885f1a635a69aa4656868f7f48ac6bf5beddf1268cc999c66d0c50dc"
     },
     {
-      "file": "patches/0034-usb-dwc3-add-the-guarded-TCL-ACPI-host-handoff-drive.patch",
-      "sha256": "380e07b868d5c9b55bd25b31b0c2ef9aa6d814f457c59f351fc1126b85ba15be"
+      "file": "0034-usb-dwc3-add-the-guarded-TCL-ACPI-host-handoff-drive.patch",
+      "sha256": "874569260b9f4860659ffc365d80e83a9ebfc7a8ab490276e4ab795e12797c72"
     },
     {
-      "file": "patches/0035-soc-qcom-wire-TCL-ACPI-SMEM-modem-and-WLAN-suppliers.patch",
-      "sha256": "64c87205c7d65355ceefb14175514d275d84cb26d65aea6eb6a792435d6ee477"
+      "file": "0035-soc-qcom-wire-TCL-ACPI-SMEM-modem-and-WLAN-suppliers.patch",
+      "sha256": "6cce7337b8d914ef9dad3dc030d8684bfc8be21f167fd325d1969f7dab12b502"
     },
     {
-      "file": "patches/0036-soc-qcom-wire-TCL-ACPI-display-and-GPU-with-ordered-.patch",
-      "sha256": "2af9f6b367b5cc040d76ccfabf04f10a802bdd5f2adc985f2d522fb9d5918ecf"
+      "file": "0036-soc-qcom-complete-TCL-display-firmware-handoff.patch",
+      "sha256": "4f1f92f9db7f9350d767fd5c74eff16cc49a0c1a7753fab233ee2f336e7e29bf"
     },
     {
-      "file": "patches/0037-arm64-record-TCL-ACPI-diagnostic-and-display-configu.patch",
-      "sha256": "6b1c8e310d6e1e7378854147a100b2a1e640c0097f474ad9ad12c5210dc25252"
+      "file": "0037-ASoC-lpass-va-macro-balance-clocks-across-runtime-su.patch",
+      "sha256": "e29ee8ea496da084a7e882cea730be9bb3f0aa8dbae8b45ed0dc38496996a66a"
     },
     {
-      "file": "patches/0038-soc-qcom-avoid-late-PM-domain-reassignment-for-TCL-G.patch",
-      "sha256": "2b888cab5def5a3a344def3587302fda52b48b5a4f6789690fb461d479a20e72"
+      "file": "0038-ASoC-q6afe-return-the-DSP-vote-handle-under-the-tran.patch",
+      "sha256": "84161eea38ee6d9311c79b9a049a2e5ef88dc9240fca2569ccba7f50b204f21a"
     },
     {
-      "file": "patches/0039-i2c-qcom-prepare-the-TCL-ACPI-EC-bus.patch",
-      "sha256": "3e6df9ab93af252b218213c1348a5049c0ab23bba8890b275753bd7471554ed7"
+      "file": "0039-pinctrl-qcom-manage-TCL-ACPI-LPI-clocks-through-runt.patch",
+      "sha256": "dfea6cc2df27ac092c259160c23d74dcb93ac8bc50bdd3bb8314ed9fc711693c"
     },
     {
-      "file": "patches/0040-ACPI-AC-defer-probe-until-GenericSerialBus-is-ready.patch",
-      "sha256": "9f0518c98eca9c3cf4d6529a8287df9de68e64b21c8c5cf7036d252dc1f3c2e1"
+      "file": "0040-ASoC-q6afe-accept-compact-hardware-vote-replies.patch",
+      "sha256": "9f2e8289605ba21cdadc18283ae77ed95015b9b5a90269e010f55274da987cb3"
     },
     {
-      "file": "patches/0041-ASoC-lpass-balance-runtime-PM-during-driver-removal.patch",
-      "sha256": "cbd67f911d49b5b0ef27f6866d2780577e535b0ec4b7600302f4dcf77064929c"
+      "file": "0041-ufs-qcom-add-ACPI-firmware-managed-probe-path.patch",
+      "sha256": "d91f4cb7a9c5a258e871152a696c7487ae55771657b6905de68012285c82d325"
     },
     {
-      "file": "patches/0042-ASoC-lpass-va-avoid-self-reference-through-fsgen-clo.patch",
-      "sha256": "14f40c75fb2727f6649be1c97fc6781e34863eaa78e35353abc8ba960328c0aa"
+      "file": "0042-ufs-qcom-use-one-lane-for-TCL-ACPI.patch",
+      "sha256": "8ad10509b663c6d288a2b0e36ec186a3f66a3f9074f3a1e5040128df373ecb66"
+    },
+    {
+      "file": "0043-ACPI-platform-apply-TCL-UFS-IORT-input-ID.patch",
+      "sha256": "2d6159fa96003f4bb9aebef64720231e1383995b9bc6ff3f3a197b1285300a6b"
+    },
+    {
+      "file": "0044-ufs-qcom-configure-ACPI-IORT-ID-before-probe.patch",
+      "sha256": "5d75a3fd42a425cfe188a297316fbb04d2833d456ac665cd6fc199a632ecd0f8"
+    },
+    {
+      "file": "0045-ufs-platform-configure-ACPI-IORT-before-host-init.patch",
+      "sha256": "b2f8c02042f5fc768299b952eb760680e48a9ee0ecd4c66d04932344d888fe10"
+    },
+    {
+      "file": "0046-ufs-qcom-use-exported-ACPI-DMA-configuration-API.patch",
+      "sha256": "b2c6216d39cee5df438af816df7eb022aaba55c02cc0b599001e9973226f7933"
+    },
+    {
+      "file": "0047-ACPI-arm64-map-TCL-UFS-component-to-IORT.patch",
+      "sha256": "ec42bf2d0ebc321ac8e1a310996695c77532e35986edd942f2bd980e5c3ac3c4"
+    },
+    {
+      "file": "0048-clk-qcom-support-platform-enumerated-SC7180-VIDEOCC.patch",
+      "sha256": "ca9792adcb45118dd397c268289c72f391be5933645f86ddc0d1e2392d6e09c7"
+    },
+    {
+      "file": "0049-media-qcom-support-firmware-described-SC7180-Venus.patch",
+      "sha256": "edf11f6eedb0dbd08635cee396de6d50f5ef2f7b42aadca2adba808a261cf3b9"
+    },
+    {
+      "file": "0050-ACPI-arm64-map-TCL-Venus-through-the-Apps-SMMU.patch",
+      "sha256": "c9593367b459d9ee38cd9e77cc44f598f5b66f1bab048f1940ecea3bdefbbc04"
+    },
+    {
+      "file": "0051-soc-qcom-wire-TCL-B220G-ACPI-Venus-resources.patch",
+      "sha256": "1d775b4f9de575fef2ed44a9c765fa986b45b1c74d8db2f0cf4d036b0ec0f89c"
+    },
+    {
+      "file": "0052-soc-qcom-avoid-late-PM-domain-reassignment-for-TCL-G.patch",
+      "sha256": "d55ca1a9fcfa2080ee4aa0e7bd8eb5289069608b30d8f3592b2be0e85ebd638a"
+    },
+    {
+      "file": "0053-i2c-qcom-prepare-the-TCL-ACPI-EC-bus.patch",
+      "sha256": "9763dc7b3fc0653822af43d3631e73d8826c83e9ea73ab3a5a76bbfb55c23dcb"
+    },
+    {
+      "file": "0054-ACPI-AC-defer-probe-until-GenericSerialBus-is-ready.patch",
+      "sha256": "c9b24bd866a76c877579c820de20acff7d88953b79256ce27a4d1057a82866c5"
+    },
+    {
+      "file": "0055-soc-qcom-validate-ACPI-SMEM-reservations.patch",
+      "sha256": "22398718946c49a3730107d9e78ddcad75bfe3a39eef4db7464cd071a5d1ede4"
+    },
+    {
+      "file": "0056-soc-qcom-harden-firmware-described-RPMh-memory-provi.patch",
+      "sha256": "833624cc1e9be68835dd1010e1ca66389e1dfb7bce7aa34c1c4734c3a573658d"
+    },
+    {
+      "file": "0057-pmdomain-support-onecell-providers-through-fwnode.patch",
+      "sha256": "c54f82614aba52816910601627de98c4f0b4bb300f75efe7c1704add73fef6c8"
+    },
+    {
+      "file": "0058-clk-resolve-providers-through-generic-fwnode.patch",
+      "sha256": "8a497e1f0939160d5ae22f29e30490d039a0d25784cd3eb33d66fbf3c1866c3b"
+    },
+    {
+      "file": "0059-regulator-resolve-supplies-through-generic-fwnode.patch",
+      "sha256": "dc12bd254191cdc78d950a4356fbba0a394eed9127c6d447aea7b5cb5cfc910f"
+    },
+    {
+      "file": "0060-regulator-qcom-rpmh-support-generic-firmware-nodes.patch",
+      "sha256": "b2c822b69f40047794e8b38538e5fdd8b0d15a35d3032686e0c011df514f58f8"
+    },
+    {
+      "file": "0061-ACPI-property-resolve-extended-interrupt-references.patch",
+      "sha256": "3e4d55dd30219076a9fbad7b71337d762cf2e35b9e92fe31b7690223986df0b2"
+    },
+    {
+      "file": "0062-remoteproc-qcom-use-generic-TCL-ACPI-PAS-resources.patch",
+      "sha256": "20fd62d6e574b8c5657590e3b4a6c0c121e2f02231d7005f7b28adaff88c68f1"
+    },
+    {
+      "file": "0063-wifi-ath10k-use-TCL-ACPI-firmware-resources.patch",
+      "sha256": "47baf66897ce0b4145396b58ee5801c327668e9fd92167d5147ae1f967a896e4"
+    },
+    {
+      "file": "0064-soc-qcom-preserve-legacy-RPMh-diagnostic-consumers.patch",
+      "sha256": "c5bd8cdbf3c9b6617da089946403015265fc20f6fd7f00198c91ca0e384d43f6"
+    },
+    {
+      "file": "0065-cpufreq-qcom-resolve-frequency-domains-through-fwnod.patch",
+      "sha256": "92bb2aa26c35d61d80a06f4310b3a0445257f639a5110601b25f5cadae3718b2"
+    },
+    {
+      "file": "0066-topology-initialize-frequency-reference-for-ACPI-cpu.patch",
+      "sha256": "976462de728bb3afa60aa80ecc9f16b83bc71cf1f061a6d08a2177d321143c0d"
+    },
+    {
+      "file": "0067-ACPI-processor-apply-max_cstate-to-LPI-states.patch",
+      "sha256": "1906bd0705e8cb0bac42a637a95027be060d4d5192eb078a8c55bda6d2511d2d"
+    },
+    {
+      "file": "0068-ASoC-lpass-balance-runtime-PM-during-driver-removal.patch",
+      "sha256": "c2c4c3b1736ee318708ed4c64aea506c0e2753560ccd7217d8ca9027ac85f375"
+    },
+    {
+      "file": "0069-ASoC-lpass-va-avoid-self-reference-through-fsgen-clo.patch",
+      "sha256": "2fad1cb6addac7816adbf0e5537205eb110e7d7f2ac0262c3b2803424f1693d8"
+    },
+    {
+      "file": "0070-arm64-record-the-qualified-TCL-ACPI-configurations.patch",
+      "sha256": "4be4844f02bf32e946b14c9fa796f1ec20bd20d0b434fe86fefd5034ac01027f"
     }
   ],
-  "build_artifacts": {
-    "image_sha256": "b7daaf79ed7672a74d93efc5ab2b8e64e2b95deb220afc87473a2c5583d74394",
-    "image_size": 35928576,
-    "module_count": 956,
-    "config_sha256": "05dabf25fb6e0bd88539c0cfedf40d2f53f4bbcc5fb3cfd592b1850fd259fe9e"
+  "external_module_validation": {
+    "kernel_release": "7.2.4-tcl-acpi-repro1+",
+    "result": "passed: all six published external modules build with W=1 against the exact configured output tree and have matching vermagic",
+    "lpi_provider_source_sha256": "54be4f3966755e7d56a7fb78b8d26bf0dfd60800d7a0d4aba023c262d8f7f784",
+    "lpi_provider_module_sha256": "ea598e06ee562879be3035379e3cd5cad1655ae87940249588e2ce4a9ee08dda"
   }
 }

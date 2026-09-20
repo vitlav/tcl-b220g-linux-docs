@@ -1,7 +1,7 @@
-From f04802bc20555a3bcc0e6a3685d2e71953f8eebe Mon Sep 17 00:00:00 2001
+From 58f0bf2409684400e65a6108188259f69146dfa1 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 14:54:24 +0300
-Subject: [PATCH] ASoC: q6afe: accept compact hardware-vote replies
+Subject: [PATCH 40/70] ASoC: q6afe: accept compact hardware-vote replies
 
 Some firmware revisions return only the 32-bit client handle for the
 LPASS vote response. The status word is optional for this response opcode;
@@ -11,9 +11,12 @@ handle and caused a vote timeout during SoundWire startup.
 Keep the strict two-word length check for APR_BASIC_RSP_RESULT, while
 accepting a handle-sized vote response and treating a missing status as
 success. Responses shorter than the handle remain ignored.
+---
+ sound/soc/qcom/qdsp6/q6afe.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/sound/soc/qcom/qdsp6/q6afe.c b/sound/soc/qcom/qdsp6/q6afe.c
-index 162186d1eea056ce30b36c3cee53299cf5aabb03..74a99b3cbe82fce06dcf17a7b417df1c87f15d94 100644
+index 162186d1e..74a99b3cb 100644
 --- a/sound/soc/qcom/qdsp6/q6afe.c
 +++ b/sound/soc/qcom/qdsp6/q6afe.c
 @@ -971,12 +971,14 @@ static int q6afe_callback(struct apr_device *adev, const struct apr_resp_pkt *da

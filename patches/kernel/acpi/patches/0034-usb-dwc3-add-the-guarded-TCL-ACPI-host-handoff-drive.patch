@@ -1,7 +1,7 @@
-From ff908987cd63d08fbe247d01e4126e79715471e6 Mon Sep 17 00:00:00 2001
+From 5f87dee8e36c6e037b64543687a4517f8f9254d4 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 34/37] usb: dwc3: add the guarded TCL ACPI host handoff driver
+Subject: [PATCH 34/70] usb: dwc3: add the guarded TCL ACPI host handoff driver
 
 The OEM ACPI USB resource layout needs a Qualcomm glue driver to expose
 a DWC3 host while preserving firmware-provided PHY setup. The existing
@@ -23,7 +23,7 @@ suspend/resume support.
  create mode 100644 drivers/usb/dwc3/tcl_usb_acpi.c
 
 diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
-index 18169727a413ee72405a89f477e4da16946e1764..22fc467fec1c7e9058a6d668584682062f84432e 100644
+index 18169727a..22fc467fe 100644
 --- a/drivers/usb/dwc3/Kconfig
 +++ b/drivers/usb/dwc3/Kconfig
 @@ -234,4 +234,13 @@ config USB_DWC3_GOOGLE
@@ -41,7 +41,7 @@ index 18169727a413ee72405a89f477e4da16946e1764..22fc467fec1c7e9058a6d66858468206
 +
  endif
 diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
-index f37971197203e1379d554da9d60860360ea9c3fe..22dd78547529ba77634f97c33bc1b4aee2919f40 100644
+index f37971197..22dd78547 100644
 --- a/drivers/usb/dwc3/Makefile
 +++ b/drivers/usb/dwc3/Makefile
 @@ -61,3 +61,6 @@ obj-$(CONFIG_USB_DWC3_OCTEON)		+= dwc3-octeon.o
@@ -53,7 +53,7 @@ index f37971197203e1379d554da9d60860360ea9c3fe..22dd78547529ba77634f97c33bc1b4ae
 +obj-$(CONFIG_USB_DWC3_TCL_ACPI) += tcl_usb_acpi.o
 diff --git a/drivers/usb/dwc3/tcl_usb_acpi.c b/drivers/usb/dwc3/tcl_usb_acpi.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..813483f7109b2e29d7407acd52d486da8158df22
+index 000000000..813483f71
 --- /dev/null
 +++ b/drivers/usb/dwc3/tcl_usb_acpi.c
 @@ -0,0 +1,1138 @@

@@ -1,7 +1,7 @@
-From 0fc4420f819262bea744c063f1ddba655b85ede7 Mon Sep 17 00:00:00 2001
+From 185b452c93f859508d65dc13002c245879737ab4 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:44 +0300
-Subject: [PATCH 33/37] ASoC: wcd938x: bind TCL firmware nodes and clean
+Subject: [PATCH 33/70] ASoC: wcd938x: bind TCL firmware nodes and clean
  aggregate IRQ state
 
 The WCD9385 aggregate and its RX/TX SoundWire devices are supplied by
@@ -22,7 +22,7 @@ thresholds or proven microphone routing.
  2 files changed, 166 insertions(+), 22 deletions(-)
 
 diff --git a/sound/soc/codecs/wcd938x-sdw.c b/sound/soc/codecs/wcd938x-sdw.c
-index 0f0cc0ac3056ec404426edee5f66281fb164a226..0824953b84489bb3bb8386ecaa81fa4ca03692fb 100644
+index 0f0cc0ac3..0824953b8 100644
 --- a/sound/soc/codecs/wcd938x-sdw.c
 +++ b/sound/soc/codecs/wcd938x-sdw.c
 @@ -2,6 +2,7 @@
@@ -78,7 +78,7 @@ index 0f0cc0ac3056ec404426edee5f66281fb164a226..0824953b84489bb3bb8386ecaa81fa4c
  	wcd->sdev = pdev;
  	dev_set_drvdata(dev, wcd);
 diff --git a/sound/soc/codecs/wcd938x.c b/sound/soc/codecs/wcd938x.c
-index c69e18667a85b16f056ec13f00eb26ab323a03f7..29a170da398f9fa72ed09b65e9b3ed828f810b12 100644
+index c69e18667..29a170da3 100644
 --- a/sound/soc/codecs/wcd938x.c
 +++ b/sound/soc/codecs/wcd938x.c
 @@ -20,6 +20,8 @@

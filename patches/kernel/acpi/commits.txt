@@ -1,42 +1,70 @@
-30ca50654d6a2a6898fe874c3d67ea16aa9a4b8b ACPI: omit PCI default address space when PCI is disabled
-fd5dadf53220128f14a3e190a2c9dd2c5cfd5cdc software node: guard unnamed nodes during graph traversal
-6d1c4f42896a36db1a996b7dad46e0655346afe2 remoteproc: coordinate deletion with crash and subdevice shutdown
-5641cc7220c6fe127a1b38956278af814eef5204 drm/msm: initialize pagetable ownership before fallible allocation
-dd1179d19e3deb406d1fe098cac7c9e0eab3d603 drm/msm: identify the vmap fbdev buffer as system memory
-5b55e0ebbe1d77006cef0c88c26840f5a868a6e1 interconnect: expose validated named path lookup to consumers
-49dfa20cac70917d6aa7105002af87ac52f8199b interconnect: qcom: reject partial BCM initialization
-e585a48f92685447f21cb1f81fb1f57f0be520c5 ACPI: resolve namespace devices and physical companions uniformly
-054da3f8ddcbf20248205b15c387ab6df22f33fd ACPI: IORT: validate TCL USB WLAN display GPU and audio DMA mappings
-5472dfd60edbe31e85d733481f212176ee65a217 firmware: qcom: initialize SCM and its reset controller through ACPI
-cc72e7766e963a01fd3e331713bab325bda604d5 iommu: arm-smmu: select and power the TCL Qualcomm implementations
-3caf511a2e17ea83269cf6e02c08c6aec163c5e6 soc: qcom: define board-owned ACPI PAS and regulator resources
-a274b4901128db6a2979a1729cfdaa70ce614298 soc: qcom: describe SMEM locks mailboxes and SMP2P with firmware nodes
-208516d7fad4ad9486bc5e7c91c317c15733efa0 soc: qcom: support ACPI RPMh AOSS and memory suppliers
-dc581a822b1d6b126595c77400ea06fa08f8c9bf rpmsg: qcom: construct GLINK transports and channels from firmware nodes
-ac2c1f7d6aabdc7140feeb2540afd0fd5c7cde71 remoteproc: qcom: support firmware-described TCL modem and ADSP
-6b3d77db555395a13e59e71b7a4ac78496934b89 soc: qcom: enumerate APR services from firmware nodes
-70cde4b2cf5359025c7dceffc1cf0c3193318c36 wifi: ath10k: validate TCL ACPI SNOC resources before probe
-594f79dc3fba7d54deb3f780d62a3c2e5f839578 pinctrl: qcom: describe bounded TCL ACPI input and speaker GPIOs
-146f10158551b9fcdb6aabe08827c80d1601a209 i2c: qcom-geni: support the TCL keyboard and bridge without a QUP wrapper
-e36a3033e473b19401a110324a0e7079064adcee clk: qcom: provide bounded TCL display and GPU clock trees
-d0ea9ffc6342a3b7a4f1aea299c279c41feb1f7e clk: qcom: dispcc-sc7180: stop firmware rotator clock for TCL ACPI
-70cf6b164b43360764d12a56e881ff49f7f8257c interconnect: qcom: support firmware-described TCL fabric suppliers
-97fde6f0125b34c9528d5657e29d9bfd014b12b1 soc: qcom: select SC7180 UBWC parameters on TCL ACPI
-af291499a718fa98913a55f8e5ad2a8057c32819 drm: discover bridges and DSI devices through firmware nodes
-f584de7cda116851a97b46f11ae422e443567603 drm/msm: bind ACPI display components with explicit resources and OPPs
-1f4ab52f761205724d99300ddc74123af23ce4f3 drm/msm/dsi: support the TCL firmware-described host and PHY
-53a5217ea51aec314728978727d3b5d72c168fce drm: bridge: support the existing TCL LT8911 ACPI handoff device
-e41be53ab51187a1722f985a5f06a4e3f7dd8f6f drm/msm/adreno: consume validated TCL ACPI GPU and GMU resources
-b12dca4e0800d976f7c68c466362812fdd3d10f0 ASoC: qdsp6: populate firmware-described TCL audio services
-d3faa8e98f91e2b7482acbd18e7eb190fd2360d3 ASoC: qcom: support firmware-described LPASS macros and SoundWire pins
-65745ca21cd9422d85b60992c56a78a9d7f4b54c soundwire: enumerate TCL firmware nodes and handle controller rebinding
-0fc4420f819262bea744c063f1ddba655b85ede7 ASoC: wcd938x: bind TCL firmware nodes and clean aggregate IRQ state
-ff908987cd63d08fbe247d01e4126e79715471e6 usb: dwc3: add the guarded TCL ACPI host handoff driver
-772aa3e9d56c2665e744268206ded975650ce5c5 soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers
-b4900668dec9369cc4fae62bd32152668f2afabb soc: qcom: wire TCL ACPI display and GPU with ordered firmware handoff
-f8c7009045bb8912ee9d160feafa0136fe9da095 arm64: record TCL ACPI diagnostic and display configurations
-4fff76672d04b08ee74b50b0f30cf094b13c2726 soc: qcom: avoid late PM-domain reassignment for TCL GPU SMMU
-a9951c7c919fb364a9738535840477a176805a83 i2c: qcom: prepare the TCL ACPI EC bus
-a3c9a4a2061280b2915a455fcc1f376aafc270a7 ACPI: AC: defer probe until GenericSerialBus is ready
-ab63d6c99219ada851b88fd9c367dd3963f40f60 ASoC: lpass: balance runtime PM during driver removal
-9e958581e9553507fb5997d0a5828f528677e225 ASoC: lpass-va: avoid self-reference through fsgen clock
+d7e326790a5aa6521c38510b5010cef26d3cb7fa ACPI: omit PCI default address space when PCI is disabled
+600e746e453f1666165b3fe4b8c9b95a14a0050e software node: guard unnamed nodes during graph traversal
+1c36ac00c23c0c32ac568269ca8666338d5ea5c5 remoteproc: coordinate deletion with crash and subdevice shutdown
+8e3bfed1e954e0e57027fb6ae65bac7b590d5457 drm/msm: initialize pagetable ownership before fallible allocation
+e578075b56a9d925764c17f230463d3dfbfec660 drm/msm: identify the vmap fbdev buffer as system memory
+b615a41638372b5fa7db47c4013735066b32c475 interconnect: expose validated named path lookup to consumers
+3eb90cc583544e53c5e5cad6b71a039679cdf783 interconnect: qcom: reject partial BCM initialization
+a7d8dd07b2beb7822b280a2bfc178c709669466c ACPI: resolve namespace devices and physical companions uniformly
+a2d2b0a35223ad24e5d94610d8076acd5c1497a4 ACPI: IORT: validate TCL USB WLAN display GPU and audio DMA mappings
+60e05317ce34ee088810c0c6674ddd776936239b firmware: qcom: initialize SCM and its reset controller through ACPI
+8e81355e0dfd6a5b8c32d3c0079004d0e571e63d iommu: arm-smmu: select and power the TCL Qualcomm implementations
+66b9d7aa89475b63286b75756fc75c1703931b99 soc: qcom: define board-owned ACPI PAS and regulator resources
+9489415464dd8ceda27198ccbd3da9ca8f116639 soc: qcom: describe SMEM locks mailboxes and SMP2P with firmware nodes
+2286489643148aa2054eaeb4d906340d9b05eb3e soc: qcom: support ACPI RPMh AOSS and memory suppliers
+4754877f3952bf2be10a844d0223ad98aefbc303 rpmsg: qcom: construct GLINK transports and channels from firmware nodes
+518700bfab4a4424888d113b474595ceeee85b49 remoteproc: qcom: support firmware-described TCL modem and ADSP
+e9e7e19761a3fa91ffcc2045f6652f9b21dc0c66 soc: qcom: enumerate APR services from firmware nodes
+4b0ec98d47a21b6c47d2df53c2b3448cbf20d824 wifi: ath10k: validate TCL ACPI SNOC resources before probe
+4f0b5194b0e18ad859708dedb67a6e401d56a362 pinctrl: qcom: describe bounded TCL ACPI input and speaker GPIOs
+e34a6bde5b9d558974a77811f146c89321e40a94 i2c: qcom-geni: support the TCL keyboard and bridge without a QUP wrapper
+668279f21b6bd73692142b49237743dc16f7d49c clk: qcom: provide bounded TCL display and GPU clock trees
+8f66b28926c6bc9474adc6b696dd9d46b32e878b clk: qcom: dispcc-sc7180: stop firmware rotator clock for TCL ACPI
+0b516a408ef4f5175b9e3f5c8e8efcde84abbed1 interconnect: qcom: support firmware-described TCL fabric suppliers
+bf04aa1a199b944b228ad239fe3419243ea1df30 soc: qcom: select SC7180 UBWC parameters on TCL ACPI
+01ff5820569e5ef2bde6d2286ee38ebde52b3300 drm: discover bridges and DSI devices through firmware nodes
+d1f2fddd4cc4e33dd480795b88ddfcef7572dfcc drm/msm: bind ACPI display components with explicit resources and OPPs
+e3817882c8df54fed087a32bbd477a783755ef47 drm/msm/dsi: support the TCL firmware-described host and PHY
+506e81d4cc26b2e3ac515d70b99e0eddb86d28bb drm: bridge: support the existing TCL LT8911 ACPI handoff device
+0989963c688fd3a0eb9427bf5bfc297e58ac5a47 drm/msm/adreno: consume validated TCL ACPI GPU and GMU resources
+12ae46fa1362c0d96d660d41de15cebb9c43c0af ASoC: qdsp6: populate firmware-described TCL audio services
+2d3dc3b991040d7359642730f69a4998c80ffd40 ASoC: qcom: support firmware-described LPASS macros and SoundWire pins
+2d4779e768bdb43aa914c9d0f348309b2c677162 soundwire: enumerate TCL firmware nodes and handle controller rebinding
+185b452c93f859508d65dc13002c245879737ab4 ASoC: wcd938x: bind TCL firmware nodes and clean aggregate IRQ state
+5f87dee8e36c6e037b64543687a4517f8f9254d4 usb: dwc3: add the guarded TCL ACPI host handoff driver
+4c6d9fecedc9ad306a2fb154eb3864291aa9c1f0 soc: qcom: wire TCL ACPI SMEM modem and WLAN suppliers
+2778d32283f82c1efa4c4d7ab71814a1dbdc40d5 soc: qcom: complete TCL display firmware handoff
+0ed33f966f35363c12e7259d40c51f2e70813364 ASoC: lpass-va-macro: balance clocks across runtime suspend/resume
+b306621f492b5f2be79fd9d7b9e1215cd99e8100 ASoC: q6afe: return the DSP vote handle under the transaction lock
+4de197c4998d54936bfdd05c1d7c51ec93b7a324 pinctrl: qcom: manage TCL ACPI LPI clocks through runtime PM
+58f0bf2409684400e65a6108188259f69146dfa1 ASoC: q6afe: accept compact hardware-vote replies
+c443db2db2333a9094aa648386d152b34a96e258 ufs: qcom: add ACPI firmware-managed probe path
+75f1edd67612673a27ce522ee175500b9ab03c8b ufs: qcom: use one lane for TCL ACPI
+e2b705fb5c77bd687008fc37b8c5aecefd7ef0f4 ACPI: platform: apply TCL UFS IORT input ID
+b0e6b0efd02719b92169acb588415abb32ad29f6 ufs: qcom: configure ACPI IORT ID before probe
+1ff2b85bda64458b1dea89916de56fdae7e75d4b ufs: platform: configure ACPI IORT before host init
+8713c8e886ca7361f96e2e9433610fa1c489ef25 ufs: qcom: use exported ACPI DMA configuration API
+77e566f09d0845b562c8c2beff2849e2489cebf6 ACPI: arm64: map TCL UFS component to IORT
+8788692d3c1d7daae308d9f888379fbb781e549a clk: qcom: support platform-enumerated SC7180 VIDEOCC
+36e9e72f4aed2ac03be9189afe0d38ce28782e48 media: qcom: support firmware-described SC7180 Venus
+f73909441bb80a4cc94af3bf5e0e84b68877e5d4 ACPI: arm64: map TCL Venus through the Apps SMMU
+bedb4a6de0c7a7d7b9cddfae96133d7937d6fdab soc: qcom: wire TCL B220G ACPI Venus resources
+865a103411f1f689666ad87cba75e78ddcc915b6 soc: qcom: avoid late PM-domain reassignment for TCL GPU SMMU
+1c0532120ae203c9984f1ebdbe8e685233e222a6 i2c: qcom: prepare the TCL ACPI EC bus
+c597bce1dd9f60c23fa06ce2292213186fceb268 ACPI: AC: defer probe until GenericSerialBus is ready
+864592be373d40ceadaf18979f74f6ab08edf6ac soc: qcom: validate ACPI SMEM reservations
+a184a80e308e37efe2ee0e3e55d19d5d5406ac5c soc: qcom: harden firmware-described RPMh memory providers
+73110f17e742df945c1e26b64894a4063d0b2194 pmdomain: support onecell providers through fwnode
+0752a7165c8cdf1d6609ecd0a7b696ebdfdc8412 clk: resolve providers through generic fwnode
+f4345cab19ac3a8b389da6ffe3fc78491aecc550 regulator: resolve supplies through generic fwnode
+56ea952be8b6b3cdb67e19a3fb696fd82cdd3de2 regulator: qcom-rpmh: support generic firmware nodes
+7e6dad51dfd9eac7fb32ceda6ed610b10e36119b ACPI: property: resolve extended interrupt references
+18456080a6178b100acd1d110c13e801fd131aab remoteproc: qcom: use generic TCL ACPI PAS resources
+82c73cb037e5b7bbf74f3c865a6e4fb7918fae7f wifi: ath10k: use TCL ACPI firmware resources
+a6a1d796c155c9aec5dc041f31dfbafe1748a8e0 soc: qcom: preserve legacy RPMh diagnostic consumers
+3abcba4e26ccef79e37140b64318d5e227e7cd02 cpufreq: qcom: resolve frequency domains through fwnode
+25695a8c41d1a08c322245ee61c46531f51e41f1 topology: initialize frequency reference for ACPI cpufreq
+7150c99f7afa8428cec7ae4d91c8fbbefc131cc3 ACPI: processor: apply max_cstate to LPI states
+c686451c7addce6f60d5ec853c4d2223afbfdb99 ASoC: lpass: balance runtime PM during driver removal
+e1ed7e410745e41bb597aedff062eefbfbe0256d ASoC: lpass-va: avoid self-reference through fsgen clock
+e3395392112555c8f545204898d50555961d532a arm64: record the qualified TCL ACPI configurations

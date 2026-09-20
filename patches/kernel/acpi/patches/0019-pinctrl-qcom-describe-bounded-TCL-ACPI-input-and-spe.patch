@@ -1,7 +1,7 @@
-From 594f79dc3fba7d54deb3f780d62a3c2e5f839578 Mon Sep 17 00:00:00 2001
+From 4f0b5194b0e18ad859708dedb67a6e401d56a362 Mon Sep 17 00:00:00 2001
 From: Vitaly Lipatov <lav@etersoft.ru>
 Date: Tue, 15 Sep 2026 11:41:43 +0300
-Subject: [PATCH 19/37] pinctrl: qcom: describe bounded TCL ACPI input and
+Subject: [PATCH 19/70] pinctrl: qcom: describe bounded TCL ACPI input and
  speaker GPIOs
 
 ACPI GIO0 exposes one TLMM window for three tiles, while Linux normally
@@ -21,7 +21,7 @@ GPIO/IRQ access, not general wake support.
  3 files changed, 107 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/pinctrl/qcom/pinctrl-msm.c b/drivers/pinctrl/qcom/pinctrl-msm.c
-index fd0add4e71da14d6e74b0517e1015926c6c15d1b..a9a5cd1e8f3e3312517ce51057c82c9343e56a69 100644
+index fd0add4e7..a9a5cd1e8 100644
 --- a/drivers/pinctrl/qcom/pinctrl-msm.c
 +++ b/drivers/pinctrl/qcom/pinctrl-msm.c
 @@ -773,6 +773,18 @@ static int msm_gpio_init_valid_mask(struct gpio_chip *gc,
@@ -65,7 +65,7 @@ index fd0add4e71da14d6e74b0517e1015926c6c15d1b..a9a5cd1e8f3e3312517ce51057c82c93
  			res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
  							   soc_data->tiles[i]);
 diff --git a/drivers/pinctrl/qcom/pinctrl-msm.h b/drivers/pinctrl/qcom/pinctrl-msm.h
-index b94ba1a4177ede95042e74a39fcc93eba046063d..479ad22f5249048577aa5efe253d47e212c90989 100644
+index b94ba1a41..479ad22f5 100644
 --- a/drivers/pinctrl/qcom/pinctrl-msm.h
 +++ b/drivers/pinctrl/qcom/pinctrl-msm.h
 @@ -178,10 +178,15 @@ struct msm_pinctrl_soc_data {
@@ -85,7 +85,7 @@ index b94ba1a4177ede95042e74a39fcc93eba046063d..479ad22f5249048577aa5efe253d47e2
  	unsigned int egpio_func;
  };
 diff --git a/drivers/pinctrl/qcom/pinctrl-sc7180.c b/drivers/pinctrl/qcom/pinctrl-sc7180.c
-index a02a9a78a557f02272689f25618aa7141a273338..5d04178ad80cba6cd18dc8525ae655b8c8ed4646 100644
+index a02a9a78a..5d04178ad 100644
 --- a/drivers/pinctrl/qcom/pinctrl-sc7180.c
 +++ b/drivers/pinctrl/qcom/pinctrl-sc7180.c
 @@ -1,6 +1,9 @@
