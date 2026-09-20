@@ -4,15 +4,16 @@
 
 Полноэкранный OpenGL-тест `glmark2-wayland` на ALT Linux определил freedreno FD618, OpenGL 4.6 и завершился со скоростью 363 FPS и итоговым score 362 при 1920×1080. Ошибок GPU в журнале ядра и перезапуска Weston во время этого теста не было.
 
-Полный журнал загрузки выявил две ошибки порядка и владения ресурсами. Первая
-native modeset выдаёт `disp_cc_mdss_pclk0_clk_src: rcg didn't update its
-configuration`, после чего framebuffer и Weston всё же работают. Это
-неустранённая проблема firmware-to-Linux clock handoff; её нельзя считать
-безвредной только по наличию изображения. Вторая трассировка возникала из-за
-попытки поздно назначить power-domain уже привязанному Adreno SMMU. Код
-исправлен: координатор сохраняет boot-lifetime CX/bus-clock votes, проверяет
-нужный bound SMMU и не меняет его `dev->pm_domain`; аппаратная проверка
-исправленной загрузки ещё не выполнена.
+Полный журнал загрузки выявил две ошибки порядка и владения ресурсами. SID
+`0x800` получал SMMU fault, потому что DPU platform device подключался к новому
+IOMMU domain до остановки firmware scanout. Теперь координатор останавливает и
+проверяет DPU DMA до создания устройства. Firmware также оставляла физически
+включёнными DSI byte, byte-interface и pixel branches без соответствующих CCF
+enable counts. При первом изменении общего VCO это вызывало
+`disp_cc_mdss_pclk0_clk_src: rcg didn't update its configuration`. Координатор
+принимает каждую ветвь сбалансированной парой CCF enable/disable до настройки
+частот. Проверенная загрузка завершилась без обоих сообщений, с нативным DRM и
+подключённым eDP.
 
 Turnip определяет Adreno 618 и Vulkan 1.3.354, но Wayland swapchain пока не работает: передаётся неподдержанный KMS-формат `XB4H` с modifier `0x500000000000001`. Weston при этой ошибке попадает в assertion выбора overlay plane и перезапускается. Поэтому Vulkan device/driver подтверждены, а Vulkan WSI/scanout — ещё нет.
 
@@ -99,7 +100,7 @@ flowchart TB
 
 | Зависимость | Требуемая реализация | Степень подтверждения ACPI |
 |---|---|---|
-| GCC → DISPCC → PHY | Явные clock aliases, поставщики и последовательность probe; late PLL parents PHY | Нативный вывод работает; первый PCLK RCG update даёт WARNING |
+| GCC → DISPCC → PHY | Явные clock aliases, поставщики и последовательность probe; late PLL parents PHY; CCF handoff включённых firmware branches | Нативный вывод и первый PCLK update работают без WARNING |
 | Питание PHY | MDSS_GDSC должен быть доступен до чтения PLL; GPU0 не заменяет runtime-PM родителя MDSS | Начальный запуск подтверждён, dynamic idle/suspend не проверены |
 | DPU/DSI OPP | Согласовывать частоту с CX до включения потребителя | Начальный режим работает; динамические переходы не подтверждены |
 | ICC | Зарегистрировать таблицы пяти контроллеров, BCM voter и получить оба пути с корректными тегами | Оба пути получены, boot bandwidth floor пока удерживается |

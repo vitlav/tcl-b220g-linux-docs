@@ -1,0 +1,7 @@
+Feb 27 11:55:56 tcl-alt kernel: acpi QCOM083A:00: DISPCC registered: pclk cmd=0x0 cfg=0x100 m=0x0 n=0x0 d=0x0 branch=0x1; byte cmd=0x0 cfg=0x101 branch=0x1 div=0x1
+Feb 27 11:55:56 tcl-alt kernel: acpi QCOM083A:00: firmware DSI scanout stopped before clock/IOMMU handoff
+Feb 27 11:55:56 tcl-alt kernel: acpi QCOM083A:00: DISPCC scanout-stopped: pclk cmd=0x0 cfg=0x100 m=0x0 n=0x0 d=0x0 branch=0x1; byte cmd=0x0 cfg=0x101 branch=0x1 div=0x1
+Feb 27 11:55:56 tcl-alt kernel: acpi QCOM083A:00: DISPCC firmware-branches-off: pclk cmd=0x80000000 cfg=0x100 m=0x0 n=0x0 d=0x0 branch=0x80000000; byte cmd=0x80000000 cfg=0x101 branch=0x80000000 div=0x1
+Feb 27 11:55:56 tcl-alt kernel: acpi QCOM083A:00: DISPCC parents-ready: pclk cmd=0x80000000 cfg=0x100 m=0x0 n=0x0 d=0x0 branch=0x80000000; byte cmd=0x80000000 cfg=0x101 branch=0x80000000 div=0x1
+Feb 27 11:55:57 tcl-alt kernel: acpi QCOM083A:00: DISPCC dpu-active: pclk cmd=0x0 cfg=0x100 m=0x1 n=0xff d=0xff branch=0x1; byte cmd=0x0 cfg=0x101 branch=0x1 div=0x1
+Feb 27 11:55:57 tcl-alt kernel: TCL DSI, firmware bridge and DPU bound; verify connector and scanout
