@@ -1,6 +1,6 @@
 # ACPI audio on TCL B220G
 
-Status rechecked 20 September 2026 on the installed ALT system, Linux `7.2.4-tcl-acpi-standard3+`; the earlier reference was `7.2.4-tcl-acpi-display1+`. The DT audio path is documented separately in [the DT audio specification](audio.md).
+Status rechecked 20 September 2026 on the installed ALT system. The qualified reference is `7.2.4-tcl-acpi-standard3+`; an exact rebuild from working source tree `885e8419bbeebe4f34b47d7e692311e301004167` also booted as `7.2.4-tcl-acpi-repro1+`. The earlier reference was `7.2.4-tcl-acpi-display1+`. The DT audio path is documented separately in [the DT audio specification](audio.md).
 
 ## Playback path
 
@@ -28,6 +28,8 @@ Service restart and audible playback have been demonstrated during development. 
 The Q6AFE remote LPASS hardware-vote lifecycle is not yet correct on this firmware. At early boot, VA block 3 requested opcode `0x100f4`; firmware returned `APR_BASIC_RSP_RESULT` status `0x16` (`Unknown cmd`) and that probe ended with `-ETIMEDOUT`. This was initially misidentified as a compact vote response. After APR became fully ready, RX/TX/VA macro were bound and playback worked, so the early result alone does not prove that every vote is unsupported.
 
 The generic macro cleanup defects are fixed by patches 41 and 42. RX, TX and VA now balance runtime PM on remove, and VA no longer pins its own module through a permanent `fsgen` consumer reference. On the installed `7.2.4-tcl-acpi-standard3+` kernel all four modules (`snd-soc-lpass-{va,rx,tx}-macro` and `soundwire-qcom`) unloaded completely and loaded again without `Unbalanced pm_runtime_enable`, Oops, trace or refcount warning. The ALSA card and both WCD9385 SoundWire slaves returned, and the user confirmed the controlled 880 Hz stereo playback. The unload still receives two `Unknown cmd 0x100f6` devote replies, so Q6AFE vote/devote remains a separate unresolved protocol issue; the unqualified Q6AFE handle and compact-response candidates remain outside the working series.
+
+The clean `repro1` hardware boot also verified the packaging boundary. The baseline external LPI provider intentionally failed against the runtime-PM-aware LPI driver with `LPI clocks unavailable`; installing the matching provider from `optional-patches/lpass-pm/modules` restored binding without a reboot. The service then registered the ALSA card, both SoundWire slaves became `Attached`, and LPI returned to `runtime_status=suspended`. A stereo 880 Hz test at HPH 12/24 and RX digital 62/124 was audible and left both slaves attached. This pair must be selected together by packaging; silently mixing the two variants is not supported.
 
 PipeWire initially negotiated `S24_LE`: the stream was `RUNNING`, pointers advanced and applications returned success, but neither the test tone nor Brave was audible. The node-specific WirePlumber rule in the [ACPI root overlay](../../system/acpi/root-overlay/etc/wireplumber/wireplumber.conf.d/51-tcl-audio.conf) forces `S16LE`, 48 kHz and two channels. Live `/proc/asound/card0/pcm0p/sub0/hw_params` then reported `S16_LE`, and both playback paths were heard. This is why successful application exit or an advancing PCM pointer alone is insufficient validation on this machine.
 
