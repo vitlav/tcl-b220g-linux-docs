@@ -1,0 +1,48 @@
+From f04802bc20555a3bcc0e6a3685d2e71953f8eebe Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Tue, 15 Sep 2026 14:54:24 +0300
+Subject: [PATCH] ASoC: q6afe: accept compact hardware-vote replies
+
+Some firmware revisions return only the 32-bit client handle for the
+LPASS vote response. The status word is optional for this response opcode;
+requiring the generic two-word APR result made the callback discard the
+handle and caused a vote timeout during SoundWire startup.
+
+Keep the strict two-word length check for APR_BASIC_RSP_RESULT, while
+accepting a handle-sized vote response and treating a missing status as
+success. Responses shorter than the handle remain ignored.
+
+diff --git a/sound/soc/qcom/qdsp6/q6afe.c b/sound/soc/qcom/qdsp6/q6afe.c
+index 162186d1eea056ce30b36c3cee53299cf5aabb03..74a99b3cbe82fce06dcf17a7b417df1c87f15d94 100644
+--- a/sound/soc/qcom/qdsp6/q6afe.c
++++ b/sound/soc/qcom/qdsp6/q6afe.c
+@@ -971,12 +971,14 @@ static int q6afe_callback(struct apr_device *adev, const struct apr_resp_pkt *da
+ 	const struct apr_hdr *hdr = &data->hdr;
+ 	struct q6afe_port *port;
+ 
+-	if (data->payload_size < sizeof(*res))
++	if (!data->payload_size)
+ 		return 0;
+ 
+ 	res = data->payload;
+ 	switch (hdr->opcode) {
+ 	case APR_BASIC_RSP_RESULT: {
++		if (data->payload_size < sizeof(*res))
++			return 0;
+ 		if (res->status) {
+ 			dev_err(afe->dev, "cmd = 0x%x returned error = 0x%x\n",
+ 				res->opcode, res->status);
+@@ -1003,9 +1005,12 @@ static int q6afe_callback(struct apr_device *adev, const struct apr_resp_pkt *da
+ 	}
+ 		break;
+ 	case AFE_CMD_RSP_REMOTE_LPASS_CORE_HW_VOTE_REQUEST:
++		if (data->payload_size < sizeof(u32))
++			return 0;
+ 		/* The first response word is the vote handle, not an opcode. */
+ 		afe->rsp_client_handle = res->opcode;
+-		afe->result.status = res->status;
++		afe->result.status = data->payload_size >= sizeof(*res) ?
++			res->status : 0;
+ 		afe->result.opcode = hdr->opcode;
+ 		wake_up(&afe->wait);
+ 		break;

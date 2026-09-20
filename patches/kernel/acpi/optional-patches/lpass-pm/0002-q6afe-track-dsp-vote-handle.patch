@@ -23,12 +23,9 @@ Those remain separate requirements for complete power-management support.
 Original-commit: 2637dc2cbba04da60fce3156902ba0611a4b30a8
 Fixes: 55e07531d922 ("ASoC: q6dsp: q6afe: add lpass hw voting support")
 Signed-off-by: Nikita Travkin <nikita@trvn.ru>
----
- sound/soc/qcom/qdsp6/q6afe.c | 34 +++++++++++++++++++++++++---------
- 1 file changed, 25 insertions(+), 9 deletions(-)
 
 diff --git a/sound/soc/qcom/qdsp6/q6afe.c b/sound/soc/qcom/qdsp6/q6afe.c
-index d28ffeede..162186d1e 100644
+index d28ffeede9dc3969791b2893ec5847f34dfb155d..162186d1eea056ce30b36c3cee53299cf5aabb03 100644
 --- a/sound/soc/qcom/qdsp6/q6afe.c
 +++ b/sound/soc/qcom/qdsp6/q6afe.c
 @@ -380,6 +380,7 @@ struct q6afe {
@@ -132,6 +129,3 @@ index d28ffeede..162186d1e 100644
  	return ret;
  }
  EXPORT_SYMBOL(q6afe_vote_lpass_core_hw);
--- 
-2.50.1
-

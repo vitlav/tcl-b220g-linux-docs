@@ -1,18 +1,18 @@
 # LPASS power management: дополнительные исправления ACPI
 
-Набор применяется **после основной ACPI-серии**. Он сохраняет исправления qc7 и адаптирует управление clocks к текущему ядру. Применение, сборка и проверки кода выполнены; LPI аппаратно проверен, а первая проверка Q6AFE выявила и привела к исправлению формата APR vote-ответа. Q6AFE и VA macro после этого исправления ещё не квалифицированы на ноутбуке. В основной загрузочный комплект изменения не включены. DT-комплект не меняется.
+Каталог применяется **после основной ACPI-серии** и разделяет аппаратно проверенное управление LPI clocks от сохранённых кандидатов qc7. В `series` включён только проверенный LPI runtime-PM patch. Q6AFE hardware-vote firmware ноутбука отвергает как неизвестную команду, поэтому Q6AFE и VA macro patches сохранены для анализа происхождения, но в рабочую TCL-серию не входят. DT-комплект не меняется.
 
 ## Состав
 
 | Файл | Назначение и происхождение |
 |---|---|
-| [0001](0001-lpass-va-macro-disable-clocks-in-suspend.patch) | Оригинал Nikita Travkin `283c8d3f8579`: баланс macro/dcodec clocks в VA macro runtime suspend/resume. Файл сохранён без изменений, включая авторство и Signed-off-by. |
-| [0002](0002-q6afe-track-dsp-vote-handle.patch) | Адаптация Nikita Travkin `2637dc2cbba0`: сохранить DSP client handle и вернуть его потребителю под блокировкой транзакции; передать handle при unvote с token=0. Ошибка не перезаписывает выходное значение; транспортная ошибка сохраняет errno. |
-| [0003](0003-lpi-acpi-runtime-clock-management.patch) | Для TCL ACPI LPI получить core/audio clocks и управлять ими через runtime PM с проверкой ошибок и откатом частичного включения. Старый патч Nikita Travkin `dfa7b00cc17d` использовал уже отсутствующие поля; здесь адаптирована его задача, а не скопированы устаревшие callbacks. |
-| [0004](0004-q6afe-compact-vote-response.patch) | Исправление по аппаратному запуску: некоторые прошивки возвращают для vote только 32-битный handle. Такой ответ принимается, status считается необязательным; строгая проверка двух слов сохранена для обычных APR-ответов. |
+| [0001](0001-lpass-va-macro-disable-clocks-in-suspend.patch) | Оригинал Nikita Travkin `283c8d3f8579`: баланс macro/dcodec clocks в VA macro runtime suspend/resume. Сохранён без изменений и не входит в `series`: VA probe на штатной TCL ADSP firmware упирается в неподдерживаемый hardware-vote. |
+| [0002](0002-q6afe-track-dsp-vote-handle.patch) | Логически отдельная адаптация Nikita Travkin `2637dc2cbba0`: сохранить DSP client handle и передать его при unvote. Не входит в `series`, поскольку TCL firmware отвергает сам vote opcode до выдачи handle. |
+| [0003](0003-lpi-acpi-runtime-clock-management.patch) | Аппаратно проверенный TCL ACPI LPI runtime-PM: получить core/audio clocks, балансировать их стандартными callbacks, проверять ошибку и откатывать частичное включение. Это единственный patch в `series`. |
+| [0004](0004-q6afe-compact-vote-response.patch) | Логически отдельная поддержка компактного 32-битного vote-response. Не входит в `series`: текущая TCL firmware вместо такого ответа возвращает `APR_BASIC_RSP_RESULT`, status `0x16` (`Unknown cmd`) для opcode `0x100f4`. |
 | [modules/tcl_lpi_provider.c](modules/tcl_lpi_provider.c) | Обязательная замена одноимённого внешнего модуля при проверке 0003: зарегистрировать проверяемые clkdev aliases до устройства, убрать временное включение clocks вокруг регистрации. Удаление устройства предшествует освобождению aliases и ссылок. |
 
-[series](series) содержит только три патча к ядру. Внешний provider собирается из указанной здесь версии вместо файла основной серии. Не смешивать новый LPI driver со старым provider: отсутствие clocks должно приводить к ошибке probe, а не к доступу к обесточенным регистрам. [Манифест](manifest.json) фиксирует базу, коммиты, итоговое дерево и SHA-256 файлов. Оригиналы доступны в [архиве qc7](../../../../../research/qc7-provenance/travmurav-original-commits.mbox).
+[series](series) содержит только аппаратно проверенный LPI patch. Внешний provider собирается из указанной здесь версии вместо файла основной серии. Не смешивать новый LPI driver со старым provider: отсутствие clocks должно приводить к ошибке probe, а не к доступу к обесточенным регистрам. [Манифест](manifest.json) фиксирует базу, итоговое дерево и SHA-256 файлов. Оригиналы доступны в [архиве qc7](../../../../../research/qc7-provenance/travmurav-original-commits.mbox).
 
 ## Стандартные интерфейсы
 
@@ -38,7 +38,9 @@
 - Host harness вызывает новые LPI callbacks и реальные bulk helpers ядра с подменёнными низкоуровневыми clocks: 1000 сбалансированных циклов, отказ prepare/enable первого и второго clock, полный откат. Проверено сохранение вызова прежнего pm_clk пути; это не аппаратное тестирование DT.
 - ASan/UBSan для host-проверок; LeakSanitizer отключён из-за ограничений запуска под ptrace. Эти проверки не моделируют DSP, IRQ concurrency или реальную электрическую схему.
 
-Аппаратная проверка LPI на TCL B220G выполнена после восстановления root-файловой системы. Новые `pinctrl_lpass_lpi`, `pinctrl_sc7280_lpass_lpi` и `tcl_lpi_provider` загружены без перезагрузки; provider успешно привязался и настроил SoundWire pinmux. Через `/sys/bus/platform/devices/tcl-lpi-provider.0/power/control` переход `on` показал active clocks, `auto` вернул `runtime_status=suspended` и нулевые enable counts у RX MCLK/NPL. Короткий `speaker-test` 880 Гц прошёл на HPHL/HPHR=12 из 24 и RX digital=62 из 124; DAPM включил и выключил усилители, после теста LPI снова suspended. Во время проверки сеть, графика и загрузочный комплект не менялись. В первом запуске нового Q6AFE аудиосервис не поднялся: компактный vote-ответ был ошибочно отброшен; это исправлено патчем 0004, но повторная аппаратная проверка Q6AFE ещё не выполнена. В логе остаётся предупреждение о временной активации codec до SoundWire parent; последующий probe успешен.
+Аппаратная проверка LPI на TCL B220G выполнена после восстановления root-файловой системы. Новые `pinctrl_lpass_lpi`, `pinctrl_sc7280_lpass_lpi` и `tcl_lpi_provider` загружены без перезагрузки; provider успешно привязался и настроил SoundWire pinmux. Через `/sys/bus/platform/devices/tcl-lpi-provider.0/power/control` переход `on` показал active clocks, `auto` вернул `runtime_status=suspended` и нулевые enable counts у RX MCLK/NPL. Короткий `speaker-test` 880 Гц прошёл на HPHL/HPHR=12 из 24 и RX digital=62 из 124; DAPM включил и выключил усилители, после теста LPI снова suspended. Во время проверки сеть, графика и загрузочный комплект не менялись.
+
+Отдельная аппаратная проверка Q6AFE дала точный отрицательный результат: VA macro запросил блок 3 командой `AFE_CMD_REMOTE_LPASS_CORE_HW_VOTE_REQUEST` (`0x100f4`), ADSP ответил обычным `APR_BASIC_RSP_RESULT` со status `0x16`, драйвер расшифровал его как `Unknown cmd`, а VA probe завершился `-ETIMEDOUT`. Это не компактный успешный ответ и не исправляется patch 0004. RX/TX macro и SoundWire после появления собственных clocks успешно перепривязались, ALSA playback работает; VA в текущем speaker path не требуется.
 
 ## Аппаратная приёмка и оставшиеся требования
 
