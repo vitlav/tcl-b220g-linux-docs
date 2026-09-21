@@ -15,3 +15,9 @@ Hardware results on TCL B220G:
 - No `no GPU device`, `drm_sched`, or SMMU runtime-PM failure occurs in this boot.
 
 Venus remains a separate unresolved issue: its ACPI platform device is created, but `qcom-venus` probe returns `-5` and decoder/encoder nodes `/dev/video2` and `/dev/video3` are not registered. Do not treat the Venus failure as a display or GPU failure.
+
+### EDID and refresh-rate status
+
+The ACPI public70 display currently exposes `card0-eDP-1` as connected with one mode, `1920x1080`; `/sys/class/drm/card0-eDP-1/edid` is empty. This is a limitation of the experimental `tcl-lt8911-handoff` bridge, not of the DPU: the bridge inherits the LT8911EXB state left by firmware and deliberately does not reset, cold-start, train the link, or access panel DDC. Its `get_modes()` therefore supplies a validated static 1920x1080@60 mode.
+
+A real EDID fix is technically possible, but requires a separate full LT8911EXB bridge implementation. It must establish the chip's power/reset state, configure the eDP/AUX/DDC path, read the panel EDID, and expose it through the DRM bridge `.edid_read` operation. A public reference LT8911EXB driver documents reset timing and the 0x29 I2C address, while upstream Lontium bridge drivers show the standard DRM EDID flow; neither provides board-specific proof for B220G. Until the reset/power sequence and panel DDC wiring are verified, forcing an EDID blob would only mask the missing hardware path. Higher refresh modes therefore remain unconfirmed.
