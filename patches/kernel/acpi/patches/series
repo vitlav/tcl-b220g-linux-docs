@@ -68,3 +68,5 @@
 0068-ASoC-lpass-balance-runtime-PM-during-driver-removal.patch
 0069-ASoC-lpass-va-avoid-self-reference-through-fsgen-clo.patch
 0070-arm64-record-the-qualified-TCL-ACPI-configurations.patch
+0071-iommu-arm-smmu-tolerate-disabled-runtime-PM-for-TCL-.patch
+0072-drm-msm-skip-Adreno-lookup-for-standalone-ACPI-DPU.patch

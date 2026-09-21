@@ -68,3 +68,5 @@ a6a1d796c155c9aec5dc041f31dfbafe1748a8e0 soc: qcom: preserve legacy RPMh diagnos
 c686451c7addce6f60d5ec853c4d2223afbfdb99 ASoC: lpass: balance runtime PM during driver removal
 e1ed7e410745e41bb597aedff062eefbfbe0256d ASoC: lpass-va: avoid self-reference through fsgen clock
 e3395392112555c8f545204898d50555961d532a arm64: record the qualified TCL ACPI configurations
+900e636e5ad4623bb174e5625f812146dc0dbc9e iommu: arm-smmu: tolerate disabled runtime PM for TCL GPU
+71a504d9eeb760bbd6b316190412f574d162b8f9 drm/msm: skip Adreno lookup for standalone ACPI DPU

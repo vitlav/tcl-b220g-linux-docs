@@ -1,0 +1,21 @@
+From 71a504d9eeb760bbd6b316190412f574d162b8f9 Mon Sep 17 00:00:00 2001
+From: Vitaly Lipatov <lav@etersoft.ru>
+Date: Mon, 21 Sep 2026 09:24:34 +0300
+Subject: [PATCH 72/72] drm/msm: skip Adreno lookup for standalone ACPI DPU
+
+
+diff --git a/drivers/gpu/drm/msm/msm_drv.c b/drivers/gpu/drm/msm/msm_drv.c
+index 24e39b026..5f706bf5d 100644
+--- a/drivers/gpu/drm/msm/msm_drv.c
++++ b/drivers/gpu/drm/msm/msm_drv.c
+@@ -201,6 +201,10 @@ static void load_gpu(struct drm_device *dev)
+ 	static DEFINE_MUTEX(init_lock);
+ 	struct msm_drm_private *priv = dev->dev_private;
+ 
++	/* ACPI TCL exposes DPU and Adreno as separate DRM devices. */
++	if (!priv->gpu_pdev)
++		return;
++
+ 	mutex_lock(&init_lock);
+ 
+ 	if (!priv->gpu)

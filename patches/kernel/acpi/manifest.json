@@ -1,14 +1,14 @@
 {
   "base_commit": "5015d0d945b3d3f2b038d2667880d5762f7d9437",
-  "source_commit": "9e958581e9553507fb5997d0a5828f528677e225",
-  "source_tree": "885e8419bbeebe4f34b47d7e692311e301004167",
-  "patch_count": 70,
+  "source_commit": "71a504d9eeb760bbd6b316190412f574d162b8f9",
+  "source_tree": "58964843cb58e7216e565d882968c4ef134bcf36",
+  "patch_count": 72,
   "patch_replay": "passed: all 70 curated patches apply sequentially to the clean base and reproduce source_tree exactly",
   "hardware_qualification": {
-    "kernel_release": "7.2.4-tcl-acpi-repro1+",
-    "image_sha256": "7ec21e0297f9bff7b19aa9ff205a5b597c596ac3accc5c26dcaf93be9362d2ec",
-    "boot_id": "9d681993-cc37-4768-8f64-96b5a95dd5b4",
-    "result": "booted UFS root with Wi-Fi, internal input, USB camera, eDP/DPU, Adreno and ramoops/pstore; matching runtime-PM LPI provider restored both SoundWire slaves and user-confirmed audible playback",
+    "kernel_release": "7.2.4-tcl-acpi-public70+",
+    "image_sha256": "5429493f126c22446f9db04bf61a6c8717d85523a1ccd94967ae1e1a0ed8615c",
+    "boot_id": "bc7877a0-95ca-43a5-9beb-68aba1818fd2",
+    "result": "booted UFS root with Wi-Fi, internal input, USB camera, eDP/DPU, Adreno and ramoops/pstore; matching runtime-PM LPI provider restored both SoundWire slaves and user-confirmed audible playback; SMMU and standalone ACPI-DPU fixes qualified; Wayland vulkaninfo and vkcube passed",
     "known_limitations": "Q6AFE vote/devote firmware replies remain unresolved; system suspend/resume and repeated cold boots remain unqualified"
   },
   "patches": [
@@ -291,6 +291,14 @@
     {
       "file": "0070-arm64-record-the-qualified-TCL-ACPI-configurations.patch",
       "sha256": "4be4844f02bf32e946b14c9fa796f1ec20bd20d0b434fe86fefd5034ac01027f"
+    },
+    {
+      "file": "0071-iommu-arm-smmu-tolerate-disabled-runtime-PM-for-TCL-.patch",
+      "sha256": "f0d5129066d737b8d90370b05a44278f4b96d5d756b7a918690d6a22c0338753"
+    },
+    {
+      "file": "0072-drm-msm-skip-Adreno-lookup-for-standalone-ACPI-DPU.patch",
+      "sha256": "8413e8f342530824b73a264cddcb83365a6d6dd0807da7bec81e23f770c09e76"
     }
   ],
   "external_module_validation": {
