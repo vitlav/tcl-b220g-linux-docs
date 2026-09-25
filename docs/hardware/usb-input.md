@@ -83,3 +83,9 @@ Enable-state и IRQ-state — свойства проверенного DT. От
 OEM USB URS0 хранит память, дочерний USB0 — IRQ. Дополнительно нужны корректный IORT input ID, firmware parent и управление PHY/питанием. [Сопоставление ACPI/DT](../../research/acpi-audit/iort-mappings/usb-resources.md), задача [19530](https://bugs.etersoft.ru/19530).
 
 Работа DT USB не подтверждает ACPI USB. Фактическое обнаружение носителя и запись логов уже подтверждены для ACPI6. Для новых конфигураций эти проверки необходимо повторять.
+
+## Управление питанием USB через ACPI
+
+[Сопоставление IRQ, PDC и зависимостей питания](usb-acpi-pm.md) описывает
+текущий firmware handoff и подтверждённый запрет системного сна в драйвере.
+Работа USB host не означает готовности suspend/resume.
