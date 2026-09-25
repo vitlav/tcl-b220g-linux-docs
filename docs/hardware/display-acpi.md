@@ -1,5 +1,7 @@
 # Дисплей через ACPI: ресурсы и зависимости Linux
 
+Подтверждённое управление яркостью PM6150L, ресурсы SPMI и ограничения штатного backlight описаны в [отдельной спецификации подсветки ACPI](backlight-acpi.md).
+
 **Текущее подтверждение:** Ubuntu 26.04.1 LTS и ALT Linux на ACPI с ядром `7.2.4-tcl-acpi-display1+`, нативный framebuffer `msm-kmsdrmfb`, Weston/Wayland и Adreno. Исходники включены в [ACPI-серию](../../patches/kernel/acpi/README.md). Аппаратное декодирование видео оценивается отдельно от GPU-вывода.
 
 Полноэкранный OpenGL-тест `glmark2-wayland` на ALT Linux определил freedreno FD618, OpenGL 4.6 и завершился со скоростью 363 FPS и итоговым score 362 при 1920×1080. Ошибок GPU в журнале ядра и перезапуска Weston во время этого теста не было.
