@@ -78,6 +78,12 @@ Enable-state и IRQ-state — свойства проверенного DT. От
 
 Встроенные клавиатура и тачпад используют I²C, поэтому работа USB сама по себе не обеспечивает ввод.
 
+### ACPI: встроенные клавиатура и тачпад
+
+На `7.2.4-tcl-acpi-usbpm1+` (Image SHA256 `e706e46fcbf59c8f453902b8cb905c68652d9bb21edcc5d013d5fc836dc3a812`, boot `79929b6c-eda7-4cf0-975a-4899fb683243`) оба устройства ACPI `QTEC0001:00` и `QTEC0002:00` привязались к `i2c_hid_acpi` и создали input event devices. Клавиатура использует TLMM GPIO33/IRQ171, тачпад GPIO94/IRQ172; для обоих устройств `power/wakeup=enabled`. Ошибок преобразования GPIO в IRQ при этой загрузке не было. Безопасный `pm_test=devices` завершился, IRQ остались зарегистрированы.
+
+Это подтверждает probe и регистрацию IRQ на ACPI-загрузке. Физический ввод после этой загрузки и пробуждение из реального system suspend ещё не подтверждены; полный suspend/wake остаётся незакрытым.
+
 ## ACPI и диагностика
 
 OEM USB URS0 хранит память, дочерний USB0 — IRQ. Дополнительно нужны корректный IORT input ID, firmware parent и управление PHY/питанием. [Сопоставление ACPI/DT](../../research/acpi-audit/iort-mappings/usb-resources.md), задача [19530](https://bugs.etersoft.ru/19530).
