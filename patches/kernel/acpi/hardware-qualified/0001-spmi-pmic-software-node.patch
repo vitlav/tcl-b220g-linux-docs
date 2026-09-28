@@ -1,0 +1,304 @@
+Subject: [PATCH] spmi: mfd: support PMIC peripherals on software nodes
+
+Allow explicitly opted-in SPMI drivers to match compatible properties on
+software nodes, add typed controller-child lookup helpers, and let the Qualcomm
+SPMI PMIC MFD resolve base USIDs and revision data through software nodes.
+OF matching and probe behavior remain supported.
+
+This change is built and hardware-tested with the TCL B220G ACPI adapter.
+It does not by itself provide a board description or enable PWM writes.
+
+diff --git a/drivers/spmi/spmi.c b/drivers/spmi/spmi.c
+--- a/drivers/spmi/spmi.c
++++ b/drivers/spmi/spmi.c
+@@ -12,6 +12,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/spmi.h>
+ #include <linux/pm_runtime.h>
++#include <linux/property.h>
+ 
+ #include <dt-bindings/spmi/spmi.h>
+ #define CREATE_TRACE_POINTS
+@@ -45,8 +46,23 @@
+ 
+ static int spmi_device_match(struct device *dev, const struct device_driver *drv)
+ {
++	const struct spmi_driver *sdrv = container_of_const(drv, struct spmi_driver, driver);
++	const struct of_device_id *id;
++
++	if (dev->type != &spmi_dev_type)
++		return 0;
+ 	if (of_driver_match_device(dev, drv))
+ 		return 1;
++
++	/* OF-only drivers must not receive a software-node device by accident. */
++	if (is_software_node(dev_fwnode(dev))) {
++		if (!sdrv->use_software_node_match || !drv->of_match_table)
++			return 0;
++		for (id = drv->of_match_table; id->compatible[0]; id++)
++			if (device_is_compatible(dev, id->compatible))
++				return 1;
++		return 0;
++	}
+ 
+ 	if (drv->name)
+ 		return strncmp(dev_name(dev), drv->name,
+@@ -407,6 +423,56 @@
+ }
+ EXPORT_SYMBOL_GPL(spmi_find_device_by_of_node);
+ 
++static int spmi_match_controller(struct device *dev, const void *data)
++{
++	return dev->type == &spmi_ctrl_type;
++}
++
++/**
++ * spmi_find_controller_by_parent() - find a controller below its transport
++ * @parent: transport device owning a single SPMI controller
++ *
++ * Return: referenced controller, or NULL. Release with spmi_controller_put().
++ * Transports with multiple controllers must not use this helper.
++ */
++struct spmi_controller *spmi_find_controller_by_parent(struct device *parent)
++{
++	struct device *dev;
++
++	if (!parent)
++		return NULL;
++	dev = device_find_child(parent, NULL, spmi_match_controller);
++	return dev ? to_spmi_controller(dev) : NULL;
++}
++EXPORT_SYMBOL_GPL(spmi_find_controller_by_parent);
++
++static int spmi_match_usid(struct device *dev, const void *data)
++{
++	const u8 *usid = data;
++
++	return dev->type == &spmi_dev_type && to_spmi_device(dev)->usid == *usid;
++}
++
++/**
++ * spmi_find_device_by_usid() - find a peripheral on a specific controller
++ * @ctrl: controller owning the peripheral
++ * @usid: slave identifier
++ *
++ * Return: referenced peripheral, or NULL if absent or invalid. The caller
++ * must release the reference with spmi_device_put().
++ */
++struct spmi_device *spmi_find_device_by_usid(struct spmi_controller *ctrl, u8 usid)
++{
++	struct device *dev;
++
++	if (!ctrl || ctrl->dev.type != &spmi_ctrl_type || usid >= SPMI_MAX_SLAVE_ID)
++		return NULL;
++	dev = device_find_child(&ctrl->dev, &usid, spmi_match_usid);
++	return dev ? to_spmi_device(dev) : NULL;
++}
++EXPORT_SYMBOL_GPL(spmi_find_device_by_usid);
++
++
+ /**
+  * spmi_device_alloc() - Allocate a new SPMI device
+  * @ctrl:	associated controller
+diff --git a/include/linux/spmi.h b/include/linux/spmi.h
+--- a/include/linux/spmi.h
++++ b/include/linux/spmi.h
+@@ -58,6 +58,7 @@
+ }
+ 
+ struct spmi_device *spmi_device_alloc(struct spmi_controller *ctrl);
++struct spmi_device *spmi_find_device_by_usid(struct spmi_controller *ctrl, u8 usid);
+ 
+ static inline void spmi_device_put(struct spmi_device *sdev)
+ {
+@@ -119,6 +120,8 @@
+ 		put_device(&ctrl->dev);
+ }
+ 
++struct spmi_controller *spmi_find_controller_by_parent(struct device *parent);
++
+ int spmi_controller_add(struct spmi_controller *ctrl);
+ void spmi_controller_remove(struct spmi_controller *ctrl);
+ 
+@@ -129,6 +132,7 @@
+  * struct spmi_driver - SPMI slave device driver
+  * @driver:	SPMI device drivers should initialize name and owner field of
+  *		this structure.
++ * @use_software_node_match: opt in to compatible matching for software nodes
+  * @probe:	binds this driver to a SPMI device.
+  * @remove:	unbinds this driver from the SPMI device.
+  * @shutdown:	shuts down this driver.
+@@ -142,6 +146,7 @@
+  */
+ struct spmi_driver {
+ 	struct device_driver driver;
++	bool use_software_node_match;
+ 	int	(*probe)(struct spmi_device *sdev);
+ 	void	(*remove)(struct spmi_device *sdev);
+ 	void	(*shutdown)(struct spmi_device *sdev);
+diff --git a/drivers/mfd/qcom-spmi-pmic.c b/drivers/mfd/qcom-spmi-pmic.c
+--- a/drivers/mfd/qcom-spmi-pmic.c
++++ b/drivers/mfd/qcom-spmi-pmic.c
+@@ -10,6 +10,7 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/property.h>
+ #include <linux/of_platform.h>
+ #include <linux/spmi.h>
+ #include <linux/types.h>
+@@ -33,6 +34,7 @@
+ };
+ 
+ static DEFINE_MUTEX(pmic_spmi_revid_lock);
++static struct spmi_driver pmic_spmi_driver;
+ 
+ #define N_USIDS(n)		((void *)n)
+ 
+@@ -71,6 +73,29 @@
+ 	{ }
+ };
+ 
++static const struct of_device_id *pmic_spmi_match(struct device *dev)
++{
++	const struct of_device_id *id, *best = NULL;
++	int index, best_index = INT_MAX;
++
++	if (!dev)
++		return NULL;
++	if (dev_of_node(dev))
++		return of_match_device(pmic_spmi_id_table, dev);
++	if (!is_software_node(dev_fwnode(dev)))
++		return NULL;
++
++	/* Respect compatible preference, including a generic fallback. */
++	for (id = pmic_spmi_id_table; id->compatible[0]; id++) {
++		index = device_property_match_string(dev, "compatible", id->compatible);
++		if (index >= 0 && index < best_index) {
++			best = id;
++			best_index = index;
++		}
++	}
++	return best;
++}
++
+ /*
+  * A PMIC can be represented by multiple SPMI devices, but
+  * only the base PMIC device will contain a reference to
+@@ -96,6 +121,20 @@
+ 		return sdev;
+ 	}
+ 
++	if (!dev_of_node(&sdev->dev)) {
++		struct spmi_device *base;
++
++		base = spmi_find_device_by_usid(sdev->ctrl,
++					      sdev->usid - (ctx->num_usids - 1));
++		if (!base)
++			return ERR_PTR(-EPROBE_DEFER);
++		if (pmic_spmi_match(&base->dev) != pmic_spmi_match(&sdev->dev)) {
++			spmi_device_put(base);
++			return ERR_PTR(-EINVAL);
++		}
++		return base;
++	}
++
+ 	function_parent_usid = sdev->usid;
+ 
+ 	/*
+@@ -148,7 +187,7 @@
+ 	 */
+ 	mutex_lock(&pmic_spmi_revid_lock);
+ 	base_ctx = spmi_device_get_drvdata(base);
+-	if (!base_ctx) {
++	if (base->dev.driver != sdev->dev.driver || !base_ctx) {
+ 		ret = -EPROBE_DEFER;
+ 		goto out_unlock;
+ 	}
+@@ -164,20 +203,24 @@
+ static int pmic_spmi_load_revid(struct regmap *map, struct device *dev,
+ 				 struct qcom_spmi_pmic *pmic)
+ {
++	const struct of_device_id *match = pmic_spmi_match(dev);
+ 	int ret;
+ 
++	if (!match)
++		return -EINVAL;
++
+ 	ret = regmap_read(map, PMIC_TYPE, &pmic->type);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	if (pmic->type != PMIC_TYPE_VALUE)
+-		return ret;
++		return -ENODEV;
+ 
+ 	ret = regmap_read(map, PMIC_SUBTYPE, &pmic->subtype);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	pmic->name = of_match_device(pmic_spmi_id_table, dev)->compatible;
++	pmic->name = match->compatible;
+ 
+ 	ret = regmap_read(map, PMIC_REV2, &pmic->rev2);
+ 	if (ret < 0)
+@@ -233,11 +276,15 @@
+ 	/*
+ 	 * Make sure the device is actually a child of a PMIC
+ 	 */
+-	if (!of_match_device(pmic_spmi_id_table, dev->parent))
++	if (!pmic_spmi_match(dev->parent))
+ 		return ERR_PTR(-EINVAL);
++	if (dev->parent->driver != &pmic_spmi_driver.driver)
++		return ERR_PTR(-EPROBE_DEFER);
+ 
+ 	sdev = to_spmi_device(dev->parent);
+ 	spmi = dev_get_drvdata(&sdev->dev);
++	if (!spmi)
++		return ERR_PTR(-EPROBE_DEFER);
+ 
+ 	return &spmi->pmic;
+ }
+@@ -252,10 +299,16 @@
+ 
+ static int pmic_spmi_probe(struct spmi_device *sdev)
+ {
++	const struct of_device_id *match = pmic_spmi_match(&sdev->dev);
+ 	struct regmap *regmap;
+ 	struct qcom_spmi_dev *ctx;
+ 	int ret;
+ 
++	if (!match || ((uintptr_t)match->data != 1 && (uintptr_t)match->data != 2))
++		return -EINVAL;
++	if (!dev_of_node(&sdev->dev) && device_get_child_node_count(&sdev->dev))
++		return -EOPNOTSUPP;
++
+ 	regmap = devm_regmap_init_spmi_ext(sdev, &spmi_regmap_config);
+ 	if (IS_ERR(regmap))
+ 		return PTR_ERR(regmap);
+@@ -264,7 +317,7 @@
+ 	if (!ctx)
+ 		return -ENOMEM;
+ 
+-	ctx->num_usids = (uintptr_t)device_get_match_data(&sdev->dev);
++	ctx->num_usids = (uintptr_t)match->data;
+ 
+ 	/* Only the first slave id for a PMIC contains this information */
+ 	if (sdev->usid % ctx->num_usids == 0) {
+@@ -281,7 +334,7 @@
+ 	spmi_device_set_drvdata(sdev, ctx);
+ 	mutex_unlock(&pmic_spmi_revid_lock);
+ 
+-	return devm_of_platform_populate(&sdev->dev);
++	return dev_of_node(&sdev->dev) ? devm_of_platform_populate(&sdev->dev) : 0;
+ }
+ 
+ static void pmic_spmi_remove(struct spmi_device *sdev)
+@@ -294,6 +347,7 @@
+ MODULE_DEVICE_TABLE(of, pmic_spmi_id_table);
+ 
+ static struct spmi_driver pmic_spmi_driver = {
++	.use_software_node_match = true,
+ 	.probe = pmic_spmi_probe,
+ 	.remove = pmic_spmi_remove,
+ 	.driver = {
