@@ -80,9 +80,16 @@ Enable-state и IRQ-state — свойства проверенного DT. От
 
 ### ACPI: встроенные клавиатура и тачпад
 
-На `7.2.4-tcl-acpi-usbpm1+` (Image SHA256 `e706e46fcbf59c8f453902b8cb905c68652d9bb21edcc5d013d5fc836dc3a812`, boot `79929b6c-eda7-4cf0-975a-4899fb683243`) оба устройства ACPI `QTEC0001:00` и `QTEC0002:00` привязались к `i2c_hid_acpi` и создали input event devices. Клавиатура использует TLMM GPIO33/IRQ171, тачпад GPIO94/IRQ172; для обоих устройств `power/wakeup=enabled`. Ошибок преобразования GPIO в IRQ при этой загрузке не было. Безопасный `pm_test=devices` завершился, IRQ остались зарегистрированы.
+На `7.2.4-tcl-acpi-usbpm1+` (Image SHA256 `46c89767961af83ca059b90cc6da8a0e6468d88e82c9ca701ec73ebee12d3db7`, boot `27ed37a4-e2aa-44d1-9a19-23e2ba09509e`, 2026-09-28) оба ACPI-устройства `QTEC0001:00` и `QTEC0002:00` привязались к `i2c_hid_acpi` и зарегистрировали input event devices. Встроенный GPIO IRQ-домен сохраняет ACPI fwnode и динамически переводит двухпараметрический GPIO IRQ specifier.
 
-Это подтверждает probe и регистрацию IRQ на ACPI-загрузке. Физический ввод после этой загрузки и пробуждение из реального system suspend ещё не подтверждены; полный suspend/wake остаётся незакрытым.
+| Устройство | TLMM GPIO | Linux IRQ | IRQ chip / hwirq | `power/wakeup` |
+|---|---:|---:|---|---|
+| Клавиатура `QTEC0001:00` | 33 | 153 | `msmgpio` / 33 | enabled |
+| Тачпад `QTEC0002:00` | 94 | 152 | `msmgpio` / 94 | enabled |
+
+Оба устройства видны в `/proc/bus/input/devices`; в журнале этой загрузки нет ошибки перевода GPIO в IRQ и предупреждения gpiolib о неизвестном типе fwnode. Проверка Niri через скриншот подтвердила вывод на встроенную панель eDP в режиме 1920×1080 при 59.999 Гц.
+
+Подтверждены ACPI probe, IRQ mapping, wakeup attributes и регистрация input devices. Отдельное физическое нажатие клавиш/движение тачпада после этой загрузки и пробуждение из реального system suspend не проверены. Реальный suspend/wake остаётся незакрытым; предыдущий успешный `pm_test=devices` выполнялся на более раннем Image `e706e46f...`, а на этом Image не повторялся.
 
 ## ACPI и диагностика
 
